@@ -24,6 +24,16 @@ function buildQueryString(params: Record<string, string | number | undefined | n
   return queryParams.toString()
 }
 
+function normalizeId(value: unknown): string {
+  if (typeof value === "string") return value
+  if (value && typeof value === "object") {
+    const record = value as { _id?: unknown; id?: unknown }
+    if (typeof record._id === "string") return record._id
+    if (typeof record.id === "string") return record.id
+  }
+  return String(value ?? "")
+}
+
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getAuthToken()
 
@@ -128,8 +138,10 @@ export const api = {
   modifier: {
     listGroups: (storeId: string, page = 1, limit = 10) =>
       apiRequest<any>(`/modifier-group?${buildQueryString({ storeId, page, limit })}`),
-    listByGroup: (modifierGroupId: string, page = 1, limit = 10) =>
-      apiRequest<any>(`/modifier?${buildQueryString({ page, limit, modifierGroupId })}`),
+    listByGroup: (modifierGroupId: string | { _id?: string; id?: string }, page = 1, limit = 10) =>
+      apiRequest<any>(
+        `/modifier?${buildQueryString({ page, limit, modifierGroupId: normalizeId(modifierGroupId) })}`,
+      ),
   },
 
   order: {

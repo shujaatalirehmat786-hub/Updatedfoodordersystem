@@ -4,9 +4,6 @@ import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 import { api } from "@/lib/api"
 import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
@@ -16,8 +13,6 @@ export default function ProductDetailPage() {
   const params = useParams()
   const router = useRouter()
   const [product, setProduct] = useState<any>(null)
-  const [modifierGroups, setModifierGroups] = useState<any[]>([])
-  const [selectedModifiers, setSelectedModifiers] = useState<any[]>([])
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
   const { addToCart } = useCart()
@@ -33,11 +28,6 @@ export default function ProductDetailPage() {
       const response = await api.product.getById(params.id as string)
       const productData = response.data || response
       setProduct(productData)
-
-      // Load modifiers if product has modifier groups
-      if (productData.modifierGroups?.length > 0) {
-        await loadModifiers(productData.modifierGroups)
-      }
     } catch (error) {
       console.error("[v0] Error loading product:", error)
       toast({
@@ -50,29 +40,9 @@ export default function ProductDetailPage() {
     }
   }
 
-  const loadModifiers = async (groupIds: string[]) => {
-    try {
-      const modifierPromises = groupIds.map((groupId) => api.modifier.listByGroup(groupId, 1, 50))
-      const responses = await Promise.all(modifierPromises)
-      const modifierData = responses.map((res) => res.data || res)
-      setModifierGroups(modifierData)
-    } catch (error) {
-      console.error("[v0] Error loading modifiers:", error)
-    }
-  }
-
-  const handleModifierChange = (modifier: any, checked: boolean) => {
-    if (checked) {
-      setSelectedModifiers([...selectedModifiers, modifier])
-    } else {
-      setSelectedModifiers(selectedModifiers.filter((m) => m._id !== modifier._id))
-    }
-  }
-
   const calculateTotal = () => {
     const basePrice = Number(product.price) * quantity
-    const modifierPrice = selectedModifiers.reduce((sum, mod) => sum + Number(mod.price), 0) * quantity
-    return basePrice + modifierPrice
+    return basePrice
   }
 
   const handleAddToCart = () => {
@@ -84,11 +54,6 @@ export default function ProductDetailPage() {
       name: product.name,
       price: product.price,
       quantity,
-      modifiers: selectedModifiers.map((mod) => ({
-        modifierId: mod._id,
-        name: mod.name,
-        price: mod.price,
-      })),
       image: product.image,
       subTotal: total,
       tax: total * TAX_RATE,
@@ -152,35 +117,6 @@ export default function ProductDetailPage() {
               {product.description && <p className="mt-2 text-muted-foreground">{product.description}</p>}
               <p className="mt-4 text-3xl font-bold text-primary">${Number(product.price).toFixed(2)}</p>
             </div>
-
-            {/* Modifiers */}
-            {modifierGroups.length > 0 && (
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold">Customize Your Order</h2>
-                {modifierGroups.map((group) => (
-                  <Card key={group._id} className="p-4">
-                    <h3 className="mb-3 font-medium">{group.name}</h3>
-                    <div className="space-y-2">
-                      {group.modifiers?.map((modifier: any) => (
-                        <div key={modifier._id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={modifier._id}
-                            onCheckedChange={(checked) => handleModifierChange(modifier, checked as boolean)}
-                          />
-                          <Label
-                            htmlFor={modifier._id}
-                            className="flex flex-1 cursor-pointer items-center justify-between"
-                          >
-                            <span>{modifier.name}</span>
-                            <span className="text-muted-foreground">${Number(modifier.price).toFixed(2)}</span>
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
 
             {/* Quantity */}
             <div className="flex items-center space-x-4">

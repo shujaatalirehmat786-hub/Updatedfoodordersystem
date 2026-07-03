@@ -398,6 +398,15 @@ function buildQueryString(params) {
     }
     return queryParams.toString();
 }
+function normalizeId(value) {
+    if (typeof value === "string") return value;
+    if (value && typeof value === "object") {
+        const record = value;
+        if (typeof record._id === "string") return record._id;
+        if (typeof record.id === "string") return record.id;
+    }
+    return String(value ?? "");
+}
 async function apiRequest(endpoint, options = {}) {
     const token = getAuthToken();
     const headers = {
@@ -495,7 +504,7 @@ const api = {
         listByGroup: (modifierGroupId, page = 1, limit = 10)=>apiRequest(`/modifier?${buildQueryString({
                 page,
                 limit,
-                modifierGroupId
+                modifierGroupId: normalizeId(modifierGroupId)
             })}`)
     },
     order: {
@@ -2986,12 +2995,31 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
     const [quantity, setQuantity] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(1);
     const [selectedVariation, setSelectedVariation] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const [specialInstructions, setSpecialInstructions] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
-    const [unavailableAction, setUnavailableAction] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("remove");
     const [modifierGroups, setModifierGroups] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [selectedModifiers, setSelectedModifiers] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const { addToCart } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$cart$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCart"])();
     const { toast } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useToast"])();
+    const getId = (value)=>{
+        if (typeof value === "string") return value;
+        if (value && typeof value === "object") {
+            const record = value;
+            if (typeof record._id === "string") return record._id;
+            if (typeof record.id === "string") return record.id;
+        }
+        return "";
+    };
+    const getKey = (value, fallback)=>{
+        const id = getId(value);
+        return id || fallback;
+    };
+    const extractModifiers = (response)=>{
+        const payload = response?.data ?? response;
+        if (Array.isArray(payload)) return payload;
+        if (Array.isArray(payload?.modifiers)) return payload.modifiers;
+        if (Array.isArray(payload?.data)) return payload.data;
+        return [];
+    };
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "ProductOrderDialog.useEffect": ()=>{
             if (open && product) {
@@ -2999,7 +3027,6 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                 setQuantity(1);
                 setSelectedVariation("");
                 setSpecialInstructions("");
-                setUnavailableAction("remove");
                 setSelectedModifiers([]);
                 // Load full product details to get modifier groups
                 loadProductDetails();
@@ -3030,12 +3057,19 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
             setLoading(false);
         }
     };
-    const loadModifiers = async (groupIds)=>{
+    const loadModifiers = async (groupRefs)=>{
         try {
             setLoading(true);
-            const modifierPromises = groupIds.map((groupId)=>__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["api"].modifier.listByGroup(groupId, 1, 50));
-            const responses = await Promise.all(modifierPromises);
-            const modifierData = responses.map((res)=>res.data || res);
+            const groups = groupRefs.map((groupRef)=>({
+                    id: getId(groupRef),
+                    name: typeof groupRef === "object" && groupRef ? groupRef.name || groupRef.title || "" : ""
+                })).filter((group)=>group.id);
+            const responses = await Promise.all(groups.map((group)=>__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["api"].modifier.listByGroup(group.id, 1, 50)));
+            const modifierData = responses.map((res, index)=>({
+                    _id: groups[index]?.id,
+                    name: groups[index]?.name || `Modifiers ${index + 1}`,
+                    modifiers: extractModifiers(res)
+                })).filter((group)=>group.modifiers.length > 0);
             setModifierGroups(modifierData);
         } catch (error) {
             console.error("Error loading modifiers:", error);
@@ -3089,8 +3123,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
             subTotal: total,
             tax: total * TAX_RATE,
             discount: 0,
-            specialInstructions,
-            unavailableAction
+            specialInstructions
         };
         addToCart(cartItem);
         toast({
@@ -3121,7 +3154,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                             className: "h-full w-full object-cover"
                         }, void 0, false, {
                             fileName: "[project]/components/product-order-dialog.tsx",
-                            lineNumber: 164,
+                            lineNumber: 199,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -3133,18 +3166,18 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                 className: "h-5 w-5"
                             }, void 0, false, {
                                 fileName: "[project]/components/product-order-dialog.tsx",
-                                lineNumber: 175,
+                                lineNumber: 210,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/product-order-dialog.tsx",
-                            lineNumber: 169,
+                            lineNumber: 204,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/product-order-dialog.tsx",
-                    lineNumber: 163,
+                    lineNumber: 198,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3158,7 +3191,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                     children: dialogTitle
                                 }, void 0, false, {
                                     fileName: "[project]/components/product-order-dialog.tsx",
-                                    lineNumber: 181,
+                                    lineNumber: 216,
                                     columnNumber: 13
                                 }, this),
                                 !loading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -3174,7 +3207,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/product-order-dialog.tsx",
-                                                    lineNumber: 192,
+                                                    lineNumber: 227,
                                                     columnNumber: 19
                                                 }, this),
                                                 discount > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -3187,7 +3220,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/product-order-dialog.tsx",
-                                                            lineNumber: 197,
+                                                            lineNumber: 232,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3198,7 +3231,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/product-order-dialog.tsx",
-                                                            lineNumber: 200,
+                                                            lineNumber: 235,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
@@ -3206,7 +3239,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/product-order-dialog.tsx",
-                                            lineNumber: 191,
+                                            lineNumber: 226,
                                             columnNumber: 17
                                         }, this),
                                         displayProduct.description && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogDescription"], {
@@ -3214,7 +3247,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                             children: displayProduct.description
                                         }, void 0, false, {
                                             fileName: "[project]/components/product-order-dialog.tsx",
-                                            lineNumber: 207,
+                                            lineNumber: 242,
                                             columnNumber: 19
                                         }, this)
                                     ]
@@ -3222,7 +3255,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/product-order-dialog.tsx",
-                            lineNumber: 180,
+                            lineNumber: 215,
                             columnNumber: 11
                         }, this),
                         loading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3231,18 +3264,18 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                 className: "h-8 w-8 animate-spin rounded-full border-4 border-orange-600 border-t-transparent"
                             }, void 0, false, {
                                 fileName: "[project]/components/product-order-dialog.tsx",
-                                lineNumber: 217,
+                                lineNumber: 252,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/product-order-dialog.tsx",
-                            lineNumber: 216,
+                            lineNumber: 251,
                             columnNumber: 13
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
                             children: [
-                                modifierGroups.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                modifierGroups.some((group)=>group.modifiers?.length > 0) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "mt-6 space-y-4",
-                                    children: modifierGroups.map((group)=>{
+                                    children: modifierGroups.map((group, groupIndex)=>{
                                         const isRequired = group.required || group.selectType === "single";
                                         const isVariation = group.name?.toLowerCase().includes("variation") || isRequired;
                                         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3256,7 +3289,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                             children: group.name
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/product-order-dialog.tsx",
-                                                            lineNumber: 232,
+                                                            lineNumber: 267,
                                                             columnNumber: 27
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3264,13 +3297,13 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                             children: isRequired ? "Required" : "Optional"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/product-order-dialog.tsx",
-                                                            lineNumber: 235,
+                                                            lineNumber: 270,
                                                             columnNumber: 27
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/product-order-dialog.tsx",
-                                                    lineNumber: 231,
+                                                    lineNumber: 266,
                                                     columnNumber: 25
                                                 }, this),
                                                 group.modifiers && group.modifiers.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -3279,7 +3312,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                         value: selectedVariation,
                                                         onValueChange: setSelectedVariation,
                                                         className: "space-y-3",
-                                                        children: group.modifiers.map((modifier)=>{
+                                                        children: group.modifiers.map((modifier, modifierIndex)=>{
                                                             const modPrice = Number(modifier.price || 0);
                                                             const modTotal = basePrice + modPrice;
                                                             return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3293,7 +3326,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                                                 id: modifier._id
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/components/product-order-dialog.tsx",
-                                                                                lineNumber: 257,
+                                                                                lineNumber: 292,
                                                                                 columnNumber: 41
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
@@ -3302,13 +3335,13 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                                                 children: modifier.name
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/components/product-order-dialog.tsx",
-                                                                                lineNumber: 258,
+                                                                                lineNumber: 293,
                                                                                 columnNumber: 41
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/components/product-order-dialog.tsx",
-                                                                        lineNumber: 256,
+                                                                        lineNumber: 291,
                                                                         columnNumber: 39
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3322,7 +3355,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/components/product-order-dialog.tsx",
-                                                                                lineNumber: 266,
+                                                                                lineNumber: 301,
                                                                                 columnNumber: 41
                                                                             }, this),
                                                                             modPrice > 0 && originalPrice > basePrice && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3333,30 +3366,30 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/components/product-order-dialog.tsx",
-                                                                                lineNumber: 270,
+                                                                                lineNumber: 305,
                                                                                 columnNumber: 43
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/components/product-order-dialog.tsx",
-                                                                        lineNumber: 265,
+                                                                        lineNumber: 300,
                                                                         columnNumber: 39
                                                                     }, this)
                                                                 ]
-                                                            }, modifier._id, true, {
+                                                            }, getKey(modifier, `modifier-${groupIndex}-${modifierIndex}`), true, {
                                                                 fileName: "[project]/components/product-order-dialog.tsx",
-                                                                lineNumber: 252,
+                                                                lineNumber: 287,
                                                                 columnNumber: 37
                                                             }, this);
                                                         })
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/product-order-dialog.tsx",
-                                                        lineNumber: 243,
+                                                        lineNumber: 278,
                                                         columnNumber: 31
                                                     }, this) : // Checkboxes for add-ons (multi select)
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "space-y-3",
-                                                        children: group.modifiers.map((modifier)=>{
+                                                        children: group.modifiers.map((modifier, modifierIndex)=>{
                                                             const modPrice = Number(modifier.price || 0);
                                                             const isSelected = selectedModifiers.some((m)=>m._id === modifier._id);
                                                             return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3380,7 +3413,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                                                 }
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/components/product-order-dialog.tsx",
-                                                                                lineNumber: 291,
+                                                                                lineNumber: 326,
                                                                                 columnNumber: 41
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
@@ -3389,13 +3422,13 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                                                 children: modifier.name
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/components/product-order-dialog.tsx",
-                                                                                lineNumber: 302,
+                                                                                lineNumber: 337,
                                                                                 columnNumber: 41
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/components/product-order-dialog.tsx",
-                                                                        lineNumber: 290,
+                                                                        lineNumber: 325,
                                                                         columnNumber: 39
                                                                     }, this),
                                                                     modPrice > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3406,32 +3439,32 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/components/product-order-dialog.tsx",
-                                                                        lineNumber: 310,
+                                                                        lineNumber: 345,
                                                                         columnNumber: 41
                                                                     }, this)
                                                                 ]
-                                                            }, modifier._id, true, {
+                                                            }, getKey(modifier, `modifier-${groupIndex}-${modifierIndex}`), true, {
                                                                 fileName: "[project]/components/product-order-dialog.tsx",
-                                                                lineNumber: 286,
+                                                                lineNumber: 321,
                                                                 columnNumber: 37
                                                             }, this);
                                                         })
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/product-order-dialog.tsx",
-                                                        lineNumber: 281,
+                                                        lineNumber: 316,
                                                         columnNumber: 31
                                                     }, this)
                                                 }, void 0, false)
                                             ]
-                                        }, group._id, true, {
+                                        }, getKey(group, `group-${groupIndex}`), true, {
                                             fileName: "[project]/components/product-order-dialog.tsx",
-                                            lineNumber: 230,
+                                            lineNumber: 265,
                                             columnNumber: 23
                                         }, this);
                                     })
                                 }, void 0, false, {
                                     fileName: "[project]/components/product-order-dialog.tsx",
-                                    lineNumber: 224,
+                                    lineNumber: 259,
                                     columnNumber: 17
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3442,7 +3475,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                             children: "Special instructions"
                                         }, void 0, false, {
                                             fileName: "[project]/components/product-order-dialog.tsx",
-                                            lineNumber: 329,
+                                            lineNumber: 364,
                                             columnNumber: 13
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3450,7 +3483,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                             children: "Special requests are subject to the restaurant's approval. Tell us here!"
                                         }, void 0, false, {
                                             fileName: "[project]/components/product-order-dialog.tsx",
-                                            lineNumber: 332,
+                                            lineNumber: 367,
                                             columnNumber: 13
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -3460,65 +3493,13 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                             className: "w-full"
                                         }, void 0, false, {
                                             fileName: "[project]/components/product-order-dialog.tsx",
-                                            lineNumber: 335,
+                                            lineNumber: 370,
                                             columnNumber: 13
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/product-order-dialog.tsx",
-                                    lineNumber: 328,
-                                    columnNumber: 11
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "mt-6",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
-                                            className: "mb-2 block text-base font-semibold text-gray-900 dark:text-white",
-                                            children: "If this item is not available"
-                                        }, void 0, false, {
-                                            fileName: "[project]/components/product-order-dialog.tsx",
-                                            lineNumber: 345,
-                                            columnNumber: 13
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
-                                            value: unavailableAction,
-                                            onChange: (e)=>setUnavailableAction(e.target.value),
-                                            className: "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white",
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
-                                                    value: "remove",
-                                                    children: "Remove it from my order"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/components/product-order-dialog.tsx",
-                                                    lineNumber: 353,
-                                                    columnNumber: 15
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
-                                                    value: "replace",
-                                                    children: "Replace with similar item"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/components/product-order-dialog.tsx",
-                                                    lineNumber: 354,
-                                                    columnNumber: 15
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
-                                                    value: "cancel",
-                                                    children: "Cancel my order"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/components/product-order-dialog.tsx",
-                                                    lineNumber: 355,
-                                                    columnNumber: 15
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/components/product-order-dialog.tsx",
-                                            lineNumber: 348,
-                                            columnNumber: 13
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/components/product-order-dialog.tsx",
-                                    lineNumber: 344,
+                                    lineNumber: 363,
                                     columnNumber: 11
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3537,12 +3518,12 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                         className: "h-4 w-4"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/product-order-dialog.tsx",
-                                                        lineNumber: 369,
+                                                        lineNumber: 388,
                                                         columnNumber: 17
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/product-order-dialog.tsx",
-                                                    lineNumber: 362,
+                                                    lineNumber: 381,
                                                     columnNumber: 15
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3550,7 +3531,7 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                     children: quantity
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/product-order-dialog.tsx",
-                                                    lineNumber: 371,
+                                                    lineNumber: 390,
                                                     columnNumber: 15
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -3562,18 +3543,18 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                                         className: "h-4 w-4"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/product-order-dialog.tsx",
-                                                        lineNumber: 378,
+                                                        lineNumber: 397,
                                                         columnNumber: 17
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/product-order-dialog.tsx",
-                                                    lineNumber: 372,
+                                                    lineNumber: 391,
                                                     columnNumber: 15
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/product-order-dialog.tsx",
-                                            lineNumber: 361,
+                                            lineNumber: 380,
                                             columnNumber: 13
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -3585,13 +3566,13 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/product-order-dialog.tsx",
-                                            lineNumber: 381,
+                                            lineNumber: 400,
                                             columnNumber: 13
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/product-order-dialog.tsx",
-                                    lineNumber: 360,
+                                    lineNumber: 379,
                                     columnNumber: 15
                                 }, this)
                             ]
@@ -3599,22 +3580,22 @@ function ProductOrderDialog({ product, open, onOpenChange }) {
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/product-order-dialog.tsx",
-                    lineNumber: 179,
+                    lineNumber: 214,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/product-order-dialog.tsx",
-            lineNumber: 158,
+            lineNumber: 193,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/product-order-dialog.tsx",
-        lineNumber: 157,
+        lineNumber: 192,
         columnNumber: 5
     }, this);
 }
-_s(ProductOrderDialog, "/t9yHUqS6F/MD4DI2lj7aZT1mKA=", false, function() {
+_s(ProductOrderDialog, "E9i/VeBLyrdaVbUSP8CYUn6wYw8=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$cart$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCart"],
         __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useToast"]
