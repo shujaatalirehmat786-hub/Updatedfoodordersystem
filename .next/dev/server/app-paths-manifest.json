@@ -1,7 +1,8 @@
 {
+  "/about/page": "app/about/page.js",
   "/api/online-order/[...path]/route": "app/api/online-order/[...path]/route.js",
   "/cart/page": "app/cart/page.js",
   "/categories/page": "app/categories/page.js",
-  "/page": "app/page.js",
-  "/product/[id]/page": "app/product/[id]/page.js"
+  "/contacts/page": "app/contacts/page.js",
+  "/page": "app/page.js"
 }

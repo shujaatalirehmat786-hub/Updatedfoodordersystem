@@ -463,61 +463,92 @@ function HomePageContent() {
 
       </main>
       <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
-        <DialogContent className="w-[85vw] max-w-[900px] max-h-[85vh] overflow-hidden rounded-[20px] border-0 p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95">
+        <DialogContent className="w-[96vw] max-w-[1180px] max-h-[90vh] overflow-hidden rounded-[32px] border border-zinc-200 bg-zinc-50 p-0 text-zinc-950 shadow-[0_30px_120px_rgba(15,23,42,0.18)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95">
           <DialogTitle className="sr-only">{dialogDepartment?.name || "Category Items"}</DialogTitle>
-          <DialogHeader className="sticky top-0 z-10 border-b bg-background/95 px-6 py-4 text-left">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="text-2xl font-bold text-foreground">
-                  {dialogDepartment?.name || "Category Items"}
+          <div className="relative overflow-hidden bg-white">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.16),_transparent_36%),radial-gradient(circle_at_top_right,_rgba(253,224,71,0.14),_transparent_32%)]" />
+            <DialogHeader className="sticky top-0 z-10 border-b border-zinc-200/80 bg-white/90 px-5 py-5 text-left backdrop-blur-xl sm:px-8">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-3">
+                  <Badge className="inline-flex w-fit rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-orange-700 hover:bg-orange-50">
+                    Food Bundles
+                  </Badge>
+                  <div>
+                    <div className="text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
+                      {dialogDepartment?.name || "Category Items"}
+                    </div>
+                    <div className="mt-2 text-sm text-zinc-500">
+                      {dialogProducts.length} handpicked items available
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  {dialogProducts.length} items available
-                </div>
+                <DialogClose className="group flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950">
+                  <X className="h-5 w-5 transition-transform duration-200 group-hover:rotate-90" />
+                  <span className="sr-only">Close</span>
+                </DialogClose>
               </div>
-              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition hover:bg-gray-200">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-              </DialogClose>
-            </div>
-          </DialogHeader>
-          <div className="max-h-[calc(85vh-96px)] overflow-y-auto px-6 py-5">
+            </DialogHeader>
+          </div>
+
+          <div className="max-h-[calc(90vh-112px)] overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
             {dialogLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
               </div>
             ) : dialogProducts.length === 0 ? (
-              <Card className="py-10 text-center">
-                <Utensils className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
-                <p className="text-muted-foreground">No products found in this category.</p>
+              <Card className="border-zinc-200 bg-white py-12 text-center text-zinc-950 shadow-none">
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-orange-50 ring-1 ring-orange-100">
+                  <Utensils className="h-8 w-8 text-orange-500" />
+                </div>
+                <p className="text-lg font-medium">No products found in this category.</p>
+                <p className="mt-2 text-sm text-zinc-500">Try another bundle or check back later for new items.</p>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 pr-1">
                 {dialogProducts.map((product) => (
                   <div
                     key={product._id}
-                    className="flex flex-col gap-4 rounded-xl border border-border/40 bg-card p-4 shadow-sm transition hover:shadow-md sm:flex-row"
+                    className="group flex w-[340px] min-w-[340px] snap-start overflow-hidden rounded-[28px] border border-zinc-200 bg-white p-3 text-zinc-950 shadow-[0_10px_30px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(15,23,42,0.14)] sm:w-[390px] sm:min-w-[390px]"
                   >
-                    <div className="h-28 w-full overflow-hidden rounded-lg bg-muted sm:h-24 sm:w-28">
+                    <div className="relative aspect-[16/11] overflow-hidden rounded-[22px] bg-zinc-100">
                       <img
                         src={product.image || `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop&q=${encodeURIComponent(product.name)}`}
                         alt={product.name}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.03]"
                       />
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent" />
+                      <div className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-700 shadow-sm">
+                        Bundle
+                      </div>
                     </div>
-                    <div className="flex flex-1 flex-col gap-2">
-                      <div>
-                        <div className="text-lg font-semibold text-foreground">{product.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {Number(product.price).toFixed(2)} USD
+                    <div className="flex flex-1 flex-col gap-3 px-2 pb-2 pt-4">
+                      <div className="space-y-1">
+                        <div className="line-clamp-2 text-xl font-semibold leading-tight text-zinc-950">
+                          {product.name}
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-2xl font-semibold tracking-tight text-zinc-950">
+                            {Number(product.price).toFixed(2)}
+                            <span className="ml-1 text-sm font-medium text-zinc-500">USD</span>
+                          </div>
+                          <Badge className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50">
+                            Fresh pick
+                          </Badge>
                         </div>
                       </div>
                       {product.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
+                        <p className="line-clamp-3 text-sm leading-6 text-zinc-600">
+                          {product.description}
+                        </p>
                       )}
-                      <Button className="mt-auto w-full" onClick={() => handleAddToCart(product)}>
-                        Add to Cart
-                      </Button>
+                      <div className="pt-1">
+                        <Button
+                          className="h-9 w-fit rounded-full bg-gradient-to-r from-orange-500 to-amber-400 px-5 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 transition hover:from-orange-400 hover:to-amber-300"
+                          onClick={() => handleAddToCart(product)}
+                        >
+                          Add to Cart
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}

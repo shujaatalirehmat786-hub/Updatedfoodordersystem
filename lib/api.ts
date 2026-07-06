@@ -70,6 +70,73 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
   }
 }
 
+async function apiRequestOptional<T>(endpoint: string, options: RequestInit = {}): Promise<T | null> {
+  try {
+    const token = getAuthToken()
+
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      ...options.headers,
+    }
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`
+    }
+
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+    })
+
+    if (!response.ok) {
+      const responseText = await response.text().catch(() => "")
+      const contentType = response.headers.get("content-type") || ""
+
+      if (
+        response.status === 404 ||
+        responseText.includes("Cannot GET") ||
+        responseText.includes("Website not found for this subdomain") ||
+        contentType.includes("text/html")
+      ) {
+        return null
+      }
+
+      let errorMessage = `API Error: ${response.statusText}`
+      if (contentType.includes("application/json")) {
+        try {
+          const errorData = JSON.parse(responseText) as { error?: string; message?: string }
+          errorMessage =
+            typeof errorData.error === "string"
+              ? errorData.error
+              : typeof errorData.message === "string"
+                ? errorData.message
+                : errorMessage
+        } catch {
+          // keep fallback message
+        }
+      } else if (responseText) {
+        errorMessage = responseText
+      }
+
+      throw new Error(errorMessage)
+    }
+
+    return response.json()
+  } catch (error) {
+    throw error
+  }
+}
+
+async function apiRequestOptionalMulti<T>(endpoints: string[], options: RequestInit = {}): Promise<T | null> {
+  for (const endpoint of endpoints) {
+    const result = await apiRequestOptional<T>(endpoint, options)
+    if (result !== null) {
+      return result
+    }
+  }
+  return null
+}
+
 export const api = {
   auth: {
     login: (phone: string, store: string) =>
@@ -95,6 +162,14 @@ export const api = {
 
   store: {
     getBySubdomain: (hostname: string) => apiRequest<any>(`/store/by-subdomain?hostname=${encodeURIComponent(hostname)}`),
+    getBySubdomainOptional: (hostname: string) =>
+      apiRequestOptional<any>(`/store/by-subdomain?hostname=${encodeURIComponent(hostname)}`),
+    list: (params: { page?: number; limit?: number } = {}) =>
+      apiRequestOptionalMulti<any>([
+        `/store?${buildQueryString({ page: params.page ?? 1, limit: params.limit ?? 1000 })}`,
+        `/store/list?${buildQueryString({ page: params.page ?? 1, limit: params.limit ?? 1000 })}`,
+        `/store/all?${buildQueryString({ page: params.page ?? 1, limit: params.limit ?? 1000 })}`,
+      ]),
   },
 
   department: {

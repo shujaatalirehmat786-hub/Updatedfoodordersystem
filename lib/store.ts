@@ -24,6 +24,24 @@ const MOCK_STORE: Store = {
   description: "Delicious food delivered to your door",
 }
 
+function getHostnameSubdomain(): string | null {
+  if (typeof window === "undefined") {
+    return null
+  }
+
+  const hostname = window.location.hostname
+  if (!hostname || hostname === "localhost" || /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
+    return null
+  }
+
+  const parts = hostname.split(".").filter(Boolean)
+  if (parts.length < 3) {
+    return null
+  }
+
+  return parts[0] || null
+}
+
 export function setActiveStoreSlug(slug: string): void {
   if (typeof window === "undefined") {
     return
@@ -83,31 +101,28 @@ export function getStoreSlug(): string {
     return "savera"
   }
 
-  const persistedStoreSlug = getActiveStoreSlug()
-  if (persistedStoreSlug) {
-    return persistedStoreSlug
+  const hostnameSubdomain = getHostnameSubdomain()
+  if (hostnameSubdomain) {
+    return hostnameSubdomain
   }
 
-  const hostname = window.location.hostname
-  if (!hostname || hostname === "localhost" || /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
-    return "savera"
-  }
-
-  const parts = hostname.split(".")
-  const subdomain = parts[0]
-  return subdomain || "savera"
+  return getActiveStoreSlug() || "savera"
 }
 
 export async function getStoreFromSubdomain(): Promise<Store | null> {
   try {
     if (typeof window !== "undefined") {
+      const subdomain = getStoreSlug()
       const cachedStore = getActiveStore()
-      if (cachedStore) {
+      if (cachedStore && cachedStore.subdomain === subdomain) {
         return cachedStore
       }
 
-      const subdomain = getStoreSlug()
-      const response = await api.store.getBySubdomain(subdomain)
+      const response = await api.store.getBySubdomainOptional(subdomain)
+      if (!response) {
+        const cachedStore = getActiveStore()
+        return cachedStore || MOCK_STORE
+      }
       const storeData = response.data || response
       setActiveStore(storeData)
       return storeData
@@ -116,6 +131,13 @@ export async function getStoreFromSubdomain(): Promise<Store | null> {
     return MOCK_STORE
   } catch (error) {
     console.error("[v0] Error in getStoreFromSubdomain:", error)
+    if (typeof window !== "undefined") {
+      const cachedStore = getActiveStore()
+      if (cachedStore) {
+        return cachedStore
+      }
+    }
+
     return MOCK_STORE
   }
 }

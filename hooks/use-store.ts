@@ -7,6 +7,7 @@ import {
   getActiveStore,
   getActiveStoreSlug,
   getStoreFromSubdomain,
+  getStoreSlug,
   setActiveStore,
   setActiveStoreSlug,
   type Store,
@@ -24,7 +25,8 @@ export function useStore() {
       setStoreSlugState(getActiveStoreSlug())
     }
 
-    if (!store) {
+    const currentSlug = getStoreSlug()
+    if (!store || store?.subdomain !== currentSlug) {
       void refreshStore()
     }
 

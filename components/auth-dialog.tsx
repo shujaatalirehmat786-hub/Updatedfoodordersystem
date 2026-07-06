@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { getActiveStoreSlug, hasCompletedProfile, markProfileCompleted, setActiveStoreSlug } from "@/lib/auth"
 import { useStore } from "@/hooks/use-store"
 import { ChevronRight, Loader2, Sparkles } from "lucide-react"
+import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { type ClipboardEvent, type KeyboardEvent } from "react"
 
@@ -20,30 +21,87 @@ interface AuthDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-const STORE_OPTIONS = [
-  { label: "Savera", value: "savera" },
-  { label: "Flavors", value: "flavors" },
-]
-
 export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const router = useRouter()
   const [phone, setPhone] = useState("")
-  const [store, setStore] = useState(getActiveStoreSlug() || STORE_OPTIONS[0].value)
+  const [store, setStore] = useState(getActiveStoreSlug() || "")
+  const [stores, setStores] = useState<Array<{ label: string; value: string; id?: string }>>([])
+  const [storesLoading, setStoresLoading] = useState(false)
   const [otp, setOtp] = useState("")
   const [step, setStep] = useState<"details" | "verify">("details")
   const otpRefs = useRef<Array<HTMLInputElement | null>>([])
   const { login, verifyOtp, isLoading, error, user } = useAuth()
   const { selectStore } = useStore()
+  const fallbackStores = [
+    { label: "Savera", value: "savera" },
+    { label: "Flavors", value: "flavors" },
+  ]
 
   useEffect(() => {
     if (open) {
-      setStore(getActiveStoreSlug() || STORE_OPTIONS[0].value)
+      void loadStores()
     }
   }, [open])
 
+  useEffect(() => {
+    if (!store) {
+      const defaultStore = (stores[0] || fallbackStores[0])?.value || ""
+      setStore(getActiveStoreSlug() || defaultStore)
+    }
+  }, [stores, store])
+
+  const visibleStores = stores.length > 0 ? stores : fallbackStores
+
+  const loadStores = async () => {
+    try {
+      setStoresLoading(true)
+      const response = await api.store.list({ page: 1, limit: 1000 })
+      const payload = response?.data || response || []
+
+      const normalized = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.stores)
+          ? payload.stores
+          : Array.isArray(payload?.data)
+            ? payload.data
+            : []
+
+      const nextStores = normalized
+        .map((item: any) => {
+          const value = item?.subdomain || item?.slug || item?.name?.toLowerCase().replace(/\s+/g, "-")
+          return {
+            label: item?.name || item?.subdomain || "Store",
+            value: value,
+            id: item?._id || item?.id,
+          }
+        })
+        .filter((item: any) => item.value)
+
+      setStores(nextStores)
+      if (!store && nextStores.length > 0) {
+        setStore(getActiveStoreSlug() || nextStores[0].value)
+      }
+      } catch (error) {
+      console.error("[v0] Error loading stores:", error)
+      const fallbackStore = getActiveStoreSlug()
+      setStores(
+        fallbackStore
+          ? [{ label: fallbackStore.charAt(0).toUpperCase() + fallbackStore.slice(1), value: fallbackStore }]
+          : fallbackStores,
+      )
+      if (!store && fallbackStore) {
+        setStore(fallbackStore)
+      } else if (!store && fallbackStores.length > 0) {
+        setStore(fallbackStores[0].value)
+      }
+    } finally {
+      setStoresLoading(false)
+    }
+  }
+
   const selectedStoreOption = useMemo(
-    () => STORE_OPTIONS.find((option) => option.value === store) || null,
-    [store],
+    () => stores.find((option) => option.value === store) || null,
+    [store, stores],
   )
 
   const handleOtpDigitChange = (index: number, value: string) => {
@@ -165,30 +223,37 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                     <Label htmlFor="store" className="text-sm font-medium text-zinc-700">
                       Store name
                     </Label>
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                      {STORE_OPTIONS.map((option) => (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => setStore(option.value)}
-                          className={cn(
-                            "group rounded-2xl border px-4 py-4 text-left transition-all duration-200",
-                            store === option.value
-                              ? "border-orange-500 bg-orange-50 shadow-[0_16px_36px_rgba(249,115,22,0.14)]"
-                              : "border-zinc-200 bg-white hover:-translate-y-0.5 hover:border-orange-200 hover:bg-orange-50/60",
-                          )}
+                    <div className="mt-3">
+                      <div className="relative">
+                        <select
+                          id="store"
+                          value={store}
+                          onChange={(e) => setStore(e.target.value)}
+                          className="w-full appearance-none rounded-2xl border border-zinc-200 bg-white px-4 py-4 pr-12 text-base text-zinc-950 shadow-sm outline-none transition focus:border-orange-400 focus:ring-4 focus:ring-orange-100 disabled:cursor-not-allowed disabled:bg-zinc-50"
                         >
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <p className="font-medium text-zinc-900">{option.label}</p>
-                              <p className="mt-1 text-xs text-zinc-500">Tap to select this store</p>
-                            </div>
-                            <ChevronRight className={cn("h-4 w-4 transition-transform", store === option.value ? "translate-x-0 text-orange-600" : "text-zinc-400 group-hover:translate-x-0.5")} />
-                          </div>
-                        </button>
-                      ))}
+                          {storesLoading ? (
+                            <option value="">Loading stores...</option>
+                          ) : visibleStores.length > 0 ? (
+                            visibleStores.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))
+                          ) : (
+                            <option value="">Select a store</option>
+                          )}
+                        </select>
+                        <ChevronRight className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-zinc-400" />
+                      </div>
+                      {selectedStoreOption ? (
+                        <div className="mt-3 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3">
+                          <p className="text-sm font-medium text-orange-700">{selectedStoreOption.label}</p>
+                          <p className="mt-1 text-xs text-orange-600/80">Selected store will be used for login and content.</p>
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-xs text-zinc-500">Select your store name to continue.</p>
+                      )}
                     </div>
-                    <p className="mt-3 text-xs text-zinc-500">Select your store name to continue.</p>
                   </div>
 
                   <div className="rounded-[1.5rem] border border-zinc-100 bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
@@ -238,7 +303,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                     <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400">Store</p>
                     <div className="mt-2 flex items-center justify-between gap-3">
                       <div>
-                        <p className="font-medium text-zinc-900">{selectedStoreOption?.label || store}</p>
+                        <p className="font-medium text-zinc-900">{selectedStoreOption?.label || store || "Selected store"}</p>
                         <p className="text-sm text-zinc-500">{phone}</p>
                       </div>
                       <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-orange-600 shadow-sm">
