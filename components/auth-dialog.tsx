@@ -12,7 +12,6 @@ import { useAuth } from "@/hooks/use-auth"
 import { getActiveStoreSlug, hasCompletedProfile, markProfileCompleted, setActiveStoreSlug } from "@/lib/auth"
 import { useStore } from "@/hooks/use-store"
 import { ChevronRight, Loader2, Sparkles } from "lucide-react"
-import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { type ClipboardEvent, type KeyboardEvent } from "react"
 
@@ -26,7 +25,6 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const [phone, setPhone] = useState("")
   const [store, setStore] = useState(getActiveStoreSlug() || "")
   const [stores, setStores] = useState<Array<{ label: string; value: string; id?: string }>>([])
-  const [storesLoading, setStoresLoading] = useState(false)
   const [otp, setOtp] = useState("")
   const [step, setStep] = useState<"details" | "verify">("details")
   const otpRefs = useRef<Array<HTMLInputElement | null>>([])
@@ -34,12 +32,12 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const { selectStore } = useStore()
   const fallbackStores = [
     { label: "Savera", value: "savera" },
-    { label: "Flavors", value: "flavors" },
+    { label: "Jollibee", value: "jolibee" },
   ]
 
   useEffect(() => {
     if (open) {
-      void loadStores()
+      setStores(fallbackStores)
     }
   }, [open])
 
@@ -52,56 +50,9 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
 
   const visibleStores = stores.length > 0 ? stores : fallbackStores
 
-  const loadStores = async () => {
-    try {
-      setStoresLoading(true)
-      const response = await api.store.list({ page: 1, limit: 1000 })
-      const payload = response?.data || response || []
-
-      const normalized = Array.isArray(payload)
-        ? payload
-        : Array.isArray(payload?.stores)
-          ? payload.stores
-          : Array.isArray(payload?.data)
-            ? payload.data
-            : []
-
-      const nextStores = normalized
-        .map((item: any) => {
-          const value = item?.subdomain || item?.slug || item?.name?.toLowerCase().replace(/\s+/g, "-")
-          return {
-            label: item?.name || item?.subdomain || "Store",
-            value: value,
-            id: item?._id || item?.id,
-          }
-        })
-        .filter((item: any) => item.value)
-
-      setStores(nextStores)
-      if (!store && nextStores.length > 0) {
-        setStore(getActiveStoreSlug() || nextStores[0].value)
-      }
-      } catch (error) {
-      console.error("[v0] Error loading stores:", error)
-      const fallbackStore = getActiveStoreSlug()
-      setStores(
-        fallbackStore
-          ? [{ label: fallbackStore.charAt(0).toUpperCase() + fallbackStore.slice(1), value: fallbackStore }]
-          : fallbackStores,
-      )
-      if (!store && fallbackStore) {
-        setStore(fallbackStore)
-      } else if (!store && fallbackStores.length > 0) {
-        setStore(fallbackStores[0].value)
-      }
-    } finally {
-      setStoresLoading(false)
-    }
-  }
-
   const selectedStoreOption = useMemo(
-    () => stores.find((option) => option.value === store) || null,
-    [store, stores],
+    () => visibleStores.find((option) => option.value === store) || null,
+    [store, visibleStores],
   )
 
   const handleOtpDigitChange = (index: number, value: string) => {
@@ -231,9 +182,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                           onChange={(e) => setStore(e.target.value)}
                           className="w-full appearance-none rounded-2xl border border-zinc-200 bg-white px-4 py-4 pr-12 text-base text-zinc-950 shadow-sm outline-none transition focus:border-orange-400 focus:ring-4 focus:ring-orange-100 disabled:cursor-not-allowed disabled:bg-zinc-50"
                         >
-                          {storesLoading ? (
-                            <option value="">Loading stores...</option>
-                          ) : visibleStores.length > 0 ? (
+                          {visibleStores.length > 0 ? (
                             visibleStores.map((option) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}

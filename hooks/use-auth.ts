@@ -11,7 +11,20 @@ import {
   setUser,
   type User,
 } from "@/lib/auth"
-import { getStoreSlug } from "@/lib/store"
+import { clearCart } from "@/lib/cart"
+import { clearActiveStore, getKnownStore, getStoreFromSubdomain, getStoreSlug } from "@/lib/store"
+
+async function resolveStoreForApi(storeSlug?: string) {
+  const slug = storeSlug || getStoreSlug()
+  const storeData =
+    (await api.store.getBySubdomainOptional(slug))?.data ||
+    (await getStoreFromSubdomain()) ||
+    getKnownStore(slug)
+  return {
+    slug,
+    apiStore: storeData?.subdomain || slug,
+  }
+}
 
 export function useAuth() {
   const [user, setUserState] = useState<User | null>(() => getUser())
@@ -55,9 +68,9 @@ export function useAuth() {
     try {
       setIsLoading(true)
       setError(null)
-      const store = storeOverride || getStoreSlug()
-      setActiveStoreSlug(store)
-      await api.auth.login(phone, store)
+      const { slug, apiStore } = await resolveStoreForApi(storeOverride)
+      setActiveStoreSlug(slug)
+      await api.auth.login(phone, apiStore)
       return true
     } catch (err: any) {
       console.error("[v0] Login error:", err)
@@ -72,9 +85,9 @@ export function useAuth() {
     try {
       setIsLoading(true)
       setError(null)
-      const store = storeOverride || getStoreSlug()
-      setActiveStoreSlug(store)
-      const response = await api.auth.verifyOtp(phone, otp, store)
+      const { slug, apiStore } = await resolveStoreForApi(storeOverride)
+      setActiveStoreSlug(slug)
+      const response = await api.auth.verifyOtp(phone, otp, apiStore)
 
       const token = response?.token || response?.data?.token || response?.data?.accessToken || response?.accessToken
       let userData = response?.user || response?.data?.user || response?.data
@@ -105,6 +118,8 @@ export function useAuth() {
 
   const logout = () => {
     removeAuthToken()
+    clearCart()
+    clearActiveStore()
     setUserState(null)
     window.dispatchEvent(new Event("auth_updated"))
   }

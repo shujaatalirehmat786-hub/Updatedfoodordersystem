@@ -227,10 +227,11 @@ function HomePageContent() {
                 {store.name}
               </Badge>
               <h1 className="text-balance mb-6 text-5xl font-bold text-white md:text-6xl lg:text-7xl drop-shadow-lg">
-                Order Food Delivery From Your Favorite Restaurants!
+                {store?.orderWebsiteId?.aboutUs || store?.name || "Order Food Delivery From Your Favorite Restaurants!"}
               </h1>
               <p className="text-pretty mb-10 text-xl text-white/90 md:text-2xl drop-shadow-md">
-                Order takeaway online From Your Favorite Restaurants! We get what you love From Your Favorite Restaurants!
+                {store?.description ||
+                  `Order takeaway online from ${store?.name || "your favorite restaurant"} with a store-specific experience.`}
               </p>
               <div className="flex flex-wrap items-center justify-center gap-8 text-base text-white/90">
                 <div className="flex items-center gap-3">
@@ -238,8 +239,12 @@ function HomePageContent() {
                     <Clock className="h-6 w-6 text-white" />
                   </div>
                   <div className="text-left">
-                    <div className="font-semibold text-white">24/7 delivery</div>
-                    <div className="text-sm text-white/80">Always available</div>
+                    <div className="font-semibold text-white">
+                      {store?.orderWebsiteId?.isPickupAvailable ? "Pickup available" : "24/7 delivery"}
+                    </div>
+                    <div className="text-sm text-white/80">
+                      {store?.orderWebsiteId?.isPickupAvailable ? "Configured by store" : "Always available"}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -247,8 +252,12 @@ function HomePageContent() {
                     <ShoppingBag className="h-6 w-6 text-white" />
                   </div>
                   <div className="text-left">
-                    <div className="font-semibold text-white">2500 restaurants</div>
-                    <div className="text-sm text-white/80">Wide selection</div>
+                    <div className="font-semibold text-white">
+                      {store?.orderWebsiteId?.isFreeParkingAvailable ? "Free parking" : "Wide selection"}
+                    </div>
+                    <div className="text-sm text-white/80">
+                      {store?.orderWebsiteId?.isFreeParkingAvailable ? "Configured by store" : "Selected menus"}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -256,7 +265,7 @@ function HomePageContent() {
                     <Truck className="h-6 w-6 text-white" />
                   </div>
                   <div className="text-left">
-                    <div className="font-semibold text-white">Fast delivery</div>
+                    <div className="font-semibold text-white">{store?.address || "Fast delivery"}</div>
                     <div className="text-sm text-white/80">Quick service</div>
                   </div>
                 </div>

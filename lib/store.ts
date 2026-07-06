@@ -9,19 +9,71 @@ export interface Store {
   address?: string
   phone?: string
   logo?: string
+  logoUrl?: string
+  headerImageUrl?: string
   description?: string
+  orderWebsiteId?: {
+    _id?: string
+    isEnabled?: boolean
+    name?: string
+    subDomain?: string
+    businessHours?: Array<{
+      day: string
+      isOpen: boolean
+      startTime: string
+      endTime: string
+    }>
+    isFreeParkingAvailable?: boolean
+    isPickupAvailable?: boolean
+    facebookUrl?: string
+    instagramUrl?: string
+    twitterUrl?: string
+    aboutUs?: string
+  }
 }
 
 const ACTIVE_STORE_KEY = "active_store"
 const ACTIVE_STORE_SLUG_KEY = "active_store_slug"
 
-const MOCK_STORE: Store = {
-  _id: "68c328b7a277614f117d8226",
-  name: "Flavors Restaurant",
-  subdomain: "flavors",
-  address: "123 Main Street, City",
-  phone: "+1234567890",
-  description: "Delicious food delivered to your door",
+const TEST_STORE_DOMAIN = "livedatanow.com"
+
+export const KNOWN_STORES: Record<string, Store> = {
+  savera: {
+    _id: "68c328b7a277614f117d8226",
+    name: "Savera",
+    subdomain: "savera",
+    address: "123 Main Street, City",
+    phone: "+1234567890",
+    description: "Delicious food delivered to your door",
+  },
+  jolibee: {
+    _id: "68c328b7a277614f117d8227",
+    name: "Jollibee",
+    subdomain: "jolibee",
+    address: "456 Market Street, City",
+    phone: "+1234567891",
+    description: "Fresh meals and quick service",
+  },
+}
+
+const DEFAULT_STORE: Store = KNOWN_STORES.savera
+
+function normalizeStorePayload(storeData: any, fallback?: Store | null): Store {
+  const website = storeData?.orderWebsiteId || {}
+  const subdomain = storeData?.subdomain || website?.subDomain || fallback?.subdomain || DEFAULT_STORE.subdomain
+
+  return {
+    _id: storeData?._id || website?._id || fallback?._id || DEFAULT_STORE._id,
+    name: storeData?.name || website?.name || fallback?.name || DEFAULT_STORE.name,
+    subdomain,
+    address: storeData?.address || fallback?.address,
+    phone: storeData?.phone || fallback?.phone,
+    logo: storeData?.logo || storeData?.logoId?.fileUrl || fallback?.logo,
+    logoUrl: storeData?.logoId?.fileUrl || storeData?.logo || fallback?.logoUrl || fallback?.logo,
+    headerImageUrl: storeData?.headerImageId?.fileUrl || fallback?.headerImageUrl,
+    description: storeData?.description || website?.aboutUs || fallback?.description,
+    orderWebsiteId: website?.subDomain || website?.name ? website : fallback?.orderWebsiteId,
+  }
 }
 
 function getHostnameSubdomain(): string | null {
@@ -40,6 +92,23 @@ function getHostnameSubdomain(): string | null {
   }
 
   return parts[0] || null
+}
+
+export function getKnownStore(slug: string | null | undefined): Store | null {
+  if (!slug) {
+    return null
+  }
+
+  return KNOWN_STORES[slug.toLowerCase()] || null
+}
+
+export function getKnownStoreHostname(slug: string | null | undefined): string | null {
+  const store = getKnownStore(slug)
+  if (!store) {
+    return null
+  }
+
+  return `${store.subdomain}.${TEST_STORE_DOMAIN}`
 }
 
 export function setActiveStoreSlug(slug: string): void {
@@ -119,16 +188,25 @@ export async function getStoreFromSubdomain(): Promise<Store | null> {
       }
 
       const response = await api.store.getBySubdomainOptional(subdomain)
-      if (!response) {
-        const cachedStore = getActiveStore()
-        return cachedStore || MOCK_STORE
+      const storeData = response?.data || response
+      if (storeData) {
+        const normalizedStore = normalizeStorePayload(storeData, cachedStore)
+        setActiveStore(normalizedStore)
+        return normalizedStore
       }
-      const storeData = response.data || response
-      setActiveStore(storeData)
-      return storeData
+
+      const knownStore = getKnownStore(subdomain)
+      if (knownStore) {
+        setActiveStore(knownStore)
+        return knownStore
+      }
+
+      const fallbackStore = cachedStore || DEFAULT_STORE
+      setActiveStore(fallbackStore)
+      return fallbackStore
     }
 
-    return MOCK_STORE
+    return DEFAULT_STORE
   } catch (error) {
     console.error("[v0] Error in getStoreFromSubdomain:", error)
     if (typeof window !== "undefined") {
@@ -138,6 +216,6 @@ export async function getStoreFromSubdomain(): Promise<Store | null> {
       }
     }
 
-    return MOCK_STORE
+    return DEFAULT_STORE
   }
 }

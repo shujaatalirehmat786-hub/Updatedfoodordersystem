@@ -34,17 +34,22 @@ export function Header() {
   }, [user])
 
   const storeLabel = store?.name || store?.subdomain || "Selected store"
+  const storeLogo = store?.logoUrl || store?.logo || store?.headerImageUrl || null
 
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-zinc-950/90 backdrop-blur-xl supports-[backdrop-filter]:bg-zinc-950/75">
         <div className="container mx-auto flex min-h-[72px] items-center justify-between gap-3 px-3 sm:px-4 sm:gap-4">
           <Link href="/" className="group flex shrink-0 items-center space-x-2 sm:space-x-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-400 shadow-lg shadow-orange-500/30 transition-transform duration-200 group-hover:-translate-y-0.5">
-              <Utensils className="h-5 w-5 text-white sm:h-6 sm:w-6" />
+            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-400 shadow-lg shadow-orange-500/30 transition-transform duration-200 group-hover:-translate-y-0.5">
+              {storeLogo ? (
+                <img src={storeLogo} alt={storeLabel} className="h-full w-full object-cover" />
+              ) : (
+                <Utensils className="h-5 w-5 text-white sm:h-6 sm:w-6" />
+              )}
             </div>
             <div className="flex flex-col">
-              <span className="text-base font-semibold tracking-tight text-white sm:text-xl">FoodOrder</span>
+              <span className="text-base font-semibold tracking-tight text-white sm:text-xl">{store?.name || "FoodOrder"}</span>
               <span className="hidden text-xs text-white/55 sm:block">Multi-store ordering, one premium flow</span>
             </div>
           </Link>
@@ -74,7 +79,7 @@ export function Header() {
 
             <a href="tel:0947118058" className="hidden items-center gap-2 text-sm text-white/70 transition-colors hover:text-white md:flex">
               <Phone className="h-4 w-4 text-orange-300" />
-              <span className="font-medium">094 711 80 58</span>
+              <span className="font-medium">{store?.phone || "094 711 80 58"}</span>
             </a>
 
             <Link href="/cart">
@@ -202,7 +207,7 @@ export function Header() {
               )}
               <a href="tel:0947118058" className="mt-2 flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-white/70">
                 <Phone className="h-4 w-4 text-orange-300" />
-                <span className="font-medium">094 711 80 58</span>
+                <span className="font-medium">{store?.phone || "094 711 80 58"}</span>
               </a>
               {cart.totalItems > 0 && (
                 <div className="mt-2 rounded-xl px-3 py-2 text-sm font-semibold text-white">

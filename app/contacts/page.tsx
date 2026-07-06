@@ -5,8 +5,21 @@ import { Footer } from "@/components/footer"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Phone, Mail, MapPin, Clock } from "lucide-react"
+import { useStore } from "@/hooks/use-store"
 
 export default function ContactsPage() {
+  const { store } = useStore()
+  const storePhone = store?.phone || "094 711 80 58"
+  const storeAddress = store?.address || "Chicago, IL 60606"
+  const businessHours = store?.orderWebsiteId?.businessHours || []
+  const storeHours =
+    businessHours.length
+      ? businessHours
+          .filter((slot) => slot.isOpen)
+          .map((slot) => `${slot.day}: ${slot.startTime} - ${slot.endTime}`)
+          .join(", ") || "Store hours are available from the backend"
+      : "24/7 Available"
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -29,7 +42,7 @@ export default function ContactsPage() {
               </div>
             </div>
             <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">Phone</h3>
-            <p className="text-gray-600 dark:text-gray-400">094 711 80 58</p>
+            <p className="text-gray-600 dark:text-gray-400">{storePhone}</p>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-500">Call us 24/7</p>
           </Card>
 
@@ -51,8 +64,8 @@ export default function ContactsPage() {
               </div>
             </div>
             <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">Address</h3>
-            <p className="text-gray-600 dark:text-gray-400">Chicago, IL 60606</p>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-500">123, New Lenox</p>
+            <p className="text-gray-600 dark:text-gray-400">{storeAddress}</p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-500">Store location</p>
           </Card>
 
           <Card className="p-6 text-center">
@@ -62,8 +75,10 @@ export default function ContactsPage() {
               </div>
             </div>
             <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">Hours</h3>
-            <p className="text-gray-600 dark:text-gray-400">24/7 Available</p>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-500">Always open</p>
+            <p className="text-gray-600 dark:text-gray-400">{storeHours}</p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-500">
+              {store?.orderWebsiteId?.businessHours?.length ? "Configured by store" : "Always open"}
+            </p>
           </Card>
         </div>
 
@@ -111,4 +126,3 @@ export default function ContactsPage() {
     </div>
   )
 }
-

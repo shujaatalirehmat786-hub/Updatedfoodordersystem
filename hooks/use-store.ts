@@ -1,17 +1,19 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { api } from "@/lib/api"
 import {
   clearActiveStore,
   getActiveStore,
   getActiveStoreSlug,
+  getKnownStore,
   getStoreFromSubdomain,
   getStoreSlug,
+  type Store,
+  // normalization happens in lib/store via getStoreFromSubdomain
   setActiveStore,
   setActiveStoreSlug,
-  type Store,
 } from "@/lib/store"
+import { clearCart } from "@/lib/cart"
 
 export function useStore() {
   const [store, setStoreState] = useState<Store | null>(() => getActiveStore())
@@ -58,13 +60,23 @@ export function useStore() {
     try {
       setIsLoading(true)
       setError(null)
-      setActiveStoreSlug(slug)
-      const response = await api.store.getBySubdomain(slug)
-      const storeData = response.data || response
-      setActiveStore(storeData)
-      setStoreState(storeData)
-      setStoreSlugState(storeData?.subdomain || slug)
-      return storeData as Store
+
+      const normalizedSlug = slug.toLowerCase()
+      setActiveStoreSlug(normalizedSlug)
+
+      const storeData = await getStoreFromSubdomain()
+      const fallbackStore = getKnownStore(normalizedSlug)
+      const resolvedStore = storeData || fallbackStore
+
+      if (!resolvedStore) {
+        throw new Error("Store not found")
+      }
+
+      clearCart()
+      setStoreState(resolvedStore)
+      setStoreSlugState(resolvedStore.subdomain)
+      setActiveStore(resolvedStore)
+      return resolvedStore
     } catch (err: any) {
       setError(err?.message || "Failed to select store")
       throw err

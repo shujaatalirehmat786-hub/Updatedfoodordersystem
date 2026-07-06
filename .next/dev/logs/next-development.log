@@ -1,13 +1,224 @@
-[00:00:00.971] Server  LOG      ✓ Ready in 729ms
-[00:00:04.311] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:04.482] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:00:04.482] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
-[00:00:04.482] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783279669818} /_vercel/insights/view
-[00:00:05.541] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:05.900] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:06.206] Browser ERROR   [v0] API request failed: {}
-[00:00:06.206] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:06.290] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+[00:00:01.164] Server  LOG      ✓ Ready in 836ms
+[00:00:06.500] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:06.671] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:00:06.671] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:00:06.671] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358523130} /_vercel/insights/view
+[00:00:14.583] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:15.262] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:00:15.262] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:00:15.263] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358531730} /_vercel/insights/view
+[00:00:25.464] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:25.844] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:00:25.844] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:00:25.844] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358542292} /_vercel/insights/view
+[00:01:14.092] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:01:14.092] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/profile?fromAuth=true color: rgb(120, 120, 120) color: inherit {"dp":"/profile","o":"http://localhost:3000/profile?fromAuth=true","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358590499} /_vercel/insights/view
+[00:01:37.177] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358613528} /_vercel/insights/view
+[00:01:58.708] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/about color: rgb(120, 120, 120) color: inherit {"dp":"/about","o":"http://localhost:3000/about","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358635165} /_vercel/insights/view
+[00:02:00.731] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/contacts color: rgb(120, 120, 120) color: inherit {"dp":"/contacts","o":"http://localhost:3000/contacts","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358637190} /_vercel/insights/view
+[00:02:07.622] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358644087} /_vercel/insights/view
+[00:02:09.846] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+[00:02:09.846] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+[00:02:13.578] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+[00:02:13.578] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+[00:02:17.753] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+[00:02:17.753] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+[00:02:28.601] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/cart color: rgb(120, 120, 120) color: inherit {"dp":"/cart","o":"http://localhost:3000/cart","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358665052} /_vercel/insights/view
+[00:02:48.827] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358685292} /_vercel/insights/view
+[00:03:08.599] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/profile color: rgb(120, 120, 120) color: inherit {"dp":"/profile","o":"http://localhost:3000/profile","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358705041} /_vercel/insights/view
+[00:04:04.625] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358761043} /_vercel/insights/view
+[00:04:13.764] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:14.339] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:04:14.339] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:04:14.339] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358770802} /_vercel/insights/view
+[00:04:41.917] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:04:41.917] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/cart color: rgb(120, 120, 120) color: inherit {"dp":"/cart","o":"http://localhost:3000/cart","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358798374} /_vercel/insights/view
+[00:04:46.062] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/checkout color: rgb(120, 120, 120) color: inherit {"dp":"/checkout","o":"http://localhost:3000/checkout","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783358802496} /_vercel/insights/view
+[00:04:58.495] Browser ERROR   [v0] API request failed: {}
+[00:13:52.336] Server  LOG      ✓ Compiled in 1083ms
+[00:14:01.726] Server  LOG      ✓ Compiled in 1365ms
+[00:14:07.168] Server  LOG      ✓ Compiled in 855ms
+[00:14:07.314] Browser ERROR   ./hooks/use-auth.ts:5:1
+Export clearAuthData doesn't exist in target module
+   3 | import { useEffect, useState } from "react"
+   4 | import { api } from "@/lib/api"
+>  5 | import {
+     | ^^^^^^^^
+>  6 |   getUser,
+     | ^^^^^^^^^^
+>  7 |   isAuthenticated,
+     | ^^^^^^^^^^
+>  8 |   clearAuthData,
+     | ^^^^^^^^^^
+>  9 |   removeAuthToken,
+     | ^^^^^^^^^^
+> 10 |   setActiveStoreSlug,
+     | ^^^^^^^^^^
+> 11 |   setAuthToken,
+     | ^^^^^^^^^^
+> 12 |   setUser,
+     | ^^^^^^^^^^
+> 13 |   type User,
+     | ^^^^^^^^^^
+> 14 | } from "@/lib/auth"
+     | ^^^^^^^^^^^^^^^^^^^^
+  15 | import { clearCart } from "@/lib/cart"
+  16 | import { clearActiveStore } from "@/lib/store"
+  17 | import { getStoreSlug } from "@/lib/store"
+
+The export clearAuthData was not found in module [project]/lib/auth.ts [app-client] (ecmascript).
+Did you mean to import removeAuthToken?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./hooks/use-auth.ts [Client Component Browser]
+    ./components/header.tsx [Client Component Browser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/use-auth.ts [Client Component SSR]
+    ./components/header.tsx [Client Component SSR]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+[00:14:07.314] Browser ERROR   ./hooks/use-auth.ts:5:1
+Export clearAuthData doesn't exist in target module
+   3 | import { useEffect, useState } from "react"
+   4 | import { api } from "@/lib/api"
+>  5 | import {
+     | ^^^^^^^^
+>  6 |   getUser,
+     | ^^^^^^^^^^
+>  7 |   isAuthenticated,
+     | ^^^^^^^^^^
+>  8 |   clearAuthData,
+     | ^^^^^^^^^^
+>  9 |   removeAuthToken,
+     | ^^^^^^^^^^
+> 10 |   setActiveStoreSlug,
+     | ^^^^^^^^^^
+> 11 |   setAuthToken,
+     | ^^^^^^^^^^
+> 12 |   setUser,
+     | ^^^^^^^^^^
+> 13 |   type User,
+     | ^^^^^^^^^^
+> 14 | } from "@/lib/auth"
+     | ^^^^^^^^^^^^^^^^^^^^
+  15 | import { clearCart } from "@/lib/cart"
+  16 | import { clearActiveStore } from "@/lib/store"
+  17 | import { getStoreSlug } from "@/lib/store"
+
+The export clearAuthData was not found in module [project]/lib/auth.ts [app-ssr] (ecmascript).
+Did you mean to import removeAuthToken?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./hooks/use-auth.ts [Client Component Browser]
+    ./components/header.tsx [Client Component Browser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/use-auth.ts [Client Component SSR]
+    ./components/header.tsx [Client Component SSR]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+[00:14:07.805] Browser ERROR   ./hooks/use-auth.ts:5:1
+Export clearAuthData doesn't exist in target module
+   3 | import { useEffect, useState } from "react"
+   4 | import { api } from "@/lib/api"
+>  5 | import {
+     | ^^^^^^^^
+>  6 |   getUser,
+     | ^^^^^^^^^^
+>  7 |   isAuthenticated,
+     | ^^^^^^^^^^
+>  8 |   clearAuthData,
+     | ^^^^^^^^^^
+>  9 |   removeAuthToken,
+     | ^^^^^^^^^^
+> 10 |   setActiveStoreSlug,
+     | ^^^^^^^^^^
+> 11 |   setAuthToken,
+     | ^^^^^^^^^^
+> 12 |   setUser,
+     | ^^^^^^^^^^
+> 13 |   type User,
+     | ^^^^^^^^^^
+> 14 | } from "@/lib/auth"
+     | ^^^^^^^^^^^^^^^^^^^^
+  15 | import { clearCart } from "@/lib/cart"
+  16 | import { clearActiveStore } from "@/lib/store"
+  17 | import { getStoreSlug } from "@/lib/store"
+
+The export clearAuthData was not found in module [project]/lib/auth.ts [app-client] (ecmascript).
+Did you mean to import removeAuthToken?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./hooks/use-auth.ts [Client Component Browser]
+    ./components/header.tsx [Client Component Browser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/use-auth.ts [Client Component SSR]
+    ./components/header.tsx [Client Component SSR]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+[00:14:07.805] Browser ERROR   ./hooks/use-auth.ts:5:1
+Export clearAuthData doesn't exist in target module
+   3 | import { useEffect, useState } from "react"
+   4 | import { api } from "@/lib/api"
+>  5 | import {
+     | ^^^^^^^^
+>  6 |   getUser,
+     | ^^^^^^^^^^
+>  7 |   isAuthenticated,
+     | ^^^^^^^^^^
+>  8 |   clearAuthData,
+     | ^^^^^^^^^^
+>  9 |   removeAuthToken,
+     | ^^^^^^^^^^
+> 10 |   setActiveStoreSlug,
+     | ^^^^^^^^^^
+> 11 |   setAuthToken,
+     | ^^^^^^^^^^
+> 12 |   setUser,
+     | ^^^^^^^^^^
+> 13 |   type User,
+     | ^^^^^^^^^^
+> 14 | } from "@/lib/auth"
+     | ^^^^^^^^^^^^^^^^^^^^
+  15 | import { clearCart } from "@/lib/cart"
+  16 | import { clearActiveStore } from "@/lib/store"
+  17 | import { getStoreSlug } from "@/lib/store"
+
+The export clearAuthData was not found in module [project]/lib/auth.ts [app-ssr] (ecmascript).
+Did you mean to import removeAuthToken?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./hooks/use-auth.ts [Client Component Browser]
+    ./components/header.tsx [Client Component Browser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/use-auth.ts [Client Component SSR]
+    ./components/header.tsx [Client Component SSR]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+[00:14:16.875] Server  LOG      ✓ Compiled in 201ms
+[00:14:31.135] Server  LOG      ✓ Compiled in 843ms
+[00:15:23.919] Server  LOG      ✓ Compiled in 20ms
+[00:15:25.852] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:15:26.133] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
 
 - A server/client branch `if (typeof window !== 'undefined')`.
 - Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
@@ -25,7 +236,7 @@ It can also happen if the client has a browser extension installed which messes 
         <ReplaySsrOnlyErrors>
         <DevRootHTTPAccessFallbackBoundary>
           <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+            <HTTPAccessFallbackErrorBoundary pathname="/checkout" notFound={<NotAllowedRootHTTPFallbackError>} ...>
               <RedirectBoundary>
                 <RedirectErrorBoundary router={{...}}>
                   <Head>
@@ -44,133 +255,103 @@ It can also happen if the client has a browser extension installed which messes 
                           >
                   ...
 
-[00:00:06.290] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:00:06.290] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
-[00:00:06.290] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783279671484} /_vercel/insights/view
-[00:00:06.475] Browser ERROR   [v0] API request failed: {}
-[00:00:06.475] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:06.603] Browser ERROR   [v0] API request failed: {}
-[00:00:06.603] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:07.192] Browser ERROR   [v0] API request failed: {}
-[00:00:07.192] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:07.277] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:00:07.277] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
-[00:00:07.277] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783279671086} /_vercel/insights/view
-[00:00:07.277] Browser ERROR   [v0] API request failed: {}
-[00:00:07.277] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:07.277] Browser ERROR   [v0] API request failed: {}
-[00:00:07.277] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:07.538] Browser ERROR   [v0] API request failed: {}
-[00:00:07.538] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:08.276] Browser ERROR   [v0] API request failed: {}
-[00:00:08.276] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:08.276] Browser ERROR   [v0] API request failed: {}
-[00:00:08.276] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:08.276] Browser ERROR   [v0] API request failed: {}
-[00:00:08.276] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:08.277] Browser ERROR   [v0] API request failed: {}
-[00:00:08.277] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:08.277] Browser ERROR   [v0] API request failed: {}
-[00:00:08.277] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:08.277] Browser ERROR   [v0] API request failed: {}
-[00:00:08.277] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:08.277] Browser ERROR   [v0] API request failed: {}
-[00:00:08.277] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:16.936] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:17.480] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:00:17.480] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
-[00:00:17.480] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783279682824} /_vercel/insights/view
-[00:00:18.105] Browser ERROR   [v0] API request failed: {}
-[00:00:18.105] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:18.245] Browser ERROR   [v0] API request failed: {}
-[00:00:18.245] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:18.361] Browser ERROR   [v0] API request failed: {}
-[00:00:18.361] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:18.660] Browser ERROR   [v0] API request failed: {}
-[00:00:18.660] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:19.110] Browser ERROR   [v0] API request failed: {}
-[00:00:19.110] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:25.907] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
-[00:00:25.907] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/about color: rgb(120, 120, 120) color: inherit {"dp":"/about","o":"http://localhost:3000/about","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783279691239} /_vercel/insights/view
-[00:00:26.463] Browser ERROR   [v0] API request failed: {}
-[00:00:26.463] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:26.463] Browser ERROR   [v0] API request failed: {}
-[00:00:26.463] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:26.589] Browser ERROR   [v0] API request failed: {}
-[00:00:26.589] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:26.709] Browser ERROR   [v0] API request failed: {}
-[00:00:26.709] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:35.789] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/contacts color: rgb(120, 120, 120) color: inherit {"dp":"/contacts","o":"http://localhost:3000/contacts","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783279701127} /_vercel/insights/view
-[00:00:36.282] Browser ERROR   [v0] API request failed: {}
-[00:00:36.283] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:36.411] Browser ERROR   [v0] API request failed: {}
-[00:00:36.411] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:36.529] Browser ERROR   [v0] API request failed: {}
-[00:00:36.529] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:00:36.650] Browser ERROR   [v0] API request failed: {}
-[00:00:36.650] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:01:15.544] Server  LOG      ✓ Compiled in 213ms
-[00:01:24.493] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783279749827} /_vercel/insights/view
-[00:01:25.287] Browser ERROR   [v0] API request failed: {}
-[00:01:25.287] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:01:25.546] Browser ERROR   [v0] API request failed: {}
-[00:01:25.546] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:01:25.546] Browser ERROR   [v0] API request failed: {}
-[00:01:25.546] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:01:25.691] Browser ERROR   [v0] API request failed: {}
-[00:01:25.691] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:01:26.168] Browser ERROR   [v0] API request failed: {}
-[00:01:26.168] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:01:26.168] Browser ERROR   [v0] API request failed: {}
-[00:01:26.168] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:01:29.420] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:01:29.865] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:01:29.865] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
-[00:01:29.865] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783279755209} /_vercel/insights/view
-[00:01:30.020] Browser ERROR   [v0] API request failed: {}
-[00:01:30.020] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:01:30.293] Browser ERROR   [v0] API request failed: {}
-[00:01:30.294] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:01:30.294] Browser ERROR   [v0] API request failed: {}
-[00:01:30.294] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:01:30.418] Browser ERROR   [v0] API request failed: {}
-[00:01:30.418] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:01:30.576] Browser ERROR   [v0] API request failed: {}
-[00:01:30.576] Browser ERROR   [v0] Error in getStoreFromSubdomain: {}
-[00:01:37.842] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:01:37.842] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:02:20.267] Server  LOG      ✓ Compiled in 198ms
-[00:02:23.901] Server  LOG      ✓ Compiled in 89ms
-[00:02:33.428] Server  LOG      ✓ Compiled in 111ms
-[00:03:57.358] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
-[00:03:57.358] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/about color: rgb(120, 120, 120) color: inherit {"dp":"/about","o":"http://localhost:3000/about","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783279902663} /_vercel/insights/view
-[00:03:59.236] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/categories color: rgb(120, 120, 120) color: inherit {"dp":"/categories","o":"http://localhost:3000/categories","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783279904575} /_vercel/insights/view
-[00:04:01.708] Browser LOG     Sample product department structure: {"departmentId":"68c32f4ea424a04dd9a798dd","fullProduct":{"__v":12,"_id":"68c86e3d6a855d28046a5128","alternateSKU":"222333","alternateSKUs":[],"barCode":"0122222","createdAt":"2025-09-15T19:51:25.754Z","departmentId":"68c32f4ea424a04dd9a798dd","departmentName":"Veg Appetizers","description":"Appetizers","dualPrice":null,"effectivePrice":20,"imageId":{"_id":"6972a8454d5a7009c8ecbcba","fileUrl":"store-images/6dc5cff5-2b92-4e1b-8896-cb7d47f61cad.webp"},"imageUrl":"https://aone-pos-storage.s3.us-east-2.amazonaws.com/store-images/6dc5cff5-2b92-4e1b-8896-cb7d47f61cad.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA4FERNVFR7RLEPCW5%2F20260705%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260705T193145Z&X-Amz-Expires=18000&X-Amz-Signature=47d65e8a62ee3f6ed8a3b597c2843188bcde7cbb83b8302573d2ca44fbe67257&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject","inventoryNumber":"0100000000021","isVisible":true,"itemNo":"01002","kioskStatus":false,"kitchenGroup":{"__v":0,"_id":"68c32f4ea424a04dd9a798d9","createdAt":"2025-09-11T20:21:34.887Z","kitchenPrinter":{"__v":0,"_id":"696e430f8edb2a1633ecaaa2","autoCut":true,"buzzer":false,"cloudPrntEnabled":false,"cloudPrntType":"http","createdAt":"2026-01-19T14:43:27.875Z","ip":"192.168.100.122","isMainKitchenPrinter":true,"isOnline":false,"macAddress":"11:22:aa:cc:2f","model":"Zywell","name":"Zywell Pak","openDrawer":false,"paperWidth":80,"port":"8888","printWidth":576,"printerType":"receipt","series":"MC-3","stationId":"68c32e66a424a04dd9a7986a","storeId":"68c328b7a277614f117d8226","supportedMediaTypes":[],"updatedAt":"2026-07-05T19:31:45.811Z"},"name":"Kitchen A","printerId":{"__v":0,"_id":"696e430f8edb2a1633ecaaa2","autoCut":true,"buzzer":false,"cloudPrntEnabled":false,"cloudPrntType":"http","createdAt":"2026-01-19T14:43:27.875Z","ip":"192.168.100.122","isMainKitchenPrinter":true,"isOnline":false,"macAddress":"11:22:aa:cc:2f","model":"Zywell","name":"Zywell Pak","openDrawer":false,"paperWidth":80,"port":"8888","printWidth":576,"printerType":"receipt","series":"MC-3","stationId":"68c32e66a424a04dd9a7986a","storeId":"68c328b7a277614f117d8226","supportedMediaTypes":[],"updatedAt":"2026-07-05T19:31:45.811Z"},"storeId":"68c328b7a277614f117d8226"},"kitchenId":{"__v":0,"_id":"68c32f4ea424a04dd9a798d9","createdAt":"2025-09-11T20:21:34.887Z","name":"Kitchen A","printerId":{"__v":0,"_id":"696e430f8edb2a1633ecaaa2","autoCut":true,"buzzer":false,"cloudPrntEnabled":false,"cloudPrntType":"http","createdAt":"2026-01-19T14:43:27.875Z","ip":"192.168.100.122","isMainKitchenPrinter":true,"isOnline":false,"macAddress":"11:22:aa:cc:2f","model":"Zywell","name":"Zywell Pak","openDrawer":false,"paperWidth":80,"port":"8888","printWidth":576,"printerType":"receipt","series":"MC-3","stationId":"68c32e66a424a04dd9a7986a","storeId":"68c328b7a277614f117d8226","supportedMediaTypes":[],"updatedAt":"2026-07-05T19:31:45.811Z"},"storeId":"68c328b7a277614f117d8226"},"mainKitchenPrinter":{"__v":0,"_id":"696e430f8edb2a1633ecaaa2","autoCut":true,"buzzer":false,"cloudPrntEnabled":false,"cloudPrntType":"http","createdAt":"2026-01-19T14:43:27.875Z","ip":"192.168.100.122","isMainKitchenPrinter":true,"isOnline":false,"macAddress":"11:22:aa:cc:2f","model":"Zywell","name":"Zywell Pak","openDrawer":false,"paperWidth":80,"port":"8888","printWidth":576,"printerType":"receipt","series":"MC-3","stationId":"68c32e66a424a04dd9a7986a","storeId":"68c328b7a277614f117d8226","supportedMediaTypes":[],"updatedAt":"2026-07-05T19:31:45.833Z"},"mixNMatchGroupId":null,"modifierGroups":[{"__v":13,"_id":"68e5b65cabdb5ccf26828245","description":"Sides","isRequired":false,"maxSelectable":2,"modifiers":["[Object]","[Object]","[Object]","[Object]","[Object]"],"name":"Entree","storeId":"68c328b7a277614f117d8226"},{"__v":0,"_id":"68fbd283485770cdc3ddfc30","isRequired":true,"maxSelectable":1,"modifiers":["[Object]","[Object]","[Object]"],"name":"Order Type ","storeId":"68c328b7a277614f117d8226"}],"name":"Punugullu 100","orderPO":"true","price":"33","priceAfterTax":"30.00","priceYouCharge":"30","promptOpenItem":"true","saleCount":69,"sku":"Punugullu 10pc","specialPricing":[],"stock":41,"storeId":"68c328b7a277614f117d8226","tax":"0","taxItems":[],"taxType":"direct","totalTaxAmount":"0.00","totalTaxPercentage":"0.00","vendorId":{"_id":"68c32f4ea424a04dd9a798d6","name":"FALSE"}}}
-[00:04:03.251] Browser LOG     Sample product department structure: {"departmentId":"68c32f4ea424a04dd9a798dd","fullProduct":{"__v":12,"_id":"68c86e3d6a855d28046a5128","alternateSKU":"222333","alternateSKUs":[],"barCode":"0122222","createdAt":"2025-09-15T19:51:25.754Z","departmentId":"68c32f4ea424a04dd9a798dd","departmentName":"Veg Appetizers","description":"Appetizers","dualPrice":null,"effectivePrice":20,"imageId":{"_id":"6972a8454d5a7009c8ecbcba","fileUrl":"store-images/6dc5cff5-2b92-4e1b-8896-cb7d47f61cad.webp"},"imageUrl":"https://aone-pos-storage.s3.us-east-2.amazonaws.com/store-images/6dc5cff5-2b92-4e1b-8896-cb7d47f61cad.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA4FERNVFR7RLEPCW5%2F20260705%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260705T193147Z&X-Amz-Expires=18000&X-Amz-Signature=04b693f7768eae21337731f469946e5cb14986847162d6373f5924a3ca9f5c5a&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject","inventoryNumber":"0100000000021","isVisible":true,"itemNo":"01002","kioskStatus":false,"kitchenGroup":{"__v":0,"_id":"68c32f4ea424a04dd9a798d9","createdAt":"2025-09-11T20:21:34.887Z","kitchenPrinter":{"__v":0,"_id":"696e430f8edb2a1633ecaaa2","autoCut":true,"buzzer":false,"cloudPrntEnabled":false,"cloudPrntType":"http","createdAt":"2026-01-19T14:43:27.875Z","ip":"192.168.100.122","isMainKitchenPrinter":true,"isOnline":false,"macAddress":"11:22:aa:cc:2f","model":"Zywell","name":"Zywell Pak","openDrawer":false,"paperWidth":80,"port":"8888","printWidth":576,"printerType":"receipt","series":"MC-3","stationId":"68c32e66a424a04dd9a7986a","storeId":"68c328b7a277614f117d8226","supportedMediaTypes":[],"updatedAt":"2026-07-05T19:31:47.463Z"},"name":"Kitchen A","printerId":{"__v":0,"_id":"696e430f8edb2a1633ecaaa2","autoCut":true,"buzzer":false,"cloudPrntEnabled":false,"cloudPrntType":"http","createdAt":"2026-01-19T14:43:27.875Z","ip":"192.168.100.122","isMainKitchenPrinter":true,"isOnline":false,"macAddress":"11:22:aa:cc:2f","model":"Zywell","name":"Zywell Pak","openDrawer":false,"paperWidth":80,"port":"8888","printWidth":576,"printerType":"receipt","series":"MC-3","stationId":"68c32e66a424a04dd9a7986a","storeId":"68c328b7a277614f117d8226","supportedMediaTypes":[],"updatedAt":"2026-07-05T19:31:47.463Z"},"storeId":"68c328b7a277614f117d8226"},"kitchenId":{"__v":0,"_id":"68c32f4ea424a04dd9a798d9","createdAt":"2025-09-11T20:21:34.887Z","name":"Kitchen A","printerId":{"__v":0,"_id":"696e430f8edb2a1633ecaaa2","autoCut":true,"buzzer":false,"cloudPrntEnabled":false,"cloudPrntType":"http","createdAt":"2026-01-19T14:43:27.875Z","ip":"192.168.100.122","isMainKitchenPrinter":true,"isOnline":false,"macAddress":"11:22:aa:cc:2f","model":"Zywell","name":"Zywell Pak","openDrawer":false,"paperWidth":80,"port":"8888","printWidth":576,"printerType":"receipt","series":"MC-3","stationId":"68c32e66a424a04dd9a7986a","storeId":"68c328b7a277614f117d8226","supportedMediaTypes":[],"updatedAt":"2026-07-05T19:31:47.463Z"},"storeId":"68c328b7a277614f117d8226"},"mainKitchenPrinter":{"__v":0,"_id":"696e430f8edb2a1633ecaaa2","autoCut":true,"buzzer":false,"cloudPrntEnabled":false,"cloudPrntType":"http","createdAt":"2026-01-19T14:43:27.875Z","ip":"192.168.100.122","isMainKitchenPrinter":true,"isOnline":false,"macAddress":"11:22:aa:cc:2f","model":"Zywell","name":"Zywell Pak","openDrawer":false,"paperWidth":80,"port":"8888","printWidth":576,"printerType":"receipt","series":"MC-3","stationId":"68c32e66a424a04dd9a7986a","storeId":"68c328b7a277614f117d8226","supportedMediaTypes":[],"updatedAt":"2026-07-05T19:31:47.483Z"},"mixNMatchGroupId":null,"modifierGroups":[{"__v":13,"_id":"68e5b65cabdb5ccf26828245","description":"Sides","isRequired":false,"maxSelectable":2,"modifiers":["[Object]","[Object]","[Object]","[Object]","[Object]"],"name":"Entree","storeId":"68c328b7a277614f117d8226"},{"__v":0,"_id":"68fbd283485770cdc3ddfc30","isRequired":true,"maxSelectable":1,"modifiers":["[Object]","[Object]","[Object]"],"name":"Order Type ","storeId":"68c328b7a277614f117d8226"}],"name":"Punugullu 100","orderPO":"true","price":"33","priceAfterTax":"30.00","priceYouCharge":"30","promptOpenItem":"true","saleCount":69,"sku":"Punugullu 10pc","specialPricing":[],"stock":41,"storeId":"68c328b7a277614f117d8226","tax":"0","taxItems":[],"taxType":"direct","totalTaxAmount":"0.00","totalTaxPercentage":"0.00","vendorId":{"_id":"68c32f4ea424a04dd9a798d6","name":"FALSE"}}}
-[00:04:09.145] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783279914483} /_vercel/insights/view
-[00:04:27.651] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:04:27.651] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:07:05.071] Server  LOG      ✓ Compiled in 399ms
-[00:10:52.785] Server  LOG      ✓ Compiled in 367ms
-[00:13:33.990] Server  LOG      ✓ Compiled in 328ms
-[00:15:26.990] Server  LOG      ✓ Compiled in 320ms
-[00:15:50.784] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:15:50.785] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:16:47.586] Server  LOG      ✓ Compiled in 256ms
-[00:20:17.759] Server  LOG      ✓ Compiled in 638ms
-[00:20:50.924] Server  LOG      ✓ Compiled in 668ms
-[00:20:52.121] Browser ERROR   [v0] Error loading stores: {}
-[00:21:14.187] Server  LOG      ✓ Compiled in 175ms
-[00:21:40.426] Browser ERROR   [v0] Error loading stores: {}
-[00:24:00.728] Server  LOG      ✓ Compiled in 251ms
-[00:24:29.211] Browser ERROR   [v0] Error loading stores: {}
-[00:24:50.981] Server  LOG      ✓ Compiled in 259ms
-[00:26:17.973] Server  LOG      ✓ Compiled in 305ms
-[00:28:11.153] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:28:11.153] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:28:26.616] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/cart color: rgb(120, 120, 120) color: inherit {"dp":"/cart","o":"http://localhost:3000/cart","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783281371924} /_vercel/insights/view
-[00:28:39.543] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783281384855} /_vercel/insights/view
-[00:28:42.851] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:28:42.851] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-[00:28:49.872] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/cart color: rgb(120, 120, 120) color: inherit {"dp":"/cart","o":"http://localhost:3000/cart","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783281395179} /_vercel/insights/view
-[00:29:38.272] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783281443579} /_vercel/insights/view
+[00:15:26.415] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:15:26.415] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/checkout","route":"/checkout"}
+[00:15:26.415] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/checkout color: rgb(120, 120, 120) color: inherit {"dp":"/checkout","o":"http://localhost:3000/checkout","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783359442873} /_vercel/insights/view
+[00:15:28.424] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:15:28.424] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783359444879} /_vercel/insights/view
+[00:16:04.621] Server  LOG      ✓ Compiled in 1186ms
+[00:16:22.211] Browser ERROR   [v0] API request failed: {}
+[00:16:22.211] Browser ERROR   [v0] Login error: {}
+[00:17:16.054] Server  LOG      ✓ Compiled in 1202ms
+[00:17:41.531] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:17:41.531] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:17:41.531] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:17:41.531] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783359578068} /_vercel/insights/view
+[00:17:52.054] Browser ERROR   [v0] API request failed: {}
+[00:17:52.054] Browser ERROR   [v0] Login error: {}
+[00:18:04.889] Browser ERROR   [v0] API request failed: {}
+[00:18:04.889] Browser ERROR   [v0] Login error: {}
+[00:33:21.631] Server  LOG      ✓ Compiled in 483ms
+[00:33:29.251] Server  LOG      ✓ Compiled in 319ms
+[00:33:40.446] Server  LOG      ✓ Compiled in 365ms
+[00:34:12.132] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:34:12.422] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:34:12.422] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:34:12.422] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783360568825} /_vercel/insights/view
+[00:34:20.947] Browser ERROR   [v0] API request failed: {}
+[00:34:20.947] Browser ERROR   [v0] Login error: {}
+[00:35:30.273] Server  LOG      ✓ Compiled in 454ms
+[00:35:54.568] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:35:54.829] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:35:54.830] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:35:54.830] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783360671281} /_vercel/insights/view
+[00:36:31.954] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:36:31.954] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/categories color: rgb(120, 120, 120) color: inherit {"dp":"/categories","o":"http://localhost:3000/categories","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783360708395} /_vercel/insights/view
+[00:37:07.631] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783360744077} /_vercel/insights/view
+[00:38:00.546] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:38:01.289] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:38:01.289] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:38:01.289] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783360797739} /_vercel/insights/view
+[00:38:12.951] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:38:12.951] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/categories color: rgb(120, 120, 120) color: inherit {"dp":"/categories","o":"http://localhost:3000/categories","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783360809400} /_vercel/insights/view
+[00:39:14.177] Server  LOG      ✓ Compiled in 372ms
+[00:39:29.320] Server  LOG      ✓ Compiled in 238ms
+[00:39:35.384] Server  LOG      ✓ Compiled in 379ms
+[00:40:33.084] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:40:33.227] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:40:33.227] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/categories","route":"/categories"}
+[00:40:33.227] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/categories color: rgb(120, 120, 120) color: inherit {"dp":"/categories","o":"http://localhost:3000/categories","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783360949673} /_vercel/insights/view
+[00:40:37.815] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:40:37.815] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783360954233} /_vercel/insights/view
+[00:40:42.344] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/categories color: rgb(120, 120, 120) color: inherit {"dp":"/categories","o":"http://localhost:3000/categories","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783360958777} /_vercel/insights/view
+[00:45:13.691] Server  LOG      ✓ Compiled in 1177ms
+[00:45:23.404] Server  LOG      ✓ Compiled in 190ms
+[00:45:52.492] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:45:52.845] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:45:52.846] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/categories","route":"/categories"}
+[00:45:52.846] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/categories color: rgb(120, 120, 120) color: inherit {"dp":"/categories","o":"http://localhost:3000/categories","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361269286} /_vercel/insights/view
+[00:45:57.598] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:45:57.598] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361274038} /_vercel/insights/view
+[00:46:38.834] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/categories color: rgb(120, 120, 120) color: inherit {"dp":"/categories","o":"http://localhost:3000/categories","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361315223} /_vercel/insights/view
+[00:46:42.323] Browser LOG     Sample product department structure: {"departmentId":"68c32f4ea424a04dd9a798dd","fullProduct":{"__v":12,"_id":"68c86e3d6a855d28046a5128","alternateSKU":"222333","alternateSKUs":[],"barCode":"0122222","createdAt":"2025-09-15T19:51:25.754Z","departmentId":"68c32f4ea424a04dd9a798dd","departmentName":"Veg Appetizers","description":"Appetizers","dualPrice":null,"effectivePrice":20,"imageId":{"_id":"6972a8454d5a7009c8ecbcba","fileUrl":"store-images/6dc5cff5-2b92-4e1b-8896-cb7d47f61cad.webp"},"imageUrl":"https://aone-pos-storage.s3.us-east-2.amazonaws.com/store-images/6dc5cff5-2b92-4e1b-8896-cb7d47f61cad.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA4FERNVFR7RLEPCW5%2F20260706%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260706T180836Z&X-Amz-Expires=18000&X-Amz-Signature=14e412c7e5b242e80a95e8e0b7e07cc11f6e5c05011dd539fcaa49d64197a7f0&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject","inventoryNumber":"0100000000021","isVisible":true,"itemNo":"01002","kioskStatus":false,"kitchenGroup":{"__v":0,"_id":"68c32f4ea424a04dd9a798d9","createdAt":"2025-09-11T20:21:34.887Z","kitchenPrinter":{"__v":0,"_id":"696e430f8edb2a1633ecaaa2","autoCut":true,"buzzer":false,"cloudPrntEnabled":false,"cloudPrntType":"http","createdAt":"2026-01-19T14:43:27.875Z","ip":"192.168.100.122","isMainKitchenPrinter":true,"isOnline":false,"macAddress":"11:22:aa:cc:2f","model":"Zywell","name":"Zywell Pak","openDrawer":false,"paperWidth":80,"port":"8888","printWidth":576,"printerType":"receipt","series":"MC-3","stationId":"68c32e66a424a04dd9a7986a","storeId":"68c328b7a277614f117d8226","supportedMediaTypes":[],"updatedAt":"2026-07-06T18:08:36.276Z"},"name":"Kitchen A","printerId":{"__v":0,"_id":"696e430f8edb2a1633ecaaa2","autoCut":true,"buzzer":false,"cloudPrntEnabled":false,"cloudPrntType":"http","createdAt":"2026-01-19T14:43:27.875Z","ip":"192.168.100.122","isMainKitchenPrinter":true,"isOnline":false,"macAddress":"11:22:aa:cc:2f","model":"Zywell","name":"Zywell Pak","openDrawer":false,"paperWidth":80,"port":"8888","printWidth":576,"printerType":"receipt","series":"MC-3","stationId":"68c32e66a424a04dd9a7986a","storeId":"68c328b7a277614f117d8226","supportedMediaTypes":[],"updatedAt":"2026-07-06T18:08:36.276Z"},"storeId":"68c328b7a277614f117d8226"},"kitchenId":{"__v":0,"_id":"68c32f4ea424a04dd9a798d9","createdAt":"2025-09-11T20:21:34.887Z","name":"Kitchen A","printerId":{"__v":0,"_id":"696e430f8edb2a1633ecaaa2","autoCut":true,"buzzer":false,"cloudPrntEnabled":false,"cloudPrntType":"http","createdAt":"2026-01-19T14:43:27.875Z","ip":"192.168.100.122","isMainKitchenPrinter":true,"isOnline":false,"macAddress":"11:22:aa:cc:2f","model":"Zywell","name":"Zywell Pak","openDrawer":false,"paperWidth":80,"port":"8888","printWidth":576,"printerType":"receipt","series":"MC-3","stationId":"68c32e66a424a04dd9a7986a","storeId":"68c328b7a277614f117d8226","supportedMediaTypes":[],"updatedAt":"2026-07-06T18:08:36.276Z"},"storeId":"68c328b7a277614f117d8226"},"mainKitchenPrinter":{"__v":0,"_id":"696e430f8edb2a1633ecaaa2","autoCut":true,"buzzer":false,"cloudPrntEnabled":false,"cloudPrntType":"http","createdAt":"2026-01-19T14:43:27.875Z","ip":"192.168.100.122","isMainKitchenPrinter":true,"isOnline":false,"macAddress":"11:22:aa:cc:2f","model":"Zywell","name":"Zywell Pak","openDrawer":false,"paperWidth":80,"port":"8888","printWidth":576,"printerType":"receipt","series":"MC-3","stationId":"68c32e66a424a04dd9a7986a","storeId":"68c328b7a277614f117d8226","supportedMediaTypes":[],"updatedAt":"2026-07-06T18:08:36.320Z"},"mixNMatchGroupId":null,"modifierGroups":[{"__v":13,"_id":"68e5b65cabdb5ccf26828245","description":"Sides","isRequired":false,"maxSelectable":2,"modifiers":["[Object]","[Object]","[Object]","[Object]","[Object]"],"name":"Entree","storeId":"68c328b7a277614f117d8226"},{"__v":0,"_id":"68fbd283485770cdc3ddfc30","isRequired":true,"maxSelectable":1,"modifiers":["[Object]","[Object]","[Object]"],"name":"Order Type ","storeId":"68c328b7a277614f117d8226"}],"name":"Punugullu 100","orderPO":"true","price":"33","priceAfterTax":"30.00","priceYouCharge":"30","promptOpenItem":"true","saleCount":69,"sku":"Punugullu 10pc","specialPricing":[],"stock":41,"storeId":"68c328b7a277614f117d8226","tax":"0","taxItems":[],"taxType":"direct","totalTaxAmount":"0.00","totalTaxPercentage":"0.00","vendorId":{"_id":"68c32f4ea424a04dd9a798d6","name":"FALSE"}}}
+[00:46:49.134] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361325547} /_vercel/insights/view
+[00:47:30.714] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:47:31.323] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:47:31.323] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:47:31.323] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361367773} /_vercel/insights/view
+[00:47:38.333] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:47:38.334] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/categories color: rgb(120, 120, 120) color: inherit {"dp":"/categories","o":"http://localhost:3000/categories","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361374775} /_vercel/insights/view
+[00:47:39.138] Browser LOG     Sample product department structure: {"departmentId":"6a21f93f262cf59945f5675c","fullProduct":{"__v":2,"_id":"6a21fc33262cf59945f568f5","aisleNo":"","alternateSKUs":[],"barCode":"","categoryId":null,"createdAt":"2026-06-04T22:29:07.717Z","departmentId":"6a21f93f262cf59945f5675c","departmentName":"Burgers","description":"an iconic, value-priced hamburger famous for its savory, slightly sweet flavor profile. It consists of a seasoned beef patty topped with their signature creamy burger dressing, typically nestled in a soft, pillowy bun","dualPrice":null,"imageId":{"_id":"6a2b123ef4a642297ca503d0","fileUrl":"store-images/00df2903-0ff5-4ee4-a2d6-13a7e5fa5489.jpg"},"imageUrl":"https://aone-pos-storage.s3.us-east-2.amazonaws.com/store-images/00df2903-0ff5-4ee4-a2d6-13a7e5fa5489.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA4FERNVFR7RLEPCW5%2F20260706%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260706T180935Z&X-Amz-Expires=18000&X-Amz-Signature=a435945612ebb66098c986a802244c5f7903dbb3e76097117f1309401d32d0c3&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject","inventoryNumber":"10001","isVisible":true,"itemNo":"10001","kioskStatus":false,"kitchenGroup":null,"kitchenId":null,"mainKitchenPrinter":null,"mixNMatchGroupId":null,"modifierGroups":[{"__v":1,"_id":"6a21fe84262cf59945f569c5","isRequired":false,"maxSelectable":1,"modifiers":["[Object]","[Object]","[Object]","[Object]","[Object]","[Object]","[Object]","[Object]"],"name":"Upsize Drinks","storeId":"6a21f691262cf59945f56648"},{"__v":3,"_id":"6a21fb72262cf59945f56879","isRequired":true,"maxSelectable":1,"minSelectable":0,"modifiers":["[Object]","[Object]","[Object]"],"name":"Solo , w/ Drinks , Meal","storeId":"6a21f691262cf59945f56648"},{"__v":0,"_id":"6a225a5d2c7d0f0dc26a49c5","isRequired":false,"maxSelectable":1,"modifiers":["[Object]","[Object]"],"name":"Cheese","storeId":"6a21f691262cf59945f56648"},{"__v":0,"_id":"6a22d2a92c7d0f0dc26a7dac","isRequired":true,"maxSelectable":1,"modifiers":["[Object]","[Object]","[Object]","[Object]"],"name":"Value Meal Drinks ","storeId":"6a21f691262cf59945f56648"}],"name":"Yum Burger","price":"23","priceAfterTax":"36.96","priceYouCharge":"33","saleCount":0,"sku":"","specialPricing":[{"_id":"6a232da28cf3d1b29e514026","endDate":"2027-06-01T05:00:00.000Z","isActive":true,"percentOff":5,"recurringSchedule":[],"salePrice":30,"startDate":"2026-06-01T05:00:00.000Z","type":"sale"},{"_id":"6a232dbc8cf3d1b29e51403c","bulkPrice":28,"isActive":true,"minimumQuantity":10,"recurringSchedule":[],"type":"bulk"}],"stock":10,"storeId":"6a21f691262cf59945f56648","tax":"","taxItems":[{"__v":0,"_id":"6a22fc642c7d0f0dc26aa528","isActive":false,"name":"Philippines Tax","storeId":"6a21f691262cf59945f56648","value":"12"}],"taxType":"items","totalTaxAmount":"3.96","totalTaxPercentage":"12.00","vendorId":null}}
+[00:47:46.714] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/contacts color: rgb(120, 120, 120) color: inherit {"dp":"/contacts","o":"http://localhost:3000/contacts","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361383159} /_vercel/insights/view
+[00:47:49.905] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/about color: rgb(120, 120, 120) color: inherit {"dp":"/about","o":"http://localhost:3000/about","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361386349} /_vercel/insights/view
+[00:47:59.072] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/categories color: rgb(120, 120, 120) color: inherit {"dp":"/categories","o":"http://localhost:3000/categories","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361395495} /_vercel/insights/view
+[00:47:59.823] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361396202} /_vercel/insights/view
+[00:47:59.824] Browser LOG     Sample product department structure: {"departmentId":"6a21f93f262cf59945f5675c","fullProduct":{"__v":2,"_id":"6a21fc33262cf59945f568f5","aisleNo":"","alternateSKUs":[],"barCode":"","categoryId":null,"createdAt":"2026-06-04T22:29:07.717Z","departmentId":"6a21f93f262cf59945f5675c","departmentName":"Burgers","description":"an iconic, value-priced hamburger famous for its savory, slightly sweet flavor profile. It consists of a seasoned beef patty topped with their signature creamy burger dressing, typically nestled in a soft, pillowy bun","dualPrice":null,"imageId":{"_id":"6a2b123ef4a642297ca503d0","fileUrl":"store-images/00df2903-0ff5-4ee4-a2d6-13a7e5fa5489.jpg"},"imageUrl":"https://aone-pos-storage.s3.us-east-2.amazonaws.com/store-images/00df2903-0ff5-4ee4-a2d6-13a7e5fa5489.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA4FERNVFR7RLEPCW5%2F20260706%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260706T180956Z&X-Amz-Expires=18000&X-Amz-Signature=aba320912c82a7cbfd898e8db471c5b2031036492363b9362d2234f38ecee318&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject","inventoryNumber":"10001","isVisible":true,"itemNo":"10001","kioskStatus":false,"kitchenGroup":null,"kitchenId":null,"mainKitchenPrinter":null,"mixNMatchGroupId":null,"modifierGroups":[{"__v":1,"_id":"6a21fe84262cf59945f569c5","isRequired":false,"maxSelectable":1,"modifiers":["[Object]","[Object]","[Object]","[Object]","[Object]","[Object]","[Object]","[Object]"],"name":"Upsize Drinks","storeId":"6a21f691262cf59945f56648"},{"__v":3,"_id":"6a21fb72262cf59945f56879","isRequired":true,"maxSelectable":1,"minSelectable":0,"modifiers":["[Object]","[Object]","[Object]"],"name":"Solo , w/ Drinks , Meal","storeId":"6a21f691262cf59945f56648"},{"__v":0,"_id":"6a225a5d2c7d0f0dc26a49c5","isRequired":false,"maxSelectable":1,"modifiers":["[Object]","[Object]"],"name":"Cheese","storeId":"6a21f691262cf59945f56648"},{"__v":0,"_id":"6a22d2a92c7d0f0dc26a7dac","isRequired":true,"maxSelectable":1,"modifiers":["[Object]","[Object]","[Object]","[Object]"],"name":"Value Meal Drinks ","storeId":"6a21f691262cf59945f56648"}],"name":"Yum Burger","price":"23","priceAfterTax":"36.96","priceYouCharge":"33","saleCount":0,"sku":"","specialPricing":[{"_id":"6a232da28cf3d1b29e514026","endDate":"2027-06-01T05:00:00.000Z","isActive":true,"percentOff":5,"recurringSchedule":[],"salePrice":30,"startDate":"2026-06-01T05:00:00.000Z","type":"sale"},{"_id":"6a232dbc8cf3d1b29e51403c","bulkPrice":28,"isActive":true,"minimumQuantity":10,"recurringSchedule":[],"type":"bulk"}],"stock":10,"storeId":"6a21f691262cf59945f56648","tax":"","taxItems":[{"__v":0,"_id":"6a22fc642c7d0f0dc26aa528","isActive":false,"name":"Philippines Tax","storeId":"6a21f691262cf59945f56648","value":"12"}],"taxType":"items","totalTaxAmount":"3.96","totalTaxPercentage":"12.00","vendorId":null}}
+[00:52:00.682] Server  LOG      ✓ Compiled in 1373ms
+[00:52:09.322] Server  LOG      ✓ Compiled in 546ms
+[00:52:21.679] Server  LOG      ✓ Compiled in 278ms
+[00:52:51.747] Server  LOG      ✓ Compiled in 265ms
+[00:53:06.109] Server  LOG      ✓ Compiled in 286ms
+[00:53:11.779] Server  LOG      ✓ Compiled in 184ms
+[00:53:21.134] Server  LOG      ✓ Compiled in 465ms
+[00:53:27.873] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/about color: rgb(120, 120, 120) color: inherit {"dp":"/about","o":"http://localhost:3000/about","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361724303} /_vercel/insights/view
+[00:53:31.141] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361727573} /_vercel/insights/view
+[00:53:59.277] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/categories color: rgb(120, 120, 120) color: inherit {"dp":"/categories","o":"http://localhost:3000/categories","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361755692} /_vercel/insights/view
+[00:54:00.278] Browser LOG     Sample product department structure: {"departmentId":"6a21f93f262cf59945f5675c","fullProduct":{"__v":2,"_id":"6a21fc33262cf59945f568f5","aisleNo":"","alternateSKUs":[],"barCode":"","categoryId":null,"createdAt":"2026-06-04T22:29:07.717Z","departmentId":"6a21f93f262cf59945f5675c","departmentName":"Burgers","description":"an iconic, value-priced hamburger famous for its savory, slightly sweet flavor profile. It consists of a seasoned beef patty topped with their signature creamy burger dressing, typically nestled in a soft, pillowy bun","dualPrice":null,"imageId":{"_id":"6a2b123ef4a642297ca503d0","fileUrl":"store-images/00df2903-0ff5-4ee4-a2d6-13a7e5fa5489.jpg"},"imageUrl":"https://aone-pos-storage.s3.us-east-2.amazonaws.com/store-images/00df2903-0ff5-4ee4-a2d6-13a7e5fa5489.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA4FERNVFR7RLEPCW5%2F20260706%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20260706T181556Z&X-Amz-Expires=18000&X-Amz-Signature=7bde1e8ccd747a94fdff39aba64df30a5059fbf656b3dc04a98bbc118d13ad82&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject","inventoryNumber":"10001","isVisible":true,"itemNo":"10001","kioskStatus":false,"kitchenGroup":null,"kitchenId":null,"mainKitchenPrinter":null,"mixNMatchGroupId":null,"modifierGroups":[{"__v":1,"_id":"6a21fe84262cf59945f569c5","isRequired":false,"maxSelectable":1,"modifiers":["[Object]","[Object]","[Object]","[Object]","[Object]","[Object]","[Object]","[Object]"],"name":"Upsize Drinks","storeId":"6a21f691262cf59945f56648"},{"__v":3,"_id":"6a21fb72262cf59945f56879","isRequired":true,"maxSelectable":1,"minSelectable":0,"modifiers":["[Object]","[Object]","[Object]"],"name":"Solo , w/ Drinks , Meal","storeId":"6a21f691262cf59945f56648"},{"__v":0,"_id":"6a225a5d2c7d0f0dc26a49c5","isRequired":false,"maxSelectable":1,"modifiers":["[Object]","[Object]"],"name":"Cheese","storeId":"6a21f691262cf59945f56648"},{"__v":0,"_id":"6a22d2a92c7d0f0dc26a7dac","isRequired":true,"maxSelectable":1,"modifiers":["[Object]","[Object]","[Object]","[Object]"],"name":"Value Meal Drinks ","storeId":"6a21f691262cf59945f56648"}],"name":"Yum Burger","price":"23","priceAfterTax":"36.96","priceYouCharge":"33","saleCount":0,"sku":"","specialPricing":[{"_id":"6a232da28cf3d1b29e514026","endDate":"2027-06-01T05:00:00.000Z","isActive":true,"percentOff":5,"recurringSchedule":[],"salePrice":30,"startDate":"2026-06-01T05:00:00.000Z","type":"sale"},{"_id":"6a232dbc8cf3d1b29e51403c","bulkPrice":28,"isActive":true,"minimumQuantity":10,"recurringSchedule":[],"type":"bulk"}],"stock":10,"storeId":"6a21f691262cf59945f56648","tax":"","taxItems":[{"__v":0,"_id":"6a22fc642c7d0f0dc26aa528","isActive":false,"name":"Philippines Tax","storeId":"6a21f691262cf59945f56648","value":"12"}],"taxType":"items","totalTaxAmount":"3.96","totalTaxPercentage":"12.00","vendorId":null}}
+[00:54:02.014] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/about color: rgb(120, 120, 120) color: inherit {"dp":"/about","o":"http://localhost:3000/about","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361758458} /_vercel/insights/view
+[00:54:03.753] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/contacts color: rgb(120, 120, 120) color: inherit {"dp":"/contacts","o":"http://localhost:3000/contacts","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361760180} /_vercel/insights/view
+[00:54:57.591] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783361813993} /_vercel/insights/view
+[00:55:01.590] Server  LOG      ✓ Compiled in 316ms
+[00:55:09.854] Server  LOG      ✓ Compiled in 111ms
+[00:55:17.562] Server  LOG      ✓ Compiled in 314ms
+[00:55:59.147] Server  LOG      ✓ Compiled in 8ms
+[00:57:05.963] Browser ERROR   [v0] API request failed: {}
+[00:57:05.964] Browser ERROR   [v0] Login error: {}
+[00:57:28.379] Browser ERROR   [v0] API request failed: {}
+[00:57:28.379] Browser ERROR   [v0] Login error: {}
+[00:57:44.152] Browser ERROR   [v0] API request failed: {}
+[00:57:44.152] Browser ERROR   [v0] Login error: {}
+[00:58:35.736] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/about color: rgb(120, 120, 120) color: inherit {"dp":"/about","o":"http://localhost:3000/about","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783362032173} /_vercel/insights/view
+[00:58:38.135] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/contacts color: rgb(120, 120, 120) color: inherit {"dp":"/contacts","o":"http://localhost:3000/contacts","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783362034546} /_vercel/insights/view
+[00:58:46.021] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1783362042454} /_vercel/insights/view

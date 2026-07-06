@@ -4,8 +4,13 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card } from "@/components/ui/card"
 import { Utensils, Heart, Truck, Star } from "lucide-react"
+import { useStore } from "@/hooks/use-store"
 
 export default function AboutPage() {
+  const { store } = useStore()
+  const storeName = store?.name || "Food delivery service"
+  const aboutText = store?.orderWebsiteId?.aboutUs || store?.description || "Learn more about our food delivery service"
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -16,7 +21,7 @@ export default function AboutPage() {
             About Us
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400">
-            Learn more about our food delivery service
+            {aboutText}
           </p>
         </div>
 
@@ -24,7 +29,7 @@ export default function AboutPage() {
           <Card className="p-8">
             <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">Our Mission</h2>
             <p className="text-gray-600 dark:text-gray-400">
-              We are dedicated to bringing you the best food from your favorite restaurants, 
+              {storeName} is dedicated to bringing you the best food from your favorite restaurants,
               delivered right to your door. Our mission is to make food ordering simple, fast, and enjoyable.
             </p>
           </Card>
@@ -57,4 +62,3 @@ export default function AboutPage() {
     </div>
   )
 }
-
