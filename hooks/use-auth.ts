@@ -12,14 +12,12 @@ import {
   type User,
 } from "@/lib/auth"
 import { clearCart } from "@/lib/cart"
-import { clearActiveStore, getKnownStore, getStoreFromSubdomain, getStoreSlug } from "@/lib/store"
+import { clearActiveStore, getHostnameStoreSlug, getStoreFromSubdomain, getStoreSlug } from "@/lib/store"
 
 async function resolveStoreForApi(storeSlug?: string) {
-  const slug = storeSlug || getStoreSlug()
-  const storeData =
-    (await api.store.getBySubdomainOptional(slug))?.data ||
-    (await getStoreFromSubdomain()) ||
-    getKnownStore(slug)
+  const hostnameSlug = getHostnameStoreSlug()
+  const slug = hostnameSlug || storeSlug || getStoreSlug()
+  const storeData = (await getStoreFromSubdomain()) || (await api.store.getBySubdomainOptional(slug))?.data
   return {
     slug,
     apiStore: storeData?.subdomain || slug,

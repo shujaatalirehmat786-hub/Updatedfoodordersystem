@@ -213,7 +213,7 @@ function HomePageContent() {
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage: "url(https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=1920&h=1080&fit=crop&q=80)",
+              backgroundImage: `url(${store?.headerImageUrl || "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=1920&h=1080&fit=crop&q=80"})`,
             }}
           >
             <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" />

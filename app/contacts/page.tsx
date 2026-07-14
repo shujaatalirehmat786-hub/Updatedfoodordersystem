@@ -15,9 +15,8 @@ export default function ContactsPage() {
   const storeHours =
     businessHours.length
       ? businessHours
-          .filter((slot) => slot.isOpen)
-          .map((slot) => `${slot.day}: ${slot.startTime} - ${slot.endTime}`)
-          .join(", ") || "Store hours are available from the backend"
+          .map((slot) => `${slot.day}: ${slot.isOpen ? `${slot.startTime} - ${slot.endTime}` : "Closed"}`)
+          .join(", ")
       : "24/7 Available"
 
   return (

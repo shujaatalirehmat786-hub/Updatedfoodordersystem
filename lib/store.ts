@@ -12,6 +12,19 @@ export interface Store {
   logoUrl?: string
   headerImageUrl?: string
   description?: string
+  logoId?: {
+    _id?: string
+    fileName?: string
+    fileUrl?: string
+    fileType?: string
+  }
+  headerImageId?: {
+    _id?: string
+    fileName?: string
+    fileUrl?: string
+    fileType?: string
+  }
+  raw?: any
   orderWebsiteId?: {
     _id?: string
     isEnabled?: boolean
@@ -72,6 +85,9 @@ function normalizeStorePayload(storeData: any, fallback?: Store | null): Store {
     logoUrl: storeData?.logoId?.fileUrl || storeData?.logo || fallback?.logoUrl || fallback?.logo,
     headerImageUrl: storeData?.headerImageId?.fileUrl || fallback?.headerImageUrl,
     description: storeData?.description || website?.aboutUs || fallback?.description,
+    logoId: storeData?.logoId || fallback?.logoId,
+    headerImageId: storeData?.headerImageId || fallback?.headerImageId,
+    raw: storeData || fallback?.raw,
     orderWebsiteId: website?.subDomain || website?.name ? website : fallback?.orderWebsiteId,
   }
 }
@@ -82,7 +98,7 @@ function getHostnameSubdomain(): string | null {
   }
 
   const hostname = window.location.hostname
-  if (!hostname || hostname === "localhost" || /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
+  if (!hostname || /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
     return null
   }
 
@@ -92,6 +108,19 @@ function getHostnameSubdomain(): string | null {
   }
 
   return parts[0] || null
+}
+
+export function getHostnameStoreSlug(): string | null {
+  if (typeof window === "undefined") {
+    return "savera"
+  }
+
+  const hostname = window.location.hostname
+  if (!hostname || hostname === "localhost") {
+    return "savera"
+  }
+
+  return getHostnameSubdomain()
 }
 
 export function getKnownStore(slug: string | null | undefined): Store | null {
@@ -170,7 +199,7 @@ export function getStoreSlug(): string {
     return "savera"
   }
 
-  const hostnameSubdomain = getHostnameSubdomain()
+  const hostnameSubdomain = getHostnameStoreSlug()
   if (hostnameSubdomain) {
     return hostnameSubdomain
   }

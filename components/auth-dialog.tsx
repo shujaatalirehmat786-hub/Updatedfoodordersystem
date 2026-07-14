@@ -100,6 +100,9 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       const success = await login(phone, store)
       if (success) {
         setStep("verify")
+      } else if (error?.toLowerCase().includes("failed to send sms")) {
+        // Backend can still create the OTP session even if SMS delivery is unavailable in test mode.
+        setStep("verify")
       }
     } catch {
       return
