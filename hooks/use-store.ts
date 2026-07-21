@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
   clearActiveStore,
   getActiveStore,
@@ -40,7 +40,7 @@ export function useStore() {
     }
   }, [])
 
-  const refreshStore = async () => {
+  const refreshStore = useCallback(async () => {
     try {
       setIsLoading(true)
       const storeData = await getStoreFromSubdomain()
@@ -54,9 +54,9 @@ export function useStore() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
-  const selectStore = async (slug: string) => {
+  const selectStore = useCallback(async (slug: string) => {
     try {
       setIsLoading(true)
       setError(null)
@@ -83,13 +83,13 @@ export function useStore() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
-  const resetStore = () => {
+  const resetStore = useCallback(() => {
     clearActiveStore()
     setStoreState(null)
     setStoreSlugState(null)
-  }
+  }, [])
 
   return {
     store,

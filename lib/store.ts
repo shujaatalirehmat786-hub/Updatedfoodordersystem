@@ -116,7 +116,7 @@ export function getHostnameStoreSlug(): string | null {
   }
 
   const hostname = window.location.hostname
-  if (!hostname || hostname === "localhost") {
+  if (!hostname || hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
     return "savera"
   }
 

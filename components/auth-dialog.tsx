@@ -9,9 +9,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/hooks/use-auth"
-import { getActiveStoreSlug, hasCompletedProfile, markProfileCompleted, setActiveStoreSlug } from "@/lib/auth"
+import { hasCompletedProfile, markProfileCompleted } from "@/lib/auth"
 import { useStore } from "@/hooks/use-store"
-import { ChevronRight, Loader2, Sparkles } from "lucide-react"
+import { Loader2, Sparkles, Store } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { type ClipboardEvent, type KeyboardEvent } from "react"
 
@@ -23,37 +23,20 @@ interface AuthDialogProps {
 export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const router = useRouter()
   const [phone, setPhone] = useState("")
-  const [store, setStore] = useState(getActiveStoreSlug() || "")
-  const [stores, setStores] = useState<Array<{ label: string; value: string; id?: string }>>([])
   const [otp, setOtp] = useState("")
   const [step, setStep] = useState<"details" | "verify">("details")
   const otpRefs = useRef<Array<HTMLInputElement | null>>([])
   const { login, verifyOtp, isLoading, error, user } = useAuth()
-  const { selectStore } = useStore()
-  const fallbackStores = [
-    { label: "Savera", value: "savera" },
-    { label: "Jollibee", value: "jolibee" },
-  ]
+  const { store, refreshStore } = useStore()
 
   useEffect(() => {
     if (open) {
-      setStores(fallbackStores)
+      void refreshStore()
     }
-  }, [open])
+  }, [open, refreshStore])
 
-  useEffect(() => {
-    if (!store) {
-      const defaultStore = (stores[0] || fallbackStores[0])?.value || ""
-      setStore(getActiveStoreSlug() || defaultStore)
-    }
-  }, [stores, store])
-
-  const visibleStores = stores.length > 0 ? stores : fallbackStores
-
-  const selectedStoreOption = useMemo(
-    () => visibleStores.find((option) => option.value === store) || null,
-    [store, visibleStores],
-  )
+  const currentStoreName = useMemo(() => store?.name || "Savera", [store])
+  const currentStoreSlug = useMemo(() => store?.subdomain || "savera", [store])
 
   const handleOtpDigitChange = (index: number, value: string) => {
     const digit = value.replace(/\D/g, "").slice(-1)
@@ -94,16 +77,8 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await selectStore(store)
-      setActiveStoreSlug(store)
-
-      const success = await login(phone, store)
-      if (success) {
-        setStep("verify")
-      } else if (error?.toLowerCase().includes("failed to send sms")) {
-        // Backend can still create the OTP session even if SMS delivery is unavailable in test mode.
-        setStep("verify")
-      }
+      const success = await login(phone, currentStoreSlug)
+      if (success) setStep("verify")
     } catch {
       return
     }
@@ -111,7 +86,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const result = await verifyOtp(phone, otp, store)
+    const result = await verifyOtp(phone, otp, currentStoreSlug)
     if (result?.success) {
       onOpenChange(false)
       setPhone("")
@@ -119,11 +94,11 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       setStep("details")
 
       const currentUser = result.user || user
-      const profileAlreadyCompleted = hasCompletedProfile(store)
+      const profileAlreadyCompleted = hasCompletedProfile(currentStoreSlug)
       const profileLooksIncomplete = !currentUser?.firstName || !currentUser?.lastName
 
       if (profileLooksIncomplete && !profileAlreadyCompleted) {
-        markProfileCompleted(store)
+        markProfileCompleted(currentStoreSlug)
         router.push("/profile?fromAuth=true")
       }
     }
@@ -160,175 +135,153 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
               <DialogDescription className="mt-1 text-sm leading-6 text-zinc-500">
                 {step === "verify"
                   ? `We sent a 6-digit code to ${phone}.`
-                  : "Choose your store and phone number to continue."}
+                  : "Enter your phone number to continue."}
               </DialogDescription>
             </DialogHeader>
 
-              {step === "details" ? (
-                <form onSubmit={handlePhoneSubmit} className="space-y-6">
-                  <div className="rounded-[1.5rem] border border-zinc-100 bg-gradient-to-br from-zinc-50 to-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
-                    <div className="mb-4 flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">Step 1</p>
-                        <p className="mt-1 text-sm font-semibold text-zinc-950">Choose a store</p>
-                      </div>
-                    </div>
-
-                    <Label htmlFor="store" className="text-sm font-medium text-zinc-700">
-                      Store name
-                    </Label>
-                    <div className="mt-3">
-                      <div className="relative">
-                        <select
-                          id="store"
-                          value={store}
-                          onChange={(e) => setStore(e.target.value)}
-                          className="w-full appearance-none rounded-2xl border border-zinc-200 bg-white px-4 py-4 pr-12 text-base text-zinc-950 shadow-sm outline-none transition focus:border-orange-400 focus:ring-4 focus:ring-orange-100 disabled:cursor-not-allowed disabled:bg-zinc-50"
-                        >
-                          {visibleStores.length > 0 ? (
-                            visibleStores.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))
-                          ) : (
-                            <option value="">Select a store</option>
-                          )}
-                        </select>
-                        <ChevronRight className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-zinc-400" />
-                      </div>
-                      {selectedStoreOption ? (
-                        <div className="mt-3 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3">
-                          <p className="text-sm font-medium text-orange-700">{selectedStoreOption.label}</p>
-                          <p className="mt-1 text-xs text-orange-600/80">Selected store will be used for login and content.</p>
-                        </div>
-                      ) : (
-                        <p className="mt-3 text-xs text-zinc-500">Select your store name to continue.</p>
-                      )}
+            {step === "details" ? (
+              <form onSubmit={handlePhoneSubmit} className="space-y-6">
+                <div className="rounded-[1.5rem] border border-zinc-100 bg-gradient-to-br from-zinc-50 to-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">Step 1</p>
+                      <p className="mt-1 text-sm font-semibold text-zinc-950">Current store</p>
                     </div>
                   </div>
 
-                  <div className="rounded-[1.5rem] border border-zinc-100 bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">Step 2</p>
-                        <p className="mt-1 text-sm font-semibold text-zinc-950">Enter your phone</p>
-                      </div>
-                      <div className="text-xs text-zinc-500">We will send a secure code</div>
+                  <Label className="text-sm font-medium text-zinc-700">Store name</Label>
+                  <div className="mt-3 flex items-center gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white">
+                      <Store className="h-5 w-5" />
                     </div>
+                    <div>
+                      <p className="text-sm font-semibold text-orange-700">{currentStoreName}</p>
+                      <p className="mt-1 text-xs text-orange-600/80">This store is selected from the current domain.</p>
+                    </div>
+                  </div>
+                </div>
 
-                    <Label htmlFor="phone" className="text-sm font-medium text-zinc-700">
-                      Phone number
-                    </Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+923001234567"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      required
-                      disabled={isLoading}
-                      className="mt-3 rounded-2xl border-zinc-200 bg-white px-4 py-6 shadow-sm"
-                    />
+                <div className="rounded-[1.5rem] border border-zinc-100 bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">Step 2</p>
+                      <p className="mt-1 text-sm font-semibold text-zinc-950">Enter your phone</p>
+                    </div>
+                    <div className="text-xs text-zinc-500">We will send a secure code</div>
                   </div>
 
-                  {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+                  <Label htmlFor="phone" className="text-sm font-medium text-zinc-700">
+                    Phone number
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+923001234567"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    className="mt-3 rounded-2xl border-zinc-200 bg-white px-4 py-6 shadow-sm"
+                  />
+                </div>
 
-                  <Button
-                    type="submit"
-                    className="h-12 w-full rounded-2xl bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-800 text-white shadow-[0_18px_40px_rgba(9,9,11,0.22)] transition-transform duration-200 hover:-translate-y-0.5 hover:from-zinc-900 hover:to-zinc-700"
+                {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+
+                <Button
+                  type="submit"
+                  className="h-12 w-full rounded-2xl bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-800 text-white shadow-[0_18px_40px_rgba(9,9,11,0.22)] transition-transform duration-200 hover:-translate-y-0.5 hover:from-zinc-900 hover:to-zinc-700"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending code
+                    </>
+                  ) : (
+                    "Send verification code"
+                  )}
+                </Button>
+              </form>
+            ) : (
+              <form onSubmit={handleOtpSubmit} className="space-y-6">
+                <div className="rounded-[1.5rem] border border-zinc-100 bg-gradient-to-r from-zinc-50 via-white to-orange-50 p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400">Store</p>
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-medium text-zinc-900">{currentStoreName}</p>
+                      <p className="text-sm text-zinc-500">{phone}</p>
+                    </div>
+                    <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-orange-600 shadow-sm">
+                      OTP sent
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[1.5rem] border border-zinc-100 bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
+                  <Label htmlFor="otp" className="text-sm font-medium text-zinc-700">
+                    Verification code
+                  </Label>
+                  <p className="mt-1 text-xs text-zinc-500">Enter the 6-digit code sent to your phone. You can paste it directly.</p>
+                  <div className="mt-4 grid grid-cols-6 gap-2" onPaste={handleOtpPaste}>
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <Input
+                        key={index}
+                        ref={(el) => {
+                          otpRefs.current[index] = el
+                        }}
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        maxLength={1}
+                        value={otp[index] || ""}
+                        onChange={(event) => handleOtpDigitChange(index, event.target.value)}
+                        onKeyDown={(event) => handleOtpKeyDown(index, event)}
+                        disabled={isLoading}
+                        className="h-12 rounded-2xl border-zinc-200 bg-zinc-50 text-center text-lg font-semibold shadow-sm transition-all duration-200 focus-visible:scale-[1.03] focus-visible:bg-white"
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+
+                <Button
+                  type="submit"
+                  className="h-12 w-full rounded-2xl bg-gradient-to-r from-orange-500 via-orange-500 to-amber-400 text-white shadow-[0_18px_40px_rgba(249,115,22,0.24)] transition-transform duration-200 hover:-translate-y-0.5 hover:from-orange-400 hover:to-amber-300"
+                  disabled={isLoading || otp.length < 6}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verifying
+                    </>
+                  ) : (
+                    "Verify and continue"
+                  )}
+                </Button>
+
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <button
+                    type="button"
+                    className="font-medium text-zinc-600 transition-colors hover:text-zinc-900"
+                    onClick={() => {
+                      setStep("details")
+                      setOtp("")
+                    }}
                     disabled={isLoading}
                   >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Sending code
-                      </>
-                    ) : (
-                      "Send verification code"
-                    )}
-                  </Button>
-                </form>
-              ) : (
-                <form onSubmit={handleOtpSubmit} className="space-y-6">
-                  <div className="rounded-[1.5rem] border border-zinc-100 bg-gradient-to-r from-zinc-50 via-white to-orange-50 p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
-                    <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400">Store</p>
-                    <div className="mt-2 flex items-center justify-between gap-3">
-                      <div>
-                        <p className="font-medium text-zinc-900">{selectedStoreOption?.label || store || "Selected store"}</p>
-                        <p className="text-sm text-zinc-500">{phone}</p>
-                      </div>
-                      <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-orange-600 shadow-sm">
-                        OTP sent
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[1.5rem] border border-zinc-100 bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
-                    <Label htmlFor="otp" className="text-sm font-medium text-zinc-700">
-                      Verification code
-                    </Label>
-                    <p className="mt-1 text-xs text-zinc-500">Enter the 6-digit code sent to your phone. You can paste it directly.</p>
-                    <div className="mt-4 grid grid-cols-6 gap-2" onPaste={handleOtpPaste}>
-                      {Array.from({ length: 6 }).map((_, index) => (
-                        <Input
-                          key={index}
-                          ref={(el) => {
-                            otpRefs.current[index] = el
-                          }}
-                          inputMode="numeric"
-                          autoComplete="one-time-code"
-                          maxLength={1}
-                          value={otp[index] || ""}
-                          onChange={(event) => handleOtpDigitChange(index, event.target.value)}
-                          onKeyDown={(event) => handleOtpKeyDown(index, event)}
-                          disabled={isLoading}
-                          className="h-12 rounded-2xl border-zinc-200 bg-zinc-50 text-center text-lg font-semibold shadow-sm transition-all duration-200 focus-visible:scale-[1.03] focus-visible:bg-white"
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
-
-                  <Button
-                    type="submit"
-                    className="h-12 w-full rounded-2xl bg-gradient-to-r from-orange-500 via-orange-500 to-amber-400 text-white shadow-[0_18px_40px_rgba(249,115,22,0.24)] transition-transform duration-200 hover:-translate-y-0.5 hover:from-orange-400 hover:to-amber-300"
-                    disabled={isLoading || otp.length < 6}
+                    Change phone
+                  </button>
+                  <button
+                    type="button"
+                    className="font-medium text-orange-600 transition-colors hover:text-orange-700"
+                    onClick={() => login(phone, currentStoreSlug)}
+                    disabled={isLoading}
                   >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Verifying
-                      </>
-                    ) : (
-                      "Verify and continue"
-                    )}
-                  </Button>
-
-                  <div className="flex items-center justify-between gap-3 text-sm">
-                    <button
-                      type="button"
-                      className="font-medium text-zinc-600 transition-colors hover:text-zinc-900"
-                      onClick={() => {
-                        setStep("details")
-                        setOtp("")
-                      }}
-                      disabled={isLoading}
-                    >
-                      Change phone or store
-                    </button>
-                    <button
-                      type="button"
-                      className="font-medium text-orange-600 transition-colors hover:text-orange-700"
-                      onClick={() => login(phone, store)}
-                      disabled={isLoading}
-                    >
-                      Resend code
-                    </button>
-                  </div>
-                </form>
-              )}
+                    Resend code
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </DialogContent>
