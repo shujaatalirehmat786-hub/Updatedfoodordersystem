@@ -1121,7 +1121,7 @@ function useStore() {
             window.removeEventListener("store_updated", syncStore);
         };
     }, []);
-    const refreshStore = async ()=>{
+    const refreshStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(async ()=>{
         try {
             setIsLoading(true);
             const storeData = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getStoreFromSubdomain"])();
@@ -1135,8 +1135,8 @@ function useStore() {
         } finally{
             setIsLoading(false);
         }
-    };
-    const selectStore = async (slug)=>{
+    }, []);
+    const selectStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(async (slug)=>{
         try {
             setIsLoading(true);
             setError(null);
@@ -1159,12 +1159,12 @@ function useStore() {
         } finally{
             setIsLoading(false);
         }
-    };
-    const resetStore = ()=>{
+    }, []);
+    const resetStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(()=>{
         (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["clearActiveStore"])();
         setStoreState(null);
         setStoreSlugState(null);
-    };
+    }, []);
     return {
         store,
         storeSlug,
@@ -1617,7 +1617,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/auth-dialog.tsx",
                                                             lineNumber: 147,
-                                                            columnNumber: 25
+                                                            columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                             className: "mt-1 text-sm font-semibold text-zinc-950",
@@ -1625,18 +1625,18 @@ function AuthDialog({ open, onOpenChange }) {
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/auth-dialog.tsx",
                                                             lineNumber: 148,
-                                                            columnNumber: 25
+                                                            columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/auth-dialog.tsx",
                                                     lineNumber: 146,
-                                                    columnNumber: 23
+                                                    columnNumber: 21
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                 lineNumber: 145,
-                                                columnNumber: 21
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Label"], {
                                                 className: "text-sm font-medium text-zinc-700",
@@ -1644,7 +1644,7 @@ function AuthDialog({ open, onOpenChange }) {
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                 lineNumber: 152,
-                                                columnNumber: 21
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "mt-3 flex items-center gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-4",
@@ -1656,12 +1656,12 @@ function AuthDialog({ open, onOpenChange }) {
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/auth-dialog.tsx",
                                                             lineNumber: 155,
-                                                            columnNumber: 25
+                                                            columnNumber: 23
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
                                                         lineNumber: 154,
-                                                        columnNumber: 23
+                                                        columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         children: [
@@ -1671,7 +1671,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                                 lineNumber: 158,
-                                                                columnNumber: 25
+                                                                columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                 className: "mt-1 text-xs text-orange-600/80",
@@ -1679,25 +1679,25 @@ function AuthDialog({ open, onOpenChange }) {
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                                 lineNumber: 159,
-                                                                columnNumber: 25
+                                                                columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
                                                         lineNumber: 157,
-                                                        columnNumber: 23
+                                                        columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                 lineNumber: 153,
-                                                columnNumber: 21
+                                                columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
                                         lineNumber: 144,
-                                        columnNumber: 19
+                                        columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "rounded-[1.5rem] border border-zinc-100 bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]",
@@ -1713,7 +1713,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                                 lineNumber: 167,
-                                                                columnNumber: 25
+                                                                columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                 className: "mt-1 text-sm font-semibold text-zinc-950",
@@ -1721,13 +1721,13 @@ function AuthDialog({ open, onOpenChange }) {
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                                 lineNumber: 168,
-                                                                columnNumber: 25
+                                                                columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
                                                         lineNumber: 166,
-                                                        columnNumber: 23
+                                                        columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "text-xs text-zinc-500",
@@ -1735,13 +1735,13 @@ function AuthDialog({ open, onOpenChange }) {
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
                                                         lineNumber: 170,
-                                                        columnNumber: 23
+                                                        columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                 lineNumber: 165,
-                                                columnNumber: 21
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Label"], {
                                                 htmlFor: "phone",
@@ -1750,7 +1750,7 @@ function AuthDialog({ open, onOpenChange }) {
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                 lineNumber: 173,
-                                                columnNumber: 21
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
                                                 id: "phone",
@@ -1764,13 +1764,13 @@ function AuthDialog({ open, onOpenChange }) {
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                 lineNumber: 176,
-                                                columnNumber: 21
+                                                columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
                                         lineNumber: 164,
-                                        columnNumber: 19
+                                        columnNumber: 17
                                     }, this),
                                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                         className: "rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700",
@@ -1778,7 +1778,7 @@ function AuthDialog({ open, onOpenChange }) {
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
                                         lineNumber: 188,
-                                        columnNumber: 29
+                                        columnNumber: 27
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
                                         type: "submit",
@@ -1791,7 +1791,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/auth-dialog.tsx",
                                                     lineNumber: 197,
-                                                    columnNumber: 25
+                                                    columnNumber: 23
                                                 }, this),
                                                 "Sending code"
                                             ]
@@ -1799,13 +1799,13 @@ function AuthDialog({ open, onOpenChange }) {
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
                                         lineNumber: 190,
-                                        columnNumber: 19
+                                        columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/auth-dialog.tsx",
                                 lineNumber: 143,
-                                columnNumber: 17
+                                columnNumber: 15
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
                                 onSubmit: handleOtpSubmit,
                                 className: "space-y-6",
@@ -1819,7 +1819,7 @@ function AuthDialog({ open, onOpenChange }) {
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                 lineNumber: 208,
-                                                columnNumber: 21
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "mt-2 flex items-center justify-between gap-3",
@@ -1828,11 +1828,11 @@ function AuthDialog({ open, onOpenChange }) {
                                                         children: [
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                 className: "font-medium text-zinc-900",
-                                                                children: selectedStoreOption?.label || store || "Selected store"
+                                                                children: currentStoreName
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                                 lineNumber: 211,
-                                                                columnNumber: 25
+                                                                columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                 className: "text-sm text-zinc-500",
@@ -1840,13 +1840,13 @@ function AuthDialog({ open, onOpenChange }) {
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                                 lineNumber: 212,
-                                                                columnNumber: 25
+                                                                columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
                                                         lineNumber: 210,
-                                                        columnNumber: 23
+                                                        columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "rounded-full bg-white px-3 py-1 text-xs font-semibold text-orange-600 shadow-sm",
@@ -1854,19 +1854,19 @@ function AuthDialog({ open, onOpenChange }) {
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
                                                         lineNumber: 214,
-                                                        columnNumber: 23
+                                                        columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                 lineNumber: 209,
-                                                columnNumber: 21
+                                                columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
                                         lineNumber: 207,
-                                        columnNumber: 19
+                                        columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "rounded-[1.5rem] border border-zinc-100 bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]",
@@ -1878,7 +1878,7 @@ function AuthDialog({ open, onOpenChange }) {
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                 lineNumber: 221,
-                                                columnNumber: 21
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                 className: "mt-1 text-xs text-zinc-500",
@@ -1886,7 +1886,7 @@ function AuthDialog({ open, onOpenChange }) {
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                 lineNumber: 224,
-                                                columnNumber: 21
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "mt-4 grid grid-cols-6 gap-2",
@@ -1908,18 +1908,18 @@ function AuthDialog({ open, onOpenChange }) {
                                                     }, index, false, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
                                                         lineNumber: 227,
-                                                        columnNumber: 25
+                                                        columnNumber: 23
                                                     }, this))
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                 lineNumber: 225,
-                                                columnNumber: 21
+                                                columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
                                         lineNumber: 220,
-                                        columnNumber: 19
+                                        columnNumber: 17
                                     }, this),
                                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                         className: "rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700",
@@ -1927,7 +1927,7 @@ function AuthDialog({ open, onOpenChange }) {
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
                                         lineNumber: 245,
-                                        columnNumber: 29
+                                        columnNumber: 27
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
                                         type: "submit",
@@ -1940,7 +1940,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/auth-dialog.tsx",
                                                     lineNumber: 254,
-                                                    columnNumber: 25
+                                                    columnNumber: 23
                                                 }, this),
                                                 "Verifying"
                                             ]
@@ -1948,7 +1948,7 @@ function AuthDialog({ open, onOpenChange }) {
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
                                         lineNumber: 247,
-                                        columnNumber: 19
+                                        columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "flex items-center justify-between gap-3 text-sm",
@@ -1961,11 +1961,11 @@ function AuthDialog({ open, onOpenChange }) {
                                                     setOtp("");
                                                 },
                                                 disabled: isLoading,
-                                                children: "Change phone or store"
+                                                children: "Change phone"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                 lineNumber: 263,
-                                                columnNumber: 21
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                 type: "button",
@@ -1976,19 +1976,19 @@ function AuthDialog({ open, onOpenChange }) {
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                 lineNumber: 274,
-                                                columnNumber: 21
+                                                columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
                                         lineNumber: 262,
-                                        columnNumber: 19
+                                        columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/auth-dialog.tsx",
                                 lineNumber: 206,
-                                columnNumber: 17
+                                columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
