@@ -1,53 +1,8 @@
-[00:00:01.533] Server  LOG      ✓ Ready in 966ms
-[00:00:01.535] Server  WARN     ⚠ Cross origin request detected from 192.168.18.227 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+[00:00:02.678] Server  LOG      ✓ Ready in 1805ms
+[00:00:09.902] Server  LOG      ○ Compiling / ...
+[00:00:10.877] Server  WARN     ⚠ Cross origin request detected from 192.168.18.227 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
 Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
-[00:00:04.575] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:05.306] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <RedirectErrorBoundary router={{...}}>
-      <InnerLayoutRouter url="/contacts" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} segmentPath={[...]} ...>
-        <SegmentViewNode type="page" pagePath="contacts/p...">
-          <SegmentTrieNode>
-          <ClientPageRoot Component={function ContactsPage} serverProvidedParams={{...}}>
-            <ContactsPage params={Promise} searchParams={Promise}>
-              <div className="min-h-scre...">
-                <Header>
-                  <header className="sticky top...">
-                    <div className="container ...">
-                      <LinkComponent href="/" className="group flex...">
-                        <a className="group flex..." ref={function} onClick={function onClick} ...>
-                          <div>
-                          <div className="flex flex-col">
-                            <span className="text-base font-semibold tracking-tight text-white sm:text-xl">
-+                             SAVERA INDIAN. KITCHEN
--                             FoodOrder
-                            ...
-                      ...
-                  ...
-                ...
-        ...
-      ...
-
-[00:00:05.306] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:00:05.306] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/contacts","route":"/contacts"}
-[00:00:05.306] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/contacts","route":"/contacts"}
-[00:00:05.306] Browser LOG     %c[Vercel Web Analytics]%c [view] http://192.168.18.227:3000/contacts color: rgb(120, 120, 120) color: inherit {"dp":"/contacts","o":"http://192.168.18.227:3000/contacts","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1784737979255} /_vercel/insights/view
-[00:00:05.306] Browser LOG     %c[Vercel Web Analytics]%c [view] http://192.168.18.227:3000/contacts color: rgb(120, 120, 120) color: inherit {"dp":"/contacts","o":"http://192.168.18.227:3000/contacts","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1784737979256} /_vercel/insights/view
-[00:00:06.815] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:07.026] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:00:07.026] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
-[00:00:07.026] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1784737981457} /_vercel/insights/view
-[00:00:17.355] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
-[00:00:17.355] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/about color: rgb(120, 120, 120) color: inherit {"dp":"/about","o":"http://localhost:3000/about","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1784737991767} /_vercel/insights/view
-[00:00:23.168] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/contacts color: rgb(120, 120, 120) color: inherit {"dp":"/contacts","o":"http://localhost:3000/contacts","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1784737997577} /_vercel/insights/view
+[00:00:10.913] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:11.098] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:00:11.098] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:00:11.098] Browser LOG     %c[Vercel Web Analytics]%c [view] http://192.168.18.227:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://192.168.18.227:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1784918583410} /_vercel/insights/view
