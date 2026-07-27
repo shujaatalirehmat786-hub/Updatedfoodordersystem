@@ -1,4 +1,20 @@
-const BASE_URL = "/api/online-order"
+const BACKEND_URL = "https://api.livedatanow.com/api/online-order"
+const PROXY_URL = "/api/online-order"
+const TEST_HOSTNAMES = new Set([
+  "updatedfoodordersystem.vercel.app",
+])
+
+function shouldUseDirectBackend(): boolean {
+  if (typeof window === "undefined") {
+    return false
+  }
+
+  return TEST_HOSTNAMES.has(window.location.hostname)
+}
+
+function getApiBaseUrls(): string[] {
+  return shouldUseDirectBackend() ? [BACKEND_URL, PROXY_URL] : [PROXY_URL]
+}
 
 export interface ApiResponse<T> {
   data: T
@@ -46,85 +62,109 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     headers["Authorization"] = `Bearer ${token}`
   }
 
-  try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    })
+  let lastError: unknown = null
 
-    if (!response.ok) {
-      const errorData = (await response.json().catch(() => ({}))) as { error?: string; message?: string }
-      const errorMessage =
-        typeof errorData.error === "string"
-          ? errorData.error
-          : typeof errorData.message === "string"
-            ? errorData.message
-            : `API Error: ${response.statusText}`
-      throw new Error(errorMessage)
+  for (const baseUrl of getApiBaseUrls()) {
+    try {
+      const response = await fetch(`${baseUrl}${endpoint}`, {
+        ...options,
+        headers,
+      })
+
+      if (!response.ok) {
+        const errorData = (await response.json().catch(() => ({}))) as { error?: string; message?: string }
+        const errorMessage =
+          typeof errorData.error === "string"
+            ? errorData.error
+            : typeof errorData.message === "string"
+              ? errorData.message
+              : `API Error: ${response.statusText}`
+        throw new Error(errorMessage)
+      }
+
+      return response.json()
+    } catch (error) {
+      lastError = error
+      if (baseUrl !== PROXY_URL) {
+        continue
+      }
+      console.error("[v0] API request failed:", error)
+      throw error
     }
-
-    return response.json()
-  } catch (error) {
-    console.error("[v0] API request failed:", error)
-    throw error
   }
+
+  throw lastError instanceof Error ? lastError : new Error("API request failed")
 }
 
 async function apiRequestOptional<T>(endpoint: string, options: RequestInit = {}): Promise<T | null> {
-  try {
-    const token = getAuthToken()
+  const token = getAuthToken()
 
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-      ...options.headers,
-    }
-
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`
-    }
-
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    })
-
-    if (!response.ok) {
-      const responseText = await response.text().catch(() => "")
-      const contentType = response.headers.get("content-type") || ""
-
-      if (
-        response.status === 404 ||
-        responseText.includes("Cannot GET") ||
-        responseText.includes("Website not found for this subdomain") ||
-        contentType.includes("text/html")
-      ) {
-        return null
-      }
-
-      let errorMessage = `API Error: ${response.statusText}`
-      if (contentType.includes("application/json")) {
-        try {
-          const errorData = JSON.parse(responseText) as { error?: string; message?: string }
-          errorMessage =
-            typeof errorData.error === "string"
-              ? errorData.error
-              : typeof errorData.message === "string"
-                ? errorData.message
-                : errorMessage
-        } catch {
-          // keep fallback message
-        }
-      } else if (responseText) {
-        errorMessage = responseText
-      }
-
-      throw new Error(errorMessage)
-    }
-
-    return response.json()
-  } catch (error) {
-    throw error
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...options.headers,
   }
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`
+  }
+
+  let lastError: unknown = null
+
+  for (const baseUrl of getApiBaseUrls()) {
+    try {
+      const response = await fetch(`${baseUrl}${endpoint}`, {
+        ...options,
+        headers,
+      })
+
+      if (!response.ok) {
+        const responseText = await response.text().catch(() => "")
+        const contentType = response.headers.get("content-type") || ""
+
+        if (
+          response.status === 404 ||
+          responseText.includes("Cannot GET") ||
+          responseText.includes("Website not found for this subdomain") ||
+          contentType.includes("text/html")
+        ) {
+          return null
+        }
+
+        let errorMessage = `API Error: ${response.statusText}`
+        if (contentType.includes("application/json")) {
+          try {
+            const errorData = JSON.parse(responseText) as { error?: string; message?: string }
+            errorMessage =
+              typeof errorData.error === "string"
+                ? errorData.error
+                : typeof errorData.message === "string"
+                  ? errorData.message
+                  : errorMessage
+          } catch {
+            // keep fallback message
+          }
+        } else if (responseText) {
+          errorMessage = responseText
+        }
+
+        throw new Error(errorMessage)
+      }
+
+      return response.json()
+    } catch (error) {
+      lastError = error
+      if (baseUrl !== PROXY_URL) {
+        continue
+      }
+      throw error
+    }
+  }
+
+  if (lastError instanceof Error) {
+    throw lastError
+  }
+
+  return null
 }
 
 async function apiRequestOptionalMulti<T>(endpoints: string[], options: RequestInit = {}): Promise<T | null> {
