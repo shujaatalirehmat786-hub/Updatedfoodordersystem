@@ -828,6 +828,12 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d
 const ACTIVE_STORE_KEY = "active_store";
 const ACTIVE_STORE_SLUG_KEY = "active_store_slug";
 const TEST_STORE_DOMAIN = "livedatanow.com";
+const TEST_HOSTNAMES = new Set([
+    "localhost",
+    "127.0.0.1",
+    "::1",
+    "updatedfoodordersystem.vercel.app"
+]);
 const KNOWN_STORES = {
     savera: {
         _id: "68c328b7a277614f117d8226",
@@ -883,7 +889,7 @@ function getHostnameStoreSlug() {
     if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
     ;
     const hostname = window.location.hostname;
-    if (!hostname || hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
+    if (!hostname || TEST_HOSTNAMES.has(hostname)) {
         return "savera";
     }
     return getHostnameSubdomain();
