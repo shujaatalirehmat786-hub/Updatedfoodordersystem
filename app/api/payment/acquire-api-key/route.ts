@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const PAYMENT_GATEWAY_URL = "https://pay-cert.dcap.com/v2/AcquireInitialApiKey"
-const PAYMENT_USERNAME = "AONEPDALL1GP"
-const PAYMENT_PASSWORD = "96e2d7de5c514406a18766e5198ac44c"
+const PAYMENT_GATEWAY_URL = process.env.PAYMENT_GATEWAY_URL || "https://pay-cert.dcap.com/v2/AcquireInitialApiKey"
+const PAYMENT_USERNAME = process.env.PAYMENT_GATEWAY_USERNAME || "AONEPDALL1GP"
+const PAYMENT_PASSWORD = process.env.PAYMENT_GATEWAY_PASSWORD || "96e2d7de5c514406a18766e5198ac44c"
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,4 +40,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to fetch from payment gateway" }, { status: 500 })
   }
 }
-

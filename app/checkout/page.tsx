@@ -63,6 +63,21 @@ export default function CheckoutPage() {
       return
     }
 
+    if (paymentMethod === "card") {
+      try {
+        await api.payment.acquireInitialApiKey()
+      } catch (gatewayError) {
+        console.error("[v0] Failed to acquire payment gateway key:", gatewayError)
+        toast({
+          title: "Payment gateway unavailable",
+          description: "We could not prepare the card payment gateway. Please try cash or try again.",
+          variant: "destructive",
+        })
+        resetPlacingOrder()
+        return
+      }
+    }
+
     // Check if user has complete profile information
     let latestProfile = user
     try {
@@ -125,7 +140,7 @@ export default function CheckoutPage() {
     try {
       const orderItems = cart.items.map((item) => ({
         discount: item.discount,
-        modifiers: item.modifiers.map((mod) => ({
+        modifiers: (item.modifiers || []).map((mod) => ({
           id: mod.modifierId,
           qty: 1,
         })),
@@ -155,27 +170,23 @@ export default function CheckoutPage() {
       const orderResponse = await api.order.place(orderData)
       const orderId = orderResponse?._id || orderResponse?.data?._id || orderResponse?.id || orderResponse?.data?.id || ""
 
-      // Handle payment - only for cash payments (card API not ready)
-      if (paymentMethod === "cash") {
-        // Make payment API call for cash (do not fail the order if payment endpoint is unavailable)
-        try {
-          await api.payment.makePayment({
-            amount: cart.finalTotal,
-            paymentMethod: "cash",
-            orderId: orderId,
-            status: "PAID",
-          })
-        } catch (paymentError: any) {
-          console.error("[v0] Make payment failed:", paymentError)
-          toast({
-            title: "Payment service unavailable",
-            description: "Order placed, but payment could not be recorded. Please contact support.",
-            variant: "destructive",
-          })
-        }
+      const paymentRecordingMethod = paymentMethod === "card" ? cardDetails.cardType : "cash"
+
+      try {
+        await api.payment.makePayment({
+          amount: cart.finalTotal,
+          paymentMethod: paymentRecordingMethod,
+          orderId,
+          status: "PAID",
+        })
+      } catch (paymentError: any) {
+        console.error("[v0] Make payment failed:", paymentError)
+        toast({
+          title: "Payment service unavailable",
+          description: "Order placed, but payment could not be recorded. Please contact support.",
+          variant: "destructive",
+        })
       }
-      // For card payments, skip payment API call since it's not ready yet
-      // Order is still placed, but payment processing will be handled separately
 
       toast({
         title: "Order placed successfully!",
@@ -359,7 +370,7 @@ export default function CheckoutPage() {
                   </div>
 
                   <p className="text-sm text-muted-foreground">
-                    Note: Card payment processing is not yet available. This is a demo form.
+                    Card payment is recorded through the payment gateway after the order is placed.
                   </p>
                 </div>
               )}
@@ -378,8 +389,8 @@ export default function CheckoutPage() {
                       <p className="font-medium">
                         {item.quantity}x {item.name}
                       </p>
-                      {item.modifiers.length > 0 && (
-                        <p className="text-sm text-muted-foreground">{item.modifiers.map((m) => m.name).join(", ")}</p>
+                      {(item.modifiers || []).length > 0 && (
+                        <p className="text-sm text-muted-foreground">{(item.modifiers || []).map((m) => m.name).join(", ")}</p>
                       )}
                     </div>
                     <p className="font-semibold">${item.subTotal.toFixed(2)}</p>

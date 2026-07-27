@@ -340,7 +340,27 @@ __turbopack_context__.s([
     "api",
     ()=>api
 ]);
-const BASE_URL = "/api/online-order";
+const BACKEND_URL = "https://api.livedatanow.com/api/online-order";
+const PROXY_URL = "/api/online-order";
+const PAYMENT_PROXY_URL = "/api/payment";
+const TEST_HOSTNAMES = new Set([
+    "updatedfoodordersystem.vercel.app"
+]);
+function shouldUseDirectBackend() {
+    if ("TURBOPACK compile-time truthy", 1) {
+        return false;
+    }
+    //TURBOPACK unreachable
+    ;
+}
+function getApiBaseUrls() {
+    return shouldUseDirectBackend() ? [
+        BACKEND_URL,
+        PROXY_URL
+    ] : [
+        PROXY_URL
+    ];
+}
 function getAuthToken() {
     if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
     ;
@@ -374,59 +394,98 @@ async function apiRequest(endpoint, options = {}) {
     if (token) {
         headers["Authorization"] = `Bearer ${token}`;
     }
-    try {
-        const response = await fetch(`${BASE_URL}${endpoint}`, {
-            ...options,
-            headers
-        });
-        if (!response.ok) {
-            const errorData = await response.json().catch(()=>({}));
-            const errorMessage = typeof errorData.error === "string" ? errorData.error : typeof errorData.message === "string" ? errorData.message : `API Error: ${response.statusText}`;
-            throw new Error(errorMessage);
+    let lastError = null;
+    for (const baseUrl of getApiBaseUrls()){
+        try {
+            const response = await fetch(`${baseUrl}${endpoint}`, {
+                ...options,
+                headers
+            });
+            if (!response.ok) {
+                const errorData = await response.json().catch(()=>({}));
+                const errorMessage = typeof errorData.error === "string" ? errorData.error : typeof errorData.message === "string" ? errorData.message : `API Error: ${response.statusText}`;
+                throw new Error(errorMessage);
+            }
+            return response.json();
+        } catch (error) {
+            lastError = error;
+            if (baseUrl !== PROXY_URL) {
+                continue;
+            }
+            console.error("[v0] API request failed:", error);
+            throw error;
         }
-        return response.json();
-    } catch (error) {
-        console.error("[v0] API request failed:", error);
-        throw error;
     }
+    throw lastError instanceof Error ? lastError : new Error("API request failed");
+}
+async function apiRequestLocal(endpoint, options = {}) {
+    const token = getAuthToken();
+    const headers = {
+        "Content-Type": "application/json",
+        ...options.headers
+    };
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${PAYMENT_PROXY_URL}${endpoint}`, {
+        ...options,
+        headers
+    });
+    if (!response.ok) {
+        const errorData = await response.json().catch(()=>({}));
+        const errorMessage = typeof errorData.error === "string" ? errorData.error : typeof errorData.message === "string" ? errorData.message : `API Error: ${response.statusText}`;
+        throw new Error(errorMessage);
+    }
+    return response.json();
 }
 async function apiRequestOptional(endpoint, options = {}) {
-    try {
-        const token = getAuthToken();
-        const headers = {
-            "Content-Type": "application/json",
-            ...options.headers
-        };
-        if (token) {
-            headers["Authorization"] = `Bearer ${token}`;
-        }
-        const response = await fetch(`${BASE_URL}${endpoint}`, {
-            ...options,
-            headers
-        });
-        if (!response.ok) {
-            const responseText = await response.text().catch(()=>"");
-            const contentType = response.headers.get("content-type") || "";
-            if (response.status === 404 || responseText.includes("Cannot GET") || responseText.includes("Website not found for this subdomain") || contentType.includes("text/html")) {
-                return null;
-            }
-            let errorMessage = `API Error: ${response.statusText}`;
-            if (contentType.includes("application/json")) {
-                try {
-                    const errorData = JSON.parse(responseText);
-                    errorMessage = typeof errorData.error === "string" ? errorData.error : typeof errorData.message === "string" ? errorData.message : errorMessage;
-                } catch  {
-                // keep fallback message
-                }
-            } else if (responseText) {
-                errorMessage = responseText;
-            }
-            throw new Error(errorMessage);
-        }
-        return response.json();
-    } catch (error) {
-        throw error;
+    const token = getAuthToken();
+    const headers = {
+        "Content-Type": "application/json",
+        ...options.headers
+    };
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
     }
+    let lastError = null;
+    for (const baseUrl of getApiBaseUrls()){
+        try {
+            const response = await fetch(`${baseUrl}${endpoint}`, {
+                ...options,
+                headers
+            });
+            if (!response.ok) {
+                const responseText = await response.text().catch(()=>"");
+                const contentType = response.headers.get("content-type") || "";
+                if (response.status === 404 || responseText.includes("Cannot GET") || responseText.includes("Website not found for this subdomain") || contentType.includes("text/html")) {
+                    return null;
+                }
+                let errorMessage = `API Error: ${response.statusText}`;
+                if (contentType.includes("application/json")) {
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage = typeof errorData.error === "string" ? errorData.error : typeof errorData.message === "string" ? errorData.message : errorMessage;
+                    } catch  {
+                    // keep fallback message
+                    }
+                } else if (responseText) {
+                    errorMessage = responseText;
+                }
+                throw new Error(errorMessage);
+            }
+            return response.json();
+        } catch (error) {
+            lastError = error;
+            if (baseUrl !== PROXY_URL) {
+                continue;
+            }
+            throw error;
+        }
+    }
+    if (lastError instanceof Error) {
+        throw lastError;
+    }
+    return null;
 }
 async function apiRequestOptionalMulti(endpoints, options = {}) {
     for (const endpoint of endpoints){
@@ -538,7 +597,7 @@ const api = {
             })}`)
     },
     payment: {
-        acquireInitialApiKey: ()=>apiRequest("/payment/acquire-api-key", {
+        acquireInitialApiKey: ()=>apiRequestLocal("/acquire-api-key", {
                 method: "POST"
             }),
         makePayment: (params)=>{
@@ -548,7 +607,7 @@ const api = {
                 orderId: params.orderId,
                 status: params.status
             });
-            return apiRequest(`/payment/make-payment?${queryString}`);
+            return apiRequestLocal(`/make-payment?${queryString}`);
         }
     }
 };
@@ -651,6 +710,19 @@ __turbopack_context__.s([
 ]);
 "use client";
 const CART_KEY = "food_order_cart";
+function normalizeCartItem(item) {
+    return {
+        productId: String(item?.productId || ""),
+        name: String(item?.name || ""),
+        price: Number(item?.price || 0),
+        quantity: Number(item?.quantity || 1),
+        modifiers: Array.isArray(item?.modifiers) ? item.modifiers : [],
+        image: item?.image,
+        subTotal: Number(item?.subTotal || 0),
+        tax: Number(item?.tax || 0),
+        discount: Number(item?.discount || 0)
+    };
+}
 function getCart() {
     if ("TURBOPACK compile-time truthy", 1) {
         return {
@@ -670,12 +742,13 @@ function saveCart(cart) {
     ;
 }
 function calculateCartTotals(items) {
-    const subTotal = items.reduce((sum, item)=>sum + Number(item.subTotal || 0), 0);
-    const totalTax = items.reduce((sum, item)=>sum + Number(item.tax || 0), 0);
+    const normalizedItems = items.map(normalizeCartItem);
+    const subTotal = normalizedItems.reduce((sum, item)=>sum + Number(item.subTotal || 0), 0);
+    const totalTax = normalizedItems.reduce((sum, item)=>sum + Number(item.tax || 0), 0);
     const finalTotal = subTotal + totalTax;
-    const totalItems = items.reduce((sum, item)=>sum + Number(item.quantity || 0), 0);
+    const totalItems = normalizedItems.reduce((sum, item)=>sum + Number(item.quantity || 0), 0);
     return {
-        items,
+        items: normalizedItems,
         totalItems,
         subTotal,
         totalTax,
@@ -684,14 +757,15 @@ function calculateCartTotals(items) {
 }
 function addToCart(item) {
     const cart = getCart();
+    const normalizedItem = normalizeCartItem(item);
     // Check if item already exists (same product and modifiers)
-    const existingItemIndex = cart.items.findIndex((i)=>i.productId === item.productId && JSON.stringify(i.modifiers) === JSON.stringify(item.modifiers));
+    const existingItemIndex = cart.items.findIndex((i)=>i.productId === normalizedItem.productId && JSON.stringify(i.modifiers || []) === JSON.stringify(normalizedItem.modifiers || []));
     if (existingItemIndex >= 0) {
-        cart.items[existingItemIndex].quantity += item.quantity;
-        cart.items[existingItemIndex].subTotal += item.subTotal;
-        cart.items[existingItemIndex].tax += item.tax;
+        cart.items[existingItemIndex].quantity += normalizedItem.quantity;
+        cart.items[existingItemIndex].subTotal += normalizedItem.subTotal;
+        cart.items[existingItemIndex].tax += normalizedItem.tax;
     } else {
-        cart.items.push(item);
+        cart.items.push(normalizedItem);
     }
     const updatedCart = calculateCartTotals(cart.items);
     saveCart(updatedCart);
@@ -736,14 +810,30 @@ __turbopack_context__.s([
     ()=>getActiveStore,
     "getActiveStoreSlug",
     ()=>getActiveStoreSlug,
+    "getHostnameStoreSlug",
+    ()=>getHostnameStoreSlug,
     "getKnownStore",
     ()=>getKnownStore,
     "getKnownStoreHostname",
     ()=>getKnownStoreHostname,
+    "getStoreAddress",
+    ()=>getStoreAddress,
+    "getStoreBusinessHours",
+    ()=>getStoreBusinessHours,
+    "getStoreDescription",
+    ()=>getStoreDescription,
+    "getStoreEmail",
+    ()=>getStoreEmail,
     "getStoreFromSubdomain",
     ()=>getStoreFromSubdomain,
+    "getStoreName",
+    ()=>getStoreName,
+    "getStorePhone",
+    ()=>getStorePhone,
     "getStoreSlug",
     ()=>getStoreSlug,
+    "getStoreSocialLinks",
+    ()=>getStoreSocialLinks,
     "setActiveStore",
     ()=>setActiveStore,
     "setActiveStoreSlug",
@@ -755,6 +845,12 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d
 const ACTIVE_STORE_KEY = "active_store";
 const ACTIVE_STORE_SLUG_KEY = "active_store_slug";
 const TEST_STORE_DOMAIN = "livedatanow.com";
+const TEST_HOSTNAMES = new Set([
+    "localhost",
+    "127.0.0.1",
+    "::1",
+    "updatedfoodordersystem.vercel.app"
+]);
 const KNOWN_STORES = {
     savera: {
         _id: "68c328b7a277614f117d8226",
@@ -774,6 +870,26 @@ const KNOWN_STORES = {
     }
 };
 const DEFAULT_STORE = KNOWN_STORES.savera;
+function normalizeStorePayload(storeData, fallback) {
+    const website = storeData?.orderWebsiteId || {};
+    const subdomain = storeData?.subdomain || website?.subDomain || fallback?.subdomain || DEFAULT_STORE.subdomain;
+    return {
+        _id: storeData?._id || website?._id || fallback?._id || DEFAULT_STORE._id,
+        name: storeData?.name || website?.name || fallback?.name || DEFAULT_STORE.name,
+        subdomain,
+        address: storeData?.address || website?.address || fallback?.address,
+        phone: storeData?.phone || website?.phone || fallback?.phone,
+        email: storeData?.email || website?.email || fallback?.email,
+        logo: storeData?.logo || storeData?.logoId?.fileUrl || fallback?.logo,
+        logoUrl: storeData?.logoId?.fileUrl || storeData?.logo || fallback?.logoUrl || fallback?.logo,
+        headerImageUrl: storeData?.headerImageId?.fileUrl || fallback?.headerImageUrl,
+        description: storeData?.description || website?.aboutUs || fallback?.description,
+        logoId: storeData?.logoId || fallback?.logoId,
+        headerImageId: storeData?.headerImageId || fallback?.headerImageId,
+        raw: storeData || fallback?.raw,
+        orderWebsiteId: website?.subDomain || website?.name ? website : fallback?.orderWebsiteId
+    };
+}
 function getHostnameSubdomain() {
     if ("TURBOPACK compile-time truthy", 1) {
         return null;
@@ -782,6 +898,14 @@ function getHostnameSubdomain() {
     ;
     const hostname = undefined;
     const parts = undefined;
+}
+function getHostnameStoreSlug() {
+    if ("TURBOPACK compile-time truthy", 1) {
+        return "savera";
+    }
+    //TURBOPACK unreachable
+    ;
+    const hostname = undefined;
 }
 function getKnownStore(slug) {
     if (!slug) {
@@ -852,6 +976,34 @@ async function getStoreFromSubdomain() {
         return DEFAULT_STORE;
     }
 }
+function firstString(...values) {
+    return values.find((value)=>typeof value === "string" && value.trim().length > 0)?.trim();
+}
+function getStoreName(store) {
+    return firstString(store?.name, store?.orderWebsiteId?.name, store?.raw?.name, store?.raw?.orderWebsiteId?.name);
+}
+function getStoreDescription(store) {
+    return firstString(store?.description, store?.orderWebsiteId?.aboutUs, store?.raw?.description, store?.raw?.aboutUs, store?.raw?.orderWebsiteId?.aboutUs);
+}
+function getStorePhone(store) {
+    return firstString(store?.phone, store?.orderWebsiteId?.phone, store?.raw?.phone, store?.raw?.contactPhone);
+}
+function getStoreEmail(store) {
+    return firstString(store?.email, store?.orderWebsiteId?.email, store?.raw?.email, store?.raw?.contactEmail);
+}
+function getStoreAddress(store) {
+    return firstString(store?.address, store?.orderWebsiteId?.address, store?.raw?.address, store?.raw?.companyAddress, store?.raw?.location);
+}
+function getStoreBusinessHours(store) {
+    return store?.orderWebsiteId?.businessHours || [];
+}
+function getStoreSocialLinks(store) {
+    return {
+        facebookUrl: firstString(store?.orderWebsiteId?.facebookUrl, store?.raw?.facebookUrl, store?.raw?.facebook) || null,
+        instagramUrl: firstString(store?.orderWebsiteId?.instagramUrl, store?.raw?.instagramUrl, store?.raw?.instagram) || null,
+        twitterUrl: firstString(store?.orderWebsiteId?.twitterUrl, store?.raw?.twitterUrl, store?.raw?.twitter) || null
+    };
+}
 }),
 "[project]/hooks/use-auth.ts [app-ssr] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
@@ -871,13 +1023,24 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$
 ;
 ;
 ;
-function resolveStoreForApi(storeSlug) {
-    const slug = storeSlug || (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getStoreSlug"])();
-    const hostname = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getKnownStoreHostname"])(slug);
+async function resolveStoreForApi(storeSlug) {
+    const hostnameSlug = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getHostnameStoreSlug"])();
+    const slug = hostnameSlug || storeSlug || (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getStoreSlug"])();
+    const storeData = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getStoreFromSubdomain"])() || (await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].store.getBySubdomainOptional(slug))?.data;
     return {
         slug,
-        apiStore: hostname || slug
+        apiStore: storeData?.subdomain || slug
     };
+}
+function normalizeOtpErrorMessage(message) {
+    const lower = message.toLowerCase();
+    if (lower.includes("whatsapp otp")) {
+        return "Failed to send text message OTP";
+    }
+    if (lower.includes("whatsapp")) {
+        return message.replace(/whatsapp/gi, "text message");
+    }
+    return message;
 }
 function useAuth() {
     const [user, setUserState] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(()=>(0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getUser"])());
@@ -916,13 +1079,13 @@ function useAuth() {
         try {
             setIsLoading(true);
             setError(null);
-            const { slug, apiStore } = resolveStoreForApi(storeOverride);
+            const { slug, apiStore } = await resolveStoreForApi(storeOverride);
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["setActiveStoreSlug"])(slug);
             await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].auth.login(phone, apiStore);
             return true;
         } catch (err) {
             console.error("[v0] Login error:", err);
-            setError(err.message || "Login failed");
+            setError(normalizeOtpErrorMessage(err?.message || "Login failed"));
             return false;
         } finally{
             setIsLoading(false);
@@ -932,7 +1095,7 @@ function useAuth() {
         try {
             setIsLoading(true);
             setError(null);
-            const { slug, apiStore } = resolveStoreForApi(storeOverride);
+            const { slug, apiStore } = await resolveStoreForApi(storeOverride);
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["setActiveStoreSlug"])(slug);
             const response = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].auth.verifyOtp(phone, otp, apiStore);
             const token = response?.token || response?.data?.token || response?.data?.accessToken || response?.accessToken;
@@ -955,7 +1118,7 @@ function useAuth() {
             };
         } catch (err) {
             console.error("[v0] OTP verification error:", err);
-            setError(err.message || "OTP verification failed");
+            setError(normalizeOtpErrorMessage(err?.message || "OTP verification failed"));
             return {
                 success: false,
                 user: null
@@ -1091,7 +1254,7 @@ function useStore() {
             window.removeEventListener("store_updated", syncStore);
         };
     }, []);
-    const refreshStore = async ()=>{
+    const refreshStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(async ()=>{
         try {
             setIsLoading(true);
             const storeData = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getStoreFromSubdomain"])();
@@ -1105,41 +1268,36 @@ function useStore() {
         } finally{
             setIsLoading(false);
         }
-    };
-    const selectStore = async (slug)=>{
+    }, []);
+    const selectStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(async (slug)=>{
         try {
             setIsLoading(true);
             setError(null);
             const normalizedSlug = slug.toLowerCase();
-            const storeData = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getKnownStore"])(normalizedSlug);
-            if (storeData) {
-                (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$cart$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["clearCart"])();
-                (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["setActiveStore"])(storeData);
-                setStoreState(storeData);
-                setStoreSlugState(storeData.subdomain);
-                return storeData;
-            }
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["setActiveStoreSlug"])(normalizedSlug);
-            const fallbackStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getStoreFromSubdomain"])();
-            if (fallbackStore) {
-                (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$cart$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["clearCart"])();
-                setStoreState(fallbackStore);
-                setStoreSlugState(fallbackStore.subdomain);
-                return fallbackStore;
+            const storeData = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getStoreFromSubdomain"])();
+            const fallbackStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getKnownStore"])(normalizedSlug);
+            const resolvedStore = storeData || fallbackStore;
+            if (!resolvedStore) {
+                throw new Error("Store not found");
             }
-            throw new Error("Store not found");
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$cart$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["clearCart"])();
+            setStoreState(resolvedStore);
+            setStoreSlugState(resolvedStore.subdomain);
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["setActiveStore"])(resolvedStore);
+            return resolvedStore;
         } catch (err) {
             setError(err?.message || "Failed to select store");
             throw err;
         } finally{
             setIsLoading(false);
         }
-    };
-    const resetStore = ()=>{
+    }, []);
+    const resetStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(()=>{
         (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["clearActiveStore"])();
         setStoreState(null);
         setStoreSlugState(null);
-    };
+    }, []);
     return {
         store,
         storeSlug,
@@ -1402,9 +1560,9 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e
 var __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/hooks/use-auth.ts [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/auth.ts [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/hooks/use-store.ts [app-ssr] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chevron$2d$right$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ChevronRight$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/chevron-right.js [app-ssr] (ecmascript) <export default as ChevronRight>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/loader-circle.js [app-ssr] (ecmascript) <export default as Loader2>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$sparkles$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Sparkles$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/sparkles.js [app-ssr] (ecmascript) <export default as Sparkles>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$store$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Store$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/store.js [app-ssr] (ecmascript) <export default as Store>");
 "use client";
 ;
 ;
@@ -1420,43 +1578,24 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 function AuthDialog({ open, onOpenChange }) {
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
     const [phone, setPhone] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
-    const [store, setStore] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getActiveStoreSlug"])() || "");
-    const [stores, setStores] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [otp, setOtp] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
     const [step, setStep] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("details");
     const otpRefs = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])([]);
     const { login, verifyOtp, isLoading, error, user } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAuth"])();
-    const { selectStore } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useStore"])();
-    const fallbackStores = [
-        {
-            label: "Savera",
-            value: "savera"
-        },
-        {
-            label: "Jollibee",
-            value: "jolibee"
-        }
-    ];
+    const { store, refreshStore } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useStore"])();
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (open) {
-            setStores(fallbackStores);
+            void refreshStore();
         }
     }, [
-        open
+        open,
+        refreshStore
     ]);
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
-        if (!store) {
-            const defaultStore = (stores[0] || fallbackStores[0])?.value || "";
-            setStore((0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getActiveStoreSlug"])() || defaultStore);
-        }
-    }, [
-        stores,
+    const currentStoreName = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>store?.name || "Savera", [
         store
     ]);
-    const visibleStores = stores.length > 0 ? stores : fallbackStores;
-    const selectedStoreOption = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>visibleStores.find((option)=>option.value === store) || null, [
-        store,
-        visibleStores
+    const currentStoreSlug = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>store?.subdomain || "savera", [
+        store
     ]);
     const handleOtpDigitChange = (index, value)=>{
         const digit = value.replace(/\D/g, "").slice(-1);
@@ -1495,29 +1634,25 @@ function AuthDialog({ open, onOpenChange }) {
     const handlePhoneSubmit = async (e)=>{
         e.preventDefault();
         try {
-            await selectStore(store);
-            (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["setActiveStoreSlug"])(store);
-            const success = await login(phone, store);
-            if (success) {
-                setStep("verify");
-            }
+            const success = await login(phone, currentStoreSlug);
+            if (success) setStep("verify");
         } catch  {
             return;
         }
     };
     const handleOtpSubmit = async (e)=>{
         e.preventDefault();
-        const result = await verifyOtp(phone, otp, store);
+        const result = await verifyOtp(phone, otp, currentStoreSlug);
         if (result?.success) {
             onOpenChange(false);
             setPhone("");
             setOtp("");
             setStep("details");
             const currentUser = result.user || user;
-            const profileAlreadyCompleted = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["hasCompletedProfile"])(store);
+            const profileAlreadyCompleted = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["hasCompletedProfile"])(currentStoreSlug);
             const profileLooksIncomplete = !currentUser?.firstName || !currentUser?.lastName;
             if (profileLooksIncomplete && !profileAlreadyCompleted) {
-                (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["markProfileCompleted"])(store);
+                (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["markProfileCompleted"])(currentStoreSlug);
                 router.push("/profile?fromAuth=true");
             }
         }
@@ -1543,14 +1678,14 @@ function AuthDialog({ open, onOpenChange }) {
                         className: "absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.14),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(251,191,36,0.12),_transparent_28%)]"
                     }, void 0, false, {
                         fileName: "[project]/components/auth-dialog.tsx",
-                        lineNumber: 145,
+                        lineNumber: 123,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(15,23,42,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.05)_1px,transparent_1px)] [background-size:28px_28px]"
                     }, void 0, false, {
                         fileName: "[project]/components/auth-dialog.tsx",
-                        lineNumber: 146,
+                        lineNumber: 124,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1566,14 +1701,14 @@ function AuthDialog({ open, onOpenChange }) {
                                                 className: "h-3.5 w-3.5"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 151,
+                                                lineNumber: 129,
                                                 columnNumber: 17
                                             }, this),
                                             step === "verify" ? "Verification" : "Store login"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 150,
+                                        lineNumber: 128,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DialogTitle"], {
@@ -1581,21 +1716,21 @@ function AuthDialog({ open, onOpenChange }) {
                                         children: step === "verify" ? "Enter the code" : "Welcome back"
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 154,
+                                        lineNumber: 132,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DialogDescription"], {
                                         className: "mt-1 text-sm leading-6 text-zinc-500",
-                                        children: step === "verify" ? `We sent a 6-digit code to ${phone}.` : "Choose your store and phone number to continue."
+                                        children: step === "verify" ? `We sent a 6-digit text message code to ${phone}.` : "Enter your phone number to continue."
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 157,
+                                        lineNumber: 135,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/auth-dialog.tsx",
-                                lineNumber: 149,
+                                lineNumber: 127,
                                 columnNumber: 13
                             }, this),
                             step === "details" ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -1614,124 +1749,88 @@ function AuthDialog({ open, onOpenChange }) {
                                                             children: "Step 1"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/auth-dialog.tsx",
-                                                            lineNumber: 169,
-                                                            columnNumber: 25
+                                                            lineNumber: 147,
+                                                            columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                             className: "mt-1 text-sm font-semibold text-zinc-950",
-                                                            children: "Choose a store"
+                                                            children: "Current store"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/auth-dialog.tsx",
-                                                            lineNumber: 170,
-                                                            columnNumber: 25
+                                                            lineNumber: 148,
+                                                            columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/auth-dialog.tsx",
-                                                    lineNumber: 168,
-                                                    columnNumber: 23
+                                                    lineNumber: 146,
+                                                    columnNumber: 21
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 167,
-                                                columnNumber: 21
+                                                lineNumber: 145,
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Label"], {
-                                                htmlFor: "store",
                                                 className: "text-sm font-medium text-zinc-700",
                                                 children: "Store name"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 174,
-                                                columnNumber: 21
+                                                lineNumber: 152,
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "mt-3",
+                                                className: "mt-3 flex items-center gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-4",
                                                 children: [
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "relative",
-                                                        children: [
-                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
-                                                                id: "store",
-                                                                value: store,
-                                                                onChange: (e)=>setStore(e.target.value),
-                                                                className: "w-full appearance-none rounded-2xl border border-zinc-200 bg-white px-4 py-4 pr-12 text-base text-zinc-950 shadow-sm outline-none transition focus:border-orange-400 focus:ring-4 focus:ring-orange-100 disabled:cursor-not-allowed disabled:bg-zinc-50",
-                                                                children: visibleStores.length > 0 ? visibleStores.map((option)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
-                                                                        value: option.value,
-                                                                        children: option.label
-                                                                    }, option.value, false, {
-                                                                        fileName: "[project]/components/auth-dialog.tsx",
-                                                                        lineNumber: 187,
-                                                                        columnNumber: 31
-                                                                    }, this)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
-                                                                    value: "",
-                                                                    children: "Select a store"
-                                                                }, void 0, false, {
-                                                                    fileName: "[project]/components/auth-dialog.tsx",
-                                                                    lineNumber: 192,
-                                                                    columnNumber: 29
-                                                                }, this)
-                                                            }, void 0, false, {
-                                                                fileName: "[project]/components/auth-dialog.tsx",
-                                                                lineNumber: 179,
-                                                                columnNumber: 25
-                                                            }, this),
-                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chevron$2d$right$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ChevronRight$3e$__["ChevronRight"], {
-                                                                className: "pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-zinc-400"
-                                                            }, void 0, false, {
-                                                                fileName: "[project]/components/auth-dialog.tsx",
-                                                                lineNumber: 195,
-                                                                columnNumber: 25
-                                                            }, this)
-                                                        ]
-                                                    }, void 0, true, {
+                                                        className: "flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white",
+                                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$store$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Store$3e$__["Store"], {
+                                                            className: "h-5 w-5"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/components/auth-dialog.tsx",
+                                                            lineNumber: 155,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    }, void 0, false, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 178,
-                                                        columnNumber: 23
+                                                        lineNumber: 154,
+                                                        columnNumber: 21
                                                     }, this),
-                                                    selectedStoreOption ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "mt-3 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3",
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         children: [
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                                className: "text-sm font-medium text-orange-700",
-                                                                children: selectedStoreOption.label
+                                                                className: "text-sm font-semibold text-orange-700",
+                                                                children: currentStoreName
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                                lineNumber: 199,
-                                                                columnNumber: 27
+                                                                lineNumber: 158,
+                                                                columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                 className: "mt-1 text-xs text-orange-600/80",
-                                                                children: "Selected store will be used for login and content."
+                                                                children: "This store is selected from the current domain."
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                                lineNumber: 200,
-                                                                columnNumber: 27
+                                                                lineNumber: 159,
+                                                                columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 198,
-                                                        columnNumber: 25
-                                                    }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                        className: "mt-3 text-xs text-zinc-500",
-                                                        children: "Select your store name to continue."
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 203,
-                                                        columnNumber: 25
+                                                        lineNumber: 157,
+                                                        columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 177,
-                                                columnNumber: 21
+                                                lineNumber: 153,
+                                                columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 166,
-                                        columnNumber: 19
+                                        lineNumber: 144,
+                                        columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "rounded-[1.5rem] border border-zinc-100 bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]",
@@ -1746,36 +1845,36 @@ function AuthDialog({ open, onOpenChange }) {
                                                                 children: "Step 2"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                                lineNumber: 211,
-                                                                columnNumber: 25
+                                                                lineNumber: 167,
+                                                                columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                 className: "mt-1 text-sm font-semibold text-zinc-950",
                                                                 children: "Enter your phone"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                                lineNumber: 212,
-                                                                columnNumber: 25
+                                                                lineNumber: 168,
+                                                                columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 210,
-                                                        columnNumber: 23
+                                                        lineNumber: 166,
+                                                        columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "text-xs text-zinc-500",
                                                         children: "We will send a secure code"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 214,
-                                                        columnNumber: 23
+                                                        lineNumber: 170,
+                                                        columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 209,
-                                                columnNumber: 21
+                                                lineNumber: 165,
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Label"], {
                                                 htmlFor: "phone",
@@ -1783,8 +1882,8 @@ function AuthDialog({ open, onOpenChange }) {
                                                 children: "Phone number"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 217,
-                                                columnNumber: 21
+                                                lineNumber: 173,
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
                                                 id: "phone",
@@ -1797,22 +1896,22 @@ function AuthDialog({ open, onOpenChange }) {
                                                 className: "mt-3 rounded-2xl border-zinc-200 bg-white px-4 py-6 shadow-sm"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 220,
-                                                columnNumber: 21
+                                                lineNumber: 176,
+                                                columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 208,
-                                        columnNumber: 19
+                                        lineNumber: 164,
+                                        columnNumber: 17
                                     }, this),
                                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                         className: "rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700",
                                         children: error
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 232,
-                                        columnNumber: 29
+                                        lineNumber: 188,
+                                        columnNumber: 27
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
                                         type: "submit",
@@ -1824,22 +1923,22 @@ function AuthDialog({ open, onOpenChange }) {
                                                     className: "mr-2 h-4 w-4 animate-spin"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/auth-dialog.tsx",
-                                                    lineNumber: 241,
-                                                    columnNumber: 25
+                                                    lineNumber: 197,
+                                                    columnNumber: 23
                                                 }, this),
                                                 "Sending code"
                                             ]
                                         }, void 0, true) : "Send verification code"
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 234,
-                                        columnNumber: 19
+                                        lineNumber: 190,
+                                        columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/auth-dialog.tsx",
-                                lineNumber: 165,
-                                columnNumber: 17
+                                lineNumber: 143,
+                                columnNumber: 15
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
                                 onSubmit: handleOtpSubmit,
                                 className: "space-y-6",
@@ -1852,8 +1951,8 @@ function AuthDialog({ open, onOpenChange }) {
                                                 children: "Store"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 252,
-                                                columnNumber: 21
+                                                lineNumber: 208,
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "mt-2 flex items-center justify-between gap-3",
@@ -1862,45 +1961,45 @@ function AuthDialog({ open, onOpenChange }) {
                                                         children: [
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                 className: "font-medium text-zinc-900",
-                                                                children: selectedStoreOption?.label || store || "Selected store"
+                                                                children: currentStoreName
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                                lineNumber: 255,
-                                                                columnNumber: 25
+                                                                lineNumber: 211,
+                                                                columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                 className: "text-sm text-zinc-500",
                                                                 children: phone
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                                lineNumber: 256,
-                                                                columnNumber: 25
+                                                                lineNumber: 212,
+                                                                columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 254,
-                                                        columnNumber: 23
+                                                        lineNumber: 210,
+                                                        columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "rounded-full bg-white px-3 py-1 text-xs font-semibold text-orange-600 shadow-sm",
-                                                        children: "OTP sent"
+                                                        children: "SMS sent"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 258,
-                                                        columnNumber: 23
+                                                        lineNumber: 214,
+                                                        columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 253,
-                                                columnNumber: 21
+                                                lineNumber: 209,
+                                                columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 251,
-                                        columnNumber: 19
+                                        lineNumber: 207,
+                                        columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "rounded-[1.5rem] border border-zinc-100 bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]",
@@ -1911,16 +2010,16 @@ function AuthDialog({ open, onOpenChange }) {
                                                 children: "Verification code"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 265,
-                                                columnNumber: 21
+                                                lineNumber: 221,
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                 className: "mt-1 text-xs text-zinc-500",
-                                                children: "Enter the 6-digit code sent to your phone. You can paste it directly."
+                                                children: "Enter the 6-digit text message code sent to your phone. You can paste it directly."
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 268,
-                                                columnNumber: 21
+                                                lineNumber: 224,
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "mt-4 grid grid-cols-6 gap-2",
@@ -1941,27 +2040,27 @@ function AuthDialog({ open, onOpenChange }) {
                                                         className: "h-12 rounded-2xl border-zinc-200 bg-zinc-50 text-center text-lg font-semibold shadow-sm transition-all duration-200 focus-visible:scale-[1.03] focus-visible:bg-white"
                                                     }, index, false, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 271,
-                                                        columnNumber: 25
+                                                        lineNumber: 227,
+                                                        columnNumber: 23
                                                     }, this))
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 269,
-                                                columnNumber: 21
+                                                lineNumber: 225,
+                                                columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 264,
-                                        columnNumber: 19
+                                        lineNumber: 220,
+                                        columnNumber: 17
                                     }, this),
                                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                         className: "rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700",
                                         children: error
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 289,
-                                        columnNumber: 29
+                                        lineNumber: 245,
+                                        columnNumber: 27
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
                                         type: "submit",
@@ -1973,16 +2072,16 @@ function AuthDialog({ open, onOpenChange }) {
                                                     className: "mr-2 h-4 w-4 animate-spin"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/auth-dialog.tsx",
-                                                    lineNumber: 298,
-                                                    columnNumber: 25
+                                                    lineNumber: 254,
+                                                    columnNumber: 23
                                                 }, this),
                                                 "Verifying"
                                             ]
                                         }, void 0, true) : "Verify and continue"
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 291,
-                                        columnNumber: 19
+                                        lineNumber: 247,
+                                        columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "flex items-center justify-between gap-3 text-sm",
@@ -1995,55 +2094,55 @@ function AuthDialog({ open, onOpenChange }) {
                                                     setOtp("");
                                                 },
                                                 disabled: isLoading,
-                                                children: "Change phone or store"
+                                                children: "Change phone"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 307,
-                                                columnNumber: 21
+                                                lineNumber: 263,
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                 type: "button",
                                                 className: "font-medium text-orange-600 transition-colors hover:text-orange-700",
-                                                onClick: ()=>login(phone, store),
+                                                onClick: ()=>login(phone, currentStoreSlug),
                                                 disabled: isLoading,
                                                 children: "Resend code"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 318,
-                                                columnNumber: 21
+                                                lineNumber: 274,
+                                                columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 306,
-                                        columnNumber: 19
+                                        lineNumber: 262,
+                                        columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/auth-dialog.tsx",
-                                lineNumber: 250,
-                                columnNumber: 17
+                                lineNumber: 206,
+                                columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/auth-dialog.tsx",
-                        lineNumber: 148,
+                        lineNumber: 126,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/auth-dialog.tsx",
-                lineNumber: 144,
+                lineNumber: 122,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/components/auth-dialog.tsx",
-            lineNumber: 140,
+            lineNumber: 118,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/auth-dialog.tsx",
-        lineNumber: 139,
+        lineNumber: 117,
         columnNumber: 5
     }, this);
 }
@@ -2074,7 +2173,9 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$auth$2e$ts__
 var __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$cart$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/hooks/use-cart.ts [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/hooks/use-store.ts [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$auth$2d$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/auth-dialog.tsx [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/store.ts [app-ssr] (ecmascript)");
 "use client";
+;
 ;
 ;
 ;
@@ -2100,7 +2201,9 @@ function Header() {
     }, [
         user
     ]);
-    const storeLabel = store?.name || store?.subdomain || "Selected store";
+    const storeLabel = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getStoreName"])(store) || store?.subdomain || "Selected store";
+    const storeLogo = store?.logoUrl || store?.logo || store?.headerImageUrl || null;
+    const storePhone = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getStorePhone"])(store);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("header", {
@@ -2114,17 +2217,25 @@ function Header() {
                                 className: "group flex shrink-0 items-center space-x-2 sm:space-x-3",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-400 shadow-lg shadow-orange-500/30 transition-transform duration-200 group-hover:-translate-y-0.5",
-                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$utensils$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Utensils$3e$__["Utensils"], {
+                                        className: "flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-400 shadow-lg shadow-orange-500/30 transition-transform duration-200 group-hover:-translate-y-0.5",
+                                        children: storeLogo ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                            src: storeLogo,
+                                            alt: storeLabel,
+                                            className: "h-full w-full object-cover"
+                                        }, void 0, false, {
+                                            fileName: "[project]/components/header.tsx",
+                                            lineNumber: 48,
+                                            columnNumber: 17
+                                        }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$utensils$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Utensils$3e$__["Utensils"], {
                                             className: "h-5 w-5 text-white sm:h-6 sm:w-6"
                                         }, void 0, false, {
                                             fileName: "[project]/components/header.tsx",
-                                            lineNumber: 44,
-                                            columnNumber: 15
+                                            lineNumber: 50,
+                                            columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/header.tsx",
-                                        lineNumber: 43,
+                                        lineNumber: 46,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2132,30 +2243,30 @@ function Header() {
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 className: "text-base font-semibold tracking-tight text-white sm:text-xl",
-                                                children: "FoodOrder"
+                                                children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getStoreName"])(store) || "Selected store"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/header.tsx",
-                                                lineNumber: 47,
+                                                lineNumber: 54,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 className: "hidden text-xs text-white/55 sm:block",
-                                                children: "Multi-store ordering, one premium flow"
+                                                children: store?.subdomain || "Store-scoped ordering"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/header.tsx",
-                                                lineNumber: 48,
+                                                lineNumber: 55,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/header.tsx",
-                                        lineNumber: 46,
+                                        lineNumber: 53,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/header.tsx",
-                                lineNumber: 42,
+                                lineNumber: 45,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
@@ -2167,7 +2278,7 @@ function Header() {
                                         children: "Home"
                                     }, void 0, false, {
                                         fileName: "[project]/components/header.tsx",
-                                        lineNumber: 53,
+                                        lineNumber: 60,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2176,7 +2287,7 @@ function Header() {
                                         children: "Menu"
                                     }, void 0, false, {
                                         fileName: "[project]/components/header.tsx",
-                                        lineNumber: 56,
+                                        lineNumber: 63,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2185,7 +2296,7 @@ function Header() {
                                         children: "About Us"
                                     }, void 0, false, {
                                         fileName: "[project]/components/header.tsx",
-                                        lineNumber: 59,
+                                        lineNumber: 66,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2194,13 +2305,13 @@ function Header() {
                                         children: "Contacts"
                                     }, void 0, false, {
                                         fileName: "[project]/components/header.tsx",
-                                        lineNumber: 62,
+                                        lineNumber: 69,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/header.tsx",
-                                lineNumber: 52,
+                                lineNumber: 59,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2213,46 +2324,46 @@ function Header() {
                                                 className: "h-3.5 w-3.5 text-orange-300"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/header.tsx",
-                                                lineNumber: 70,
+                                                lineNumber: 77,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 children: storeLabel
                                             }, void 0, false, {
                                                 fileName: "[project]/components/header.tsx",
-                                                lineNumber: 71,
+                                                lineNumber: 78,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/header.tsx",
-                                        lineNumber: 69,
+                                        lineNumber: 76,
                                         columnNumber: 15
                                     }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
-                                        href: "tel:0947118058",
+                                    storePhone && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
+                                        href: `tel:${storePhone.replace(/\s+/g, "")}`,
                                         className: "hidden items-center gap-2 text-sm text-white/70 transition-colors hover:text-white md:flex",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$phone$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Phone$3e$__["Phone"], {
                                                 className: "h-4 w-4 text-orange-300"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/header.tsx",
-                                                lineNumber: 76,
-                                                columnNumber: 15
+                                                lineNumber: 84,
+                                                columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 className: "font-medium",
-                                                children: "094 711 80 58"
+                                                children: storePhone
                                             }, void 0, false, {
                                                 fileName: "[project]/components/header.tsx",
-                                                lineNumber: 77,
-                                                columnNumber: 15
+                                                lineNumber: 85,
+                                                columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/header.tsx",
-                                        lineNumber: 75,
-                                        columnNumber: 13
+                                        lineNumber: 83,
+                                        columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                                         href: "/cart",
@@ -2266,7 +2377,7 @@ function Header() {
                                                     className: "h-4 w-4 sm:h-5 sm:w-5"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/header.tsx",
-                                                    lineNumber: 87,
+                                                    lineNumber: 96,
                                                     columnNumber: 17
                                                 }, this),
                                                 mounted && cart.totalItems > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2274,18 +2385,18 @@ function Header() {
                                                     children: cart.totalItems
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/header.tsx",
-                                                    lineNumber: 89,
+                                                    lineNumber: 98,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/header.tsx",
-                                            lineNumber: 81,
+                                            lineNumber: 90,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/header.tsx",
-                                        lineNumber: 80,
+                                        lineNumber: 89,
                                         columnNumber: 13
                                     }, this),
                                     mounted && cart.totalItems > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2296,7 +2407,7 @@ function Header() {
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/header.tsx",
-                                        lineNumber: 97,
+                                        lineNumber: 106,
                                         columnNumber: 15
                                     }, this),
                                     mounted && isAuthenticated ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenu"], {
@@ -2313,7 +2424,7 @@ function Header() {
                                                             children: userLabel.charAt(0).toUpperCase()
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/header.tsx",
-                                                            lineNumber: 110,
+                                                            lineNumber: 119,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2321,18 +2432,18 @@ function Header() {
                                                             children: userLabel
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/header.tsx",
-                                                            lineNumber: 113,
+                                                            lineNumber: 122,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/header.tsx",
-                                                    lineNumber: 105,
+                                                    lineNumber: 114,
                                                     columnNumber: 19
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/components/header.tsx",
-                                                lineNumber: 104,
+                                                lineNumber: 113,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuContent"], {
@@ -2348,7 +2459,7 @@ function Header() {
                                                                     children: userLabel
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/header.tsx",
-                                                                    lineNumber: 119,
+                                                                    lineNumber: 128,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 user?.email && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2356,7 +2467,7 @@ function Header() {
                                                                     children: user.email
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/header.tsx",
-                                                                    lineNumber: 120,
+                                                                    lineNumber: 129,
                                                                     columnNumber: 39
                                                                 }, this),
                                                                 store && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2364,25 +2475,25 @@ function Header() {
                                                                     children: storeLabel
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/header.tsx",
-                                                                    lineNumber: 121,
+                                                                    lineNumber: 130,
                                                                     columnNumber: 33
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/header.tsx",
-                                                            lineNumber: 118,
+                                                            lineNumber: 127,
                                                             columnNumber: 21
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/header.tsx",
-                                                        lineNumber: 117,
+                                                        lineNumber: 126,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuSeparator"], {
                                                         className: "bg-white/10"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/header.tsx",
-                                                        lineNumber: 124,
+                                                        lineNumber: 133,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuItem"], {
@@ -2396,19 +2507,19 @@ function Header() {
                                                                     className: "mr-2 h-4 w-4"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/header.tsx",
-                                                                    lineNumber: 127,
+                                                                    lineNumber: 136,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 "Order History"
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/header.tsx",
-                                                            lineNumber: 126,
+                                                            lineNumber: 135,
                                                             columnNumber: 21
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/header.tsx",
-                                                        lineNumber: 125,
+                                                        lineNumber: 134,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuItem"], {
@@ -2422,26 +2533,26 @@ function Header() {
                                                                     className: "mr-2 h-4 w-4"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/header.tsx",
-                                                                    lineNumber: 133,
+                                                                    lineNumber: 142,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 "My Profile"
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/header.tsx",
-                                                            lineNumber: 132,
+                                                            lineNumber: 141,
                                                             columnNumber: 21
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/header.tsx",
-                                                        lineNumber: 131,
+                                                        lineNumber: 140,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuSeparator"], {
                                                         className: "bg-white/10"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/header.tsx",
-                                                        lineNumber: 137,
+                                                        lineNumber: 146,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuItem"], {
@@ -2452,26 +2563,26 @@ function Header() {
                                                                 className: "mr-2 h-4 w-4"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/header.tsx",
-                                                                lineNumber: 139,
+                                                                lineNumber: 148,
                                                                 columnNumber: 21
                                                             }, this),
                                                             "Logout"
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/header.tsx",
-                                                        lineNumber: 138,
+                                                        lineNumber: 147,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/header.tsx",
-                                                lineNumber: 116,
+                                                lineNumber: 125,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/header.tsx",
-                                        lineNumber: 103,
+                                        lineNumber: 112,
                                         columnNumber: 15
                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
                                         onClick: ()=>setAuthDialogOpen(true),
@@ -2479,7 +2590,7 @@ function Header() {
                                         children: "Login"
                                     }, void 0, false, {
                                         fileName: "[project]/components/header.tsx",
-                                        lineNumber: 145,
+                                        lineNumber: 154,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -2492,30 +2603,30 @@ function Header() {
                                             className: "h-5 w-5"
                                         }, void 0, false, {
                                             fileName: "[project]/components/header.tsx",
-                                            lineNumber: 160,
+                                            lineNumber: 169,
                                             columnNumber: 33
                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$menu$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Menu$3e$__["Menu"], {
                                             className: "h-5 w-5"
                                         }, void 0, false, {
                                             fileName: "[project]/components/header.tsx",
-                                            lineNumber: 160,
+                                            lineNumber: 169,
                                             columnNumber: 61
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/header.tsx",
-                                        lineNumber: 153,
+                                        lineNumber: 162,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/header.tsx",
-                                lineNumber: 67,
+                                lineNumber: 74,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/header.tsx",
-                        lineNumber: 41,
+                        lineNumber: 44,
                         columnNumber: 9
                     }, this),
                     mobileMenuOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2532,14 +2643,14 @@ function Header() {
                                             className: "h-4 w-4"
                                         }, void 0, false, {
                                             fileName: "[project]/components/header.tsx",
-                                            lineNumber: 173,
+                                            lineNumber: 182,
                                             columnNumber: 17
                                         }, this),
                                         "Home"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/header.tsx",
-                                    lineNumber: 168,
+                                    lineNumber: 177,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2549,7 +2660,7 @@ function Header() {
                                     children: "Menu"
                                 }, void 0, false, {
                                     fileName: "[project]/components/header.tsx",
-                                    lineNumber: 176,
+                                    lineNumber: 185,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2559,7 +2670,7 @@ function Header() {
                                     children: "About Us"
                                 }, void 0, false, {
                                     fileName: "[project]/components/header.tsx",
-                                    lineNumber: 183,
+                                    lineNumber: 192,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2569,7 +2680,7 @@ function Header() {
                                     children: "Contacts"
                                 }, void 0, false, {
                                     fileName: "[project]/components/header.tsx",
-                                    lineNumber: 190,
+                                    lineNumber: 199,
                                     columnNumber: 15
                                 }, this),
                                 store && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2579,46 +2690,46 @@ function Header() {
                                             className: "h-4 w-4 text-orange-300"
                                         }, void 0, false, {
                                             fileName: "[project]/components/header.tsx",
-                                            lineNumber: 199,
+                                            lineNumber: 208,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                             children: storeLabel
                                         }, void 0, false, {
                                             fileName: "[project]/components/header.tsx",
-                                            lineNumber: 200,
+                                            lineNumber: 209,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/header.tsx",
-                                    lineNumber: 198,
+                                    lineNumber: 207,
                                     columnNumber: 17
                                 }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
-                                    href: "tel:0947118058",
+                                storePhone && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
+                                    href: `tel:${storePhone.replace(/\s+/g, "")}`,
                                     className: "mt-2 flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-white/70",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$phone$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Phone$3e$__["Phone"], {
                                             className: "h-4 w-4 text-orange-300"
                                         }, void 0, false, {
                                             fileName: "[project]/components/header.tsx",
-                                            lineNumber: 204,
-                                            columnNumber: 17
+                                            lineNumber: 214,
+                                            columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                             className: "font-medium",
-                                            children: "094 711 80 58"
+                                            children: storePhone
                                         }, void 0, false, {
                                             fileName: "[project]/components/header.tsx",
-                                            lineNumber: 205,
-                                            columnNumber: 17
+                                            lineNumber: 215,
+                                            columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/header.tsx",
-                                    lineNumber: 203,
-                                    columnNumber: 15
+                                    lineNumber: 213,
+                                    columnNumber: 17
                                 }, this),
                                 cart.totalItems > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "mt-2 rounded-xl px-3 py-2 text-sm font-semibold text-white",
@@ -2628,24 +2739,24 @@ function Header() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/header.tsx",
-                                    lineNumber: 208,
+                                    lineNumber: 219,
                                     columnNumber: 17
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/header.tsx",
-                            lineNumber: 167,
+                            lineNumber: 176,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/header.tsx",
-                        lineNumber: 166,
+                        lineNumber: 175,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/header.tsx",
-                lineNumber: 40,
+                lineNumber: 43,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$auth$2d$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["AuthDialog"], {
@@ -2653,7 +2764,7 @@ function Header() {
                 onOpenChange: setAuthDialogOpen
             }, void 0, false, {
                 fileName: "[project]/components/header.tsx",
-                lineNumber: 217,
+                lineNumber: 228,
                 columnNumber: 7
             }, this)
         ]
@@ -2904,6 +3015,20 @@ function CheckoutPage() {
             resetPlacingOrder();
             return;
         }
+        if (paymentMethod === "card") {
+            try {
+                await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].payment.acquireInitialApiKey();
+            } catch (gatewayError) {
+                console.error("[v0] Failed to acquire payment gateway key:", gatewayError);
+                toast({
+                    title: "Payment gateway unavailable",
+                    description: "We could not prepare the card payment gateway. Please try cash or try again.",
+                    variant: "destructive"
+                });
+                resetPlacingOrder();
+                return;
+            }
+        }
         // Check if user has complete profile information
         let latestProfile = user;
         try {
@@ -2962,7 +3087,7 @@ function CheckoutPage() {
         try {
             const orderItems = cart.items.map((item)=>({
                     discount: item.discount,
-                    modifiers: item.modifiers.map((mod)=>({
+                    modifiers: (item.modifiers || []).map((mod)=>({
                             id: mod.modifierId,
                             qty: 1
                         })),
@@ -2987,27 +3112,22 @@ function CheckoutPage() {
             // Place order first
             const orderResponse = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].order.place(orderData);
             const orderId = orderResponse?._id || orderResponse?.data?._id || orderResponse?.id || orderResponse?.data?.id || "";
-            // Handle payment - only for cash payments (card API not ready)
-            if (paymentMethod === "cash") {
-                // Make payment API call for cash (do not fail the order if payment endpoint is unavailable)
-                try {
-                    await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].payment.makePayment({
-                        amount: cart.finalTotal,
-                        paymentMethod: "cash",
-                        orderId: orderId,
-                        status: "PAID"
-                    });
-                } catch (paymentError) {
-                    console.error("[v0] Make payment failed:", paymentError);
-                    toast({
-                        title: "Payment service unavailable",
-                        description: "Order placed, but payment could not be recorded. Please contact support.",
-                        variant: "destructive"
-                    });
-                }
+            const paymentRecordingMethod = paymentMethod === "card" ? cardDetails.cardType : "cash";
+            try {
+                await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["api"].payment.makePayment({
+                    amount: cart.finalTotal,
+                    paymentMethod: paymentRecordingMethod,
+                    orderId,
+                    status: "PAID"
+                });
+            } catch (paymentError) {
+                console.error("[v0] Make payment failed:", paymentError);
+                toast({
+                    title: "Payment service unavailable",
+                    description: "Order placed, but payment could not be recorded. Please contact support.",
+                    variant: "destructive"
+                });
             }
-            // For card payments, skip payment API call since it's not ready yet
-            // Order is still placed, but payment processing will be handled separately
             toast({
                 title: "Order placed successfully!",
                 description: "Your order has been confirmed. Check your order history for details."
@@ -3031,7 +3151,7 @@ function CheckoutPage() {
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$header$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Header"], {}, void 0, false, {
                     fileName: "[project]/app/checkout/page.tsx",
-                    lineNumber: 202,
+                    lineNumber: 213,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3040,18 +3160,18 @@ function CheckoutPage() {
                         className: "h-8 w-8 animate-spin text-primary"
                     }, void 0, false, {
                         fileName: "[project]/app/checkout/page.tsx",
-                        lineNumber: 204,
+                        lineNumber: 215,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/app/checkout/page.tsx",
-                    lineNumber: 203,
+                    lineNumber: 214,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/checkout/page.tsx",
-            lineNumber: 201,
+            lineNumber: 212,
             columnNumber: 7
         }, this);
     }
@@ -3063,7 +3183,7 @@ function CheckoutPage() {
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$header$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Header"], {}, void 0, false, {
                 fileName: "[project]/app/checkout/page.tsx",
-                lineNumber: 216,
+                lineNumber: 227,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -3074,7 +3194,7 @@ function CheckoutPage() {
                         children: "Checkout"
                     }, void 0, false, {
                         fileName: "[project]/app/checkout/page.tsx",
-                        lineNumber: 219,
+                        lineNumber: 230,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3091,7 +3211,7 @@ function CheckoutPage() {
                                                 children: "Order Type"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                lineNumber: 226,
+                                                lineNumber: 237,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$radio$2d$group$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["RadioGroup"], {
@@ -3106,7 +3226,7 @@ function CheckoutPage() {
                                                                 id: "pickup"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 229,
+                                                                lineNumber: 240,
                                                                 columnNumber: 19
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Label"], {
@@ -3117,7 +3237,7 @@ function CheckoutPage() {
                                                                         className: "h-5 w-5 text-primary"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 231,
+                                                                        lineNumber: 242,
                                                                         columnNumber: 21
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3127,7 +3247,7 @@ function CheckoutPage() {
                                                                                 children: "Pickup"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                                lineNumber: 233,
+                                                                                lineNumber: 244,
                                                                                 columnNumber: 23
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3135,25 +3255,25 @@ function CheckoutPage() {
                                                                                 children: "Pick up your order at the store"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                                lineNumber: 234,
+                                                                                lineNumber: 245,
                                                                                 columnNumber: 23
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 232,
+                                                                        lineNumber: 243,
                                                                         columnNumber: 21
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 230,
+                                                                lineNumber: 241,
                                                                 columnNumber: 19
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                        lineNumber: 228,
+                                                        lineNumber: 239,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3164,7 +3284,7 @@ function CheckoutPage() {
                                                                 id: "delivery"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 239,
+                                                                lineNumber: 250,
                                                                 columnNumber: 19
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Label"], {
@@ -3175,7 +3295,7 @@ function CheckoutPage() {
                                                                         className: "h-5 w-5 text-primary"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 241,
+                                                                        lineNumber: 252,
                                                                         columnNumber: 21
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3185,7 +3305,7 @@ function CheckoutPage() {
                                                                                 children: "Delivery"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                                lineNumber: 243,
+                                                                                lineNumber: 254,
                                                                                 columnNumber: 23
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3193,37 +3313,37 @@ function CheckoutPage() {
                                                                                 children: "Get your order delivered to your door"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                                lineNumber: 244,
+                                                                                lineNumber: 255,
                                                                                 columnNumber: 23
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 242,
+                                                                        lineNumber: 253,
                                                                         columnNumber: 21
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 240,
+                                                                lineNumber: 251,
                                                                 columnNumber: 19
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                        lineNumber: 238,
+                                                        lineNumber: 249,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                lineNumber: 227,
+                                                lineNumber: 238,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/checkout/page.tsx",
-                                        lineNumber: 225,
+                                        lineNumber: 236,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -3234,7 +3354,7 @@ function CheckoutPage() {
                                                 children: "Payment Method"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                lineNumber: 253,
+                                                lineNumber: 264,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$radio$2d$group$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["RadioGroup"], {
@@ -3249,7 +3369,7 @@ function CheckoutPage() {
                                                                 id: "cash"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 256,
+                                                                lineNumber: 267,
                                                                 columnNumber: 19
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Label"], {
@@ -3260,7 +3380,7 @@ function CheckoutPage() {
                                                                         className: "h-5 w-5 text-primary"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 258,
+                                                                        lineNumber: 269,
                                                                         columnNumber: 21
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3273,7 +3393,7 @@ function CheckoutPage() {
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                                lineNumber: 260,
+                                                                                lineNumber: 271,
                                                                                 columnNumber: 23
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3281,25 +3401,25 @@ function CheckoutPage() {
                                                                                 children: "Pay when you receive your order"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                                lineNumber: 261,
+                                                                                lineNumber: 272,
                                                                                 columnNumber: 23
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 259,
+                                                                        lineNumber: 270,
                                                                         columnNumber: 21
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 257,
+                                                                lineNumber: 268,
                                                                 columnNumber: 19
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                        lineNumber: 255,
+                                                        lineNumber: 266,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3310,7 +3430,7 @@ function CheckoutPage() {
                                                                 id: "card"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 266,
+                                                                lineNumber: 277,
                                                                 columnNumber: 19
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Label"], {
@@ -3321,7 +3441,7 @@ function CheckoutPage() {
                                                                         className: "h-5 w-5 text-primary"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 268,
+                                                                        lineNumber: 279,
                                                                         columnNumber: 21
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3331,7 +3451,7 @@ function CheckoutPage() {
                                                                                 children: "Credit/Debit Card"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                                lineNumber: 270,
+                                                                                lineNumber: 281,
                                                                                 columnNumber: 23
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3339,31 +3459,31 @@ function CheckoutPage() {
                                                                                 children: "Pay online securely"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                                lineNumber: 271,
+                                                                                lineNumber: 282,
                                                                                 columnNumber: 23
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 269,
+                                                                        lineNumber: 280,
                                                                         columnNumber: 21
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 267,
+                                                                lineNumber: 278,
                                                                 columnNumber: 19
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                        lineNumber: 265,
+                                                        lineNumber: 276,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                lineNumber: 254,
+                                                lineNumber: 265,
                                                 columnNumber: 15
                                             }, this),
                                             paymentMethod === "card" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3374,7 +3494,7 @@ function CheckoutPage() {
                                                         children: "Card Details"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                        lineNumber: 280,
+                                                        lineNumber: 291,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3385,7 +3505,7 @@ function CheckoutPage() {
                                                                 children: "Card Type"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 283,
+                                                                lineNumber: 294,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$radio$2d$group$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["RadioGroup"], {
@@ -3404,7 +3524,7 @@ function CheckoutPage() {
                                                                                 id: "credit"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                                lineNumber: 290,
+                                                                                lineNumber: 301,
                                                                                 columnNumber: 25
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Label"], {
@@ -3412,13 +3532,13 @@ function CheckoutPage() {
                                                                                 children: "Credit Card"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                                lineNumber: 291,
+                                                                                lineNumber: 302,
                                                                                 columnNumber: 25
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 289,
+                                                                        lineNumber: 300,
                                                                         columnNumber: 23
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3429,7 +3549,7 @@ function CheckoutPage() {
                                                                                 id: "debit"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                                lineNumber: 294,
+                                                                                lineNumber: 305,
                                                                                 columnNumber: 25
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Label"], {
@@ -3437,25 +3557,25 @@ function CheckoutPage() {
                                                                                 children: "Debit Card"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                                lineNumber: 295,
+                                                                                lineNumber: 306,
                                                                                 columnNumber: 25
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 293,
+                                                                        lineNumber: 304,
                                                                         columnNumber: 23
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 284,
+                                                                lineNumber: 295,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                        lineNumber: 282,
+                                                        lineNumber: 293,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3466,7 +3586,7 @@ function CheckoutPage() {
                                                                 children: "Card Number"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 301,
+                                                                lineNumber: 312,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -3485,13 +3605,13 @@ function CheckoutPage() {
                                                                 maxLength: 19
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 302,
+                                                                lineNumber: 313,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                        lineNumber: 300,
+                                                        lineNumber: 311,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3502,7 +3622,7 @@ function CheckoutPage() {
                                                                 children: "Cardholder Name"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 317,
+                                                                lineNumber: 328,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -3516,13 +3636,13 @@ function CheckoutPage() {
                                                                     })
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 318,
+                                                                lineNumber: 329,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                        lineNumber: 316,
+                                                        lineNumber: 327,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3536,7 +3656,7 @@ function CheckoutPage() {
                                                                         children: "Expiry Date"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 329,
+                                                                        lineNumber: 340,
                                                                         columnNumber: 23
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -3557,13 +3677,13 @@ function CheckoutPage() {
                                                                         maxLength: 5
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 330,
+                                                                        lineNumber: 341,
                                                                         columnNumber: 23
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 328,
+                                                                lineNumber: 339,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3574,7 +3694,7 @@ function CheckoutPage() {
                                                                         children: "CVV"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 346,
+                                                                        lineNumber: 357,
                                                                         columnNumber: 23
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -3592,39 +3712,39 @@ function CheckoutPage() {
                                                                         maxLength: 4
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 347,
+                                                                        lineNumber: 358,
                                                                         columnNumber: 23
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 345,
+                                                                lineNumber: 356,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                        lineNumber: 327,
+                                                        lineNumber: 338,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                         className: "text-sm text-muted-foreground",
-                                                        children: "Note: Card payment processing is not yet available. This is a demo form."
+                                                        children: "Card payment is recorded through the payment gateway after the order is placed."
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                        lineNumber: 361,
+                                                        lineNumber: 372,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                lineNumber: 279,
+                                                lineNumber: 290,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/checkout/page.tsx",
-                                        lineNumber: 252,
+                                        lineNumber: 263,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -3639,7 +3759,7 @@ function CheckoutPage() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                lineNumber: 370,
+                                                lineNumber: 381,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3659,21 +3779,21 @@ function CheckoutPage() {
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 378,
+                                                                        lineNumber: 389,
                                                                         columnNumber: 23
                                                                     }, this),
-                                                                    item.modifiers.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                    (item.modifiers || []).length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                         className: "text-sm text-muted-foreground",
-                                                                        children: item.modifiers.map((m)=>m.name).join(", ")
+                                                                        children: (item.modifiers || []).map((m)=>m.name).join(", ")
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                                        lineNumber: 382,
+                                                                        lineNumber: 393,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 377,
+                                                                lineNumber: 388,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3684,30 +3804,30 @@ function CheckoutPage() {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                                lineNumber: 385,
+                                                                lineNumber: 396,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, index, true, {
                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                        lineNumber: 373,
+                                                        lineNumber: 384,
                                                         columnNumber: 19
                                                     }, this))
                                             }, void 0, false, {
                                                 fileName: "[project]/app/checkout/page.tsx",
-                                                lineNumber: 371,
+                                                lineNumber: 382,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/checkout/page.tsx",
-                                        lineNumber: 369,
+                                        lineNumber: 380,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/checkout/page.tsx",
-                                lineNumber: 223,
+                                lineNumber: 234,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3720,7 +3840,7 @@ function CheckoutPage() {
                                             children: "Order Summary"
                                         }, void 0, false, {
                                             fileName: "[project]/app/checkout/page.tsx",
-                                            lineNumber: 395,
+                                            lineNumber: 406,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3734,7 +3854,7 @@ function CheckoutPage() {
                                                             children: "Subtotal"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/checkout/page.tsx",
-                                                            lineNumber: 399,
+                                                            lineNumber: 410,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3745,13 +3865,13 @@ function CheckoutPage() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/checkout/page.tsx",
-                                                            lineNumber: 400,
+                                                            lineNumber: 411,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/checkout/page.tsx",
-                                                    lineNumber: 398,
+                                                    lineNumber: 409,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3762,7 +3882,7 @@ function CheckoutPage() {
                                                             children: "Tax"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/checkout/page.tsx",
-                                                            lineNumber: 403,
+                                                            lineNumber: 414,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3773,13 +3893,13 @@ function CheckoutPage() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/checkout/page.tsx",
-                                                            lineNumber: 404,
+                                                            lineNumber: 415,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/checkout/page.tsx",
-                                                    lineNumber: 402,
+                                                    lineNumber: 413,
                                                     columnNumber: 17
                                                 }, this),
                                                 orderType === "WEB_DELIVERY" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3790,7 +3910,7 @@ function CheckoutPage() {
                                                             children: "Delivery Fee"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/checkout/page.tsx",
-                                                            lineNumber: 408,
+                                                            lineNumber: 419,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3798,19 +3918,19 @@ function CheckoutPage() {
                                                             children: "$0.00"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/checkout/page.tsx",
-                                                            lineNumber: 409,
+                                                            lineNumber: 420,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/checkout/page.tsx",
-                                                    lineNumber: 407,
+                                                    lineNumber: 418,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/checkout/page.tsx",
-                                            lineNumber: 397,
+                                            lineNumber: 408,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3820,7 +3940,7 @@ function CheckoutPage() {
                                                     children: "Total"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/checkout/page.tsx",
-                                                    lineNumber: 415,
+                                                    lineNumber: 426,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3831,13 +3951,13 @@ function CheckoutPage() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/checkout/page.tsx",
-                                                    lineNumber: 416,
+                                                    lineNumber: 427,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/checkout/page.tsx",
-                                            lineNumber: 414,
+                                            lineNumber: 425,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -3851,7 +3971,7 @@ function CheckoutPage() {
                                                         className: "mr-2 h-4 w-4 animate-spin"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/checkout/page.tsx",
-                                                        lineNumber: 422,
+                                                        lineNumber: 433,
                                                         columnNumber: 21
                                                     }, this),
                                                     "Placing Order..."
@@ -3859,7 +3979,7 @@ function CheckoutPage() {
                                             }, void 0, true) : "Place Order"
                                         }, void 0, false, {
                                             fileName: "[project]/app/checkout/page.tsx",
-                                            lineNumber: 419,
+                                            lineNumber: 430,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -3870,30 +3990,30 @@ function CheckoutPage() {
                                             children: "Back to Cart"
                                         }, void 0, false, {
                                             fileName: "[project]/app/checkout/page.tsx",
-                                            lineNumber: 430,
+                                            lineNumber: 441,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/checkout/page.tsx",
-                                    lineNumber: 394,
+                                    lineNumber: 405,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/checkout/page.tsx",
-                                lineNumber: 393,
+                                lineNumber: 404,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/checkout/page.tsx",
-                        lineNumber: 221,
+                        lineNumber: 232,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/checkout/page.tsx",
-                lineNumber: 218,
+                lineNumber: 229,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$auth$2d$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["AuthDialog"], {
@@ -3901,13 +4021,13 @@ function CheckoutPage() {
                 onOpenChange: setAuthDialogOpen
             }, void 0, false, {
                 fileName: "[project]/app/checkout/page.tsx",
-                lineNumber: 443,
+                lineNumber: 454,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/checkout/page.tsx",
-        lineNumber: 215,
+        lineNumber: 226,
         columnNumber: 5
     }, this);
 }

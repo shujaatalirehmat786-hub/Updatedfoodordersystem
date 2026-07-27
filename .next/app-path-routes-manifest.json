@@ -1,17 +1,18 @@
 {
   "/_not-found/page": "/_not-found",
-  "/api/online-order/[...path]/route": "/api/online-order/[...path]",
   "/api/payment/acquire-api-key/route": "/api/payment/acquire-api-key",
   "/api/my-orders/route": "/api/my-orders",
+  "/api/online-order/[...path]/route": "/api/online-order/[...path]",
   "/_global-error/page": "/_global-error",
   "/api/proxy/[...path]/route": "/api/proxy/[...path]",
+  "/api/payment/make-payment/route": "/api/payment/make-payment",
   "/about/page": "/about",
   "/cart/page": "/cart",
-  "/categories/page": "/categories",
+  "/checkout/page": "/checkout",
   "/contacts/page": "/contacts",
   "/orders/page": "/orders",
-  "/page": "/",
   "/product/[id]/page": "/product/[id]",
-  "/checkout/page": "/checkout",
+  "/categories/page": "/categories",
+  "/page": "/",
   "/profile/page": "/profile"
 }

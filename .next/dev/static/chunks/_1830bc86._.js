@@ -382,6 +382,7 @@ __turbopack_context__.s([
 ]);
 const BACKEND_URL = "https://api.livedatanow.com/api/online-order";
 const PROXY_URL = "/api/online-order";
+const PAYMENT_PROXY_URL = "/api/payment";
 const TEST_HOSTNAMES = new Set([
     "updatedfoodordersystem.vercel.app"
 ]);
@@ -456,6 +457,26 @@ async function apiRequest(endpoint, options = {}) {
         }
     }
     throw lastError instanceof Error ? lastError : new Error("API request failed");
+}
+async function apiRequestLocal(endpoint, options = {}) {
+    const token = getAuthToken();
+    const headers = {
+        "Content-Type": "application/json",
+        ...options.headers
+    };
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${PAYMENT_PROXY_URL}${endpoint}`, {
+        ...options,
+        headers
+    });
+    if (!response.ok) {
+        const errorData = await response.json().catch(()=>({}));
+        const errorMessage = typeof errorData.error === "string" ? errorData.error : typeof errorData.message === "string" ? errorData.message : `API Error: ${response.statusText}`;
+        throw new Error(errorMessage);
+    }
+    return response.json();
 }
 async function apiRequestOptional(endpoint, options = {}) {
     const token = getAuthToken();
@@ -616,7 +637,7 @@ const api = {
             })}`)
     },
     payment: {
-        acquireInitialApiKey: ()=>apiRequest("/payment/acquire-api-key", {
+        acquireInitialApiKey: ()=>apiRequestLocal("/acquire-api-key", {
                 method: "POST"
             }),
         makePayment: (params)=>{
@@ -626,7 +647,7 @@ const api = {
                 orderId: params.orderId,
                 status: params.status
             });
-            return apiRequest(`/payment/make-payment?${queryString}`);
+            return apiRequestLocal(`/make-payment?${queryString}`);
         }
     }
 };
@@ -752,6 +773,19 @@ __turbopack_context__.s([
 ]);
 "use client";
 const CART_KEY = "food_order_cart";
+function normalizeCartItem(item) {
+    return {
+        productId: String(item?.productId || ""),
+        name: String(item?.name || ""),
+        price: Number(item?.price || 0),
+        quantity: Number(item?.quantity || 1),
+        modifiers: Array.isArray(item?.modifiers) ? item.modifiers : [],
+        image: item?.image,
+        subTotal: Number(item?.subTotal || 0),
+        tax: Number(item?.tax || 0),
+        discount: Number(item?.discount || 0)
+    };
+}
 function getCart() {
     if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
     ;
@@ -765,7 +799,19 @@ function getCart() {
             finalTotal: 0
         };
     }
-    return JSON.parse(cartData);
+    try {
+        const parsed = JSON.parse(cartData);
+        const items = Array.isArray(parsed?.items) ? parsed.items.map(normalizeCartItem) : [];
+        return calculateCartTotals(items);
+    } catch  {
+        return {
+            items: [],
+            totalItems: 0,
+            subTotal: 0,
+            totalTax: 0,
+            finalTotal: 0
+        };
+    }
 }
 function saveCart(cart) {
     if ("TURBOPACK compile-time truthy", 1) {
@@ -773,12 +819,13 @@ function saveCart(cart) {
     }
 }
 function calculateCartTotals(items) {
-    const subTotal = items.reduce((sum, item)=>sum + Number(item.subTotal || 0), 0);
-    const totalTax = items.reduce((sum, item)=>sum + Number(item.tax || 0), 0);
+    const normalizedItems = items.map(normalizeCartItem);
+    const subTotal = normalizedItems.reduce((sum, item)=>sum + Number(item.subTotal || 0), 0);
+    const totalTax = normalizedItems.reduce((sum, item)=>sum + Number(item.tax || 0), 0);
     const finalTotal = subTotal + totalTax;
-    const totalItems = items.reduce((sum, item)=>sum + Number(item.quantity || 0), 0);
+    const totalItems = normalizedItems.reduce((sum, item)=>sum + Number(item.quantity || 0), 0);
     return {
-        items,
+        items: normalizedItems,
         totalItems,
         subTotal,
         totalTax,
@@ -787,14 +834,15 @@ function calculateCartTotals(items) {
 }
 function addToCart(item) {
     const cart = getCart();
+    const normalizedItem = normalizeCartItem(item);
     // Check if item already exists (same product and modifiers)
-    const existingItemIndex = cart.items.findIndex((i)=>i.productId === item.productId && JSON.stringify(i.modifiers) === JSON.stringify(item.modifiers));
+    const existingItemIndex = cart.items.findIndex((i)=>i.productId === normalizedItem.productId && JSON.stringify(i.modifiers || []) === JSON.stringify(normalizedItem.modifiers || []));
     if (existingItemIndex >= 0) {
-        cart.items[existingItemIndex].quantity += item.quantity;
-        cart.items[existingItemIndex].subTotal += item.subTotal;
-        cart.items[existingItemIndex].tax += item.tax;
+        cart.items[existingItemIndex].quantity += normalizedItem.quantity;
+        cart.items[existingItemIndex].subTotal += normalizedItem.subTotal;
+        cart.items[existingItemIndex].tax += normalizedItem.tax;
     } else {
-        cart.items.push(item);
+        cart.items.push(normalizedItem);
     }
     const updatedCart = calculateCartTotals(cart.items);
     saveCart(updatedCart);
@@ -1016,7 +1064,8 @@ async function getStoreFromSubdomain() {
             const response = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["api"].store.getBySubdomainOptional(subdomain);
             const storeData = response?.data || response;
             if (storeData) {
-                const normalizedStore = normalizeStorePayload(storeData, cachedStore);
+                const fallbackStore = getKnownStore(subdomain) || cachedStore || DEFAULT_STORE;
+                const normalizedStore = normalizeStorePayload(storeData, fallbackStore);
                 setActiveStore(normalizedStore);
                 return normalizedStore;
             }
@@ -1102,6 +1151,16 @@ async function resolveStoreForApi(storeSlug) {
         apiStore: storeData?.subdomain || slug
     };
 }
+function normalizeOtpErrorMessage(message) {
+    const lower = message.toLowerCase();
+    if (lower.includes("whatsapp otp")) {
+        return "Failed to send text message OTP";
+    }
+    if (lower.includes("whatsapp")) {
+        return message.replace(/whatsapp/gi, "text message");
+    }
+    return message;
+}
 function useAuth() {
     _s();
     const [user, setUserState] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])({
@@ -1154,7 +1213,7 @@ function useAuth() {
             return true;
         } catch (err) {
             console.error("[v0] Login error:", err);
-            setError(err.message || "Login failed");
+            setError(normalizeOtpErrorMessage(err?.message || "Login failed"));
             return false;
         } finally{
             setIsLoading(false);
@@ -1187,7 +1246,7 @@ function useAuth() {
             };
         } catch (err) {
             console.error("[v0] OTP verification error:", err);
-            setError(err.message || "OTP verification failed");
+            setError(normalizeOtpErrorMessage(err?.message || "OTP verification failed"));
             return {
                 success: false,
                 user: null
@@ -1874,7 +1933,7 @@ function AuthDialog({ open, onOpenChange }) {
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogDescription"], {
                                         className: "mt-1 text-sm leading-6 text-zinc-500",
-                                        children: step === "verify" ? `We sent a 6-digit code to ${phone}.` : "Enter your phone number to continue."
+                                        children: step === "verify" ? `We sent a 6-digit text message code to ${phone}.` : "Enter your phone number to continue."
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
                                         lineNumber: 135,
@@ -2136,7 +2195,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "rounded-full bg-white px-3 py-1 text-xs font-semibold text-orange-600 shadow-sm",
-                                                        children: "OTP sent"
+                                                        children: "SMS sent"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
                                                         lineNumber: 214,
@@ -2168,7 +2227,7 @@ function AuthDialog({ open, onOpenChange }) {
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                 className: "mt-1 text-xs text-zinc-500",
-                                                children: "Enter the 6-digit code sent to your phone. You can paste it directly."
+                                                children: "Enter the 6-digit text message code sent to your phone. You can paste it directly."
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
                                                 lineNumber: 224,

@@ -30,6 +30,8 @@ export default function CartPage() {
     )
   }
 
+  const normalizeModifiers = (modifiers: unknown) => (Array.isArray(modifiers) ? modifiers : [])
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -60,9 +62,9 @@ export default function CartPage() {
                         <p className="text-sm text-muted-foreground">${Number(item.price).toFixed(2)} each</p>
 
                         {/* Modifiers */}
-                        {item.modifiers.length > 0 && (
+                        {normalizeModifiers(item.modifiers).length > 0 && (
                           <div className="mt-2 space-y-1">
-                            {item.modifiers.map((modifier, idx) => (
+                            {normalizeModifiers(item.modifiers).map((modifier, idx) => (
                               <p key={idx} className="text-sm text-muted-foreground">
                                 + {modifier.name} (${Number(modifier.price).toFixed(2)})
                               </p>

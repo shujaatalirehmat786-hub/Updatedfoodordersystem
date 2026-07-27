@@ -83,6 +83,12 @@
       "namedRegex": "^/api/payment/acquire\\-api\\-key(?:/)?$"
     },
     {
+      "page": "/api/payment/make-payment",
+      "regex": "^/api/payment/make\\-payment(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/payment/make\\-payment(?:/)?$"
+    },
+    {
       "page": "/cart",
       "regex": "^/cart(?:/)?$",
       "routeKeys": {},

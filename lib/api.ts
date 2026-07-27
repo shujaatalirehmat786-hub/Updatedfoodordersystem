@@ -1,5 +1,6 @@
 const BACKEND_URL = "https://api.livedatanow.com/api/online-order"
 const PROXY_URL = "/api/online-order"
+const PAYMENT_PROXY_URL = "/api/payment"
 const TEST_HOSTNAMES = new Set([
   "updatedfoodordersystem.vercel.app",
 ])
@@ -94,6 +95,37 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
   }
 
   throw lastError instanceof Error ? lastError : new Error("API request failed")
+}
+
+async function apiRequestLocal<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const token = getAuthToken()
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...options.headers,
+  }
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`
+  }
+
+  const response = await fetch(`${PAYMENT_PROXY_URL}${endpoint}`, {
+    ...options,
+    headers,
+  })
+
+  if (!response.ok) {
+    const errorData = (await response.json().catch(() => ({}))) as { error?: string; message?: string }
+    const errorMessage =
+      typeof errorData.error === "string"
+        ? errorData.error
+        : typeof errorData.message === "string"
+          ? errorData.message
+          : `API Error: ${response.statusText}`
+    throw new Error(errorMessage)
+  }
+
+  return response.json()
 }
 
 async function apiRequestOptional<T>(endpoint: string, options: RequestInit = {}): Promise<T | null> {
@@ -270,7 +302,7 @@ export const api = {
   },
 
   payment: {
-    acquireInitialApiKey: () => apiRequest<any>("/payment/acquire-api-key", { method: "POST" }),
+    acquireInitialApiKey: () => apiRequestLocal<any>("/acquire-api-key", { method: "POST" }),
     makePayment: (params: { amount: number; paymentMethod: string; orderId: string; status: string }) => {
       const queryString = buildQueryString({
         amount: params.amount,
@@ -279,7 +311,7 @@ export const api = {
         status: params.status,
       })
 
-      return apiRequest<any>(`/payment/make-payment?${queryString}`)
+      return apiRequestLocal<any>(`/make-payment?${queryString}`)
     },
   },
 }

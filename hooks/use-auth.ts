@@ -24,6 +24,17 @@ async function resolveStoreForApi(storeSlug?: string) {
   }
 }
 
+function normalizeOtpErrorMessage(message: string): string {
+  const lower = message.toLowerCase()
+  if (lower.includes("whatsapp otp")) {
+    return "Failed to send text message OTP"
+  }
+  if (lower.includes("whatsapp")) {
+    return message.replace(/whatsapp/gi, "text message")
+  }
+  return message
+}
+
 export function useAuth() {
   const [user, setUserState] = useState<User | null>(() => getUser())
   const [isLoading, setIsLoading] = useState(false)
@@ -72,7 +83,7 @@ export function useAuth() {
       return true
     } catch (err: any) {
       console.error("[v0] Login error:", err)
-      setError(err.message || "Login failed")
+      setError(normalizeOtpErrorMessage(err?.message || "Login failed"))
       return false
     } finally {
       setIsLoading(false)
@@ -107,7 +118,7 @@ export function useAuth() {
       return { success: true, user: userData }
     } catch (err: any) {
       console.error("[v0] OTP verification error:", err)
-      setError(err.message || "OTP verification failed")
+      setError(normalizeOtpErrorMessage(err?.message || "OTP verification failed"))
       return { success: false, user: null }
     } finally {
       setIsLoading(false)

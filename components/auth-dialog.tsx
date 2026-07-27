@@ -134,7 +134,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
               </DialogTitle>
               <DialogDescription className="mt-1 text-sm leading-6 text-zinc-500">
                 {step === "verify"
-                  ? `We sent a 6-digit code to ${phone}.`
+                  ? `We sent a 6-digit text message code to ${phone}.`
                   : "Enter your phone number to continue."}
               </DialogDescription>
             </DialogHeader>
@@ -212,7 +212,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                       <p className="text-sm text-zinc-500">{phone}</p>
                     </div>
                     <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-orange-600 shadow-sm">
-                      OTP sent
+                      SMS sent
                     </div>
                   </div>
                 </div>
@@ -221,7 +221,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                   <Label htmlFor="otp" className="text-sm font-medium text-zinc-700">
                     Verification code
                   </Label>
-                  <p className="mt-1 text-xs text-zinc-500">Enter the 6-digit code sent to your phone. You can paste it directly.</p>
+                  <p className="mt-1 text-xs text-zinc-500">Enter the 6-digit text message code sent to your phone. You can paste it directly.</p>
                   <div className="mt-4 grid grid-cols-6 gap-2" onPaste={handleOtpPaste}>
                     {Array.from({ length: 6 }).map((_, index) => (
                       <Input
