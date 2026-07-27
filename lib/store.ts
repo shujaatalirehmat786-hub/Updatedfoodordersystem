@@ -49,6 +49,12 @@ const ACTIVE_STORE_KEY = "active_store"
 const ACTIVE_STORE_SLUG_KEY = "active_store_slug"
 
 const TEST_STORE_DOMAIN = "livedatanow.com"
+const TEST_HOSTNAMES = new Set([
+  "localhost",
+  "127.0.0.1",
+  "::1",
+  "updatedfoodordersystem.vercel.app",
+])
 
 export const KNOWN_STORES: Record<string, Store> = {
   savera: {
@@ -116,7 +122,7 @@ export function getHostnameStoreSlug(): string | null {
   }
 
   const hostname = window.location.hostname
-  if (!hostname || hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
+  if (!hostname || TEST_HOSTNAMES.has(hostname)) {
     return "savera"
   }
 
