@@ -230,7 +230,8 @@ export async function getStoreFromSubdomain(): Promise<Store | null> {
       const response = await api.store.getBySubdomainOptional(subdomain)
       const storeData = response?.data || response
       if (storeData) {
-        const normalizedStore = normalizeStorePayload(storeData, cachedStore)
+        const fallbackStore = getKnownStore(subdomain) || cachedStore || DEFAULT_STORE
+        const normalizedStore = normalizeStorePayload(storeData, fallbackStore)
         setActiveStore(normalizedStore)
         return normalizedStore
       }
