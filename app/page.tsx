@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { Header } from "@/components/header"
 import { ProductCard } from "@/components/product-card"
 import { api } from "@/lib/api"
-import { getStoreFromSubdomain } from "@/lib/store"
+import { getStoreAddress, getStoreDescription, getStoreFromSubdomain, getStoreName } from "@/lib/store"
 import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2, Clock, Star, TrendingUp, Utensils, MapPin, Phone, ShoppingBag, CheckCircle2, Truck, Shield, Heart, X } from "lucide-react"
@@ -224,14 +224,13 @@ function HomePageContent() {
             <div className="mx-auto max-w-4xl text-center">
               <Badge className="mb-6 bg-orange-500/90 text-white hover:bg-orange-600/90 backdrop-blur-sm">
                 <Star className="mr-2 h-4 w-4 fill-white" />
-                {store.name}
+                {getStoreName(store) || store.subdomain}
               </Badge>
               <h1 className="text-balance mb-6 text-5xl font-bold text-white md:text-6xl lg:text-7xl drop-shadow-lg">
-                {store?.orderWebsiteId?.aboutUs || store?.name || "Order Food Delivery From Your Favorite Restaurants!"}
+                {getStoreDescription(store) || getStoreName(store) || "Store details are loading"}
               </h1>
               <p className="text-pretty mb-10 text-xl text-white/90 md:text-2xl drop-shadow-md">
-                {store?.description ||
-                  `Order takeaway online from ${store?.name || "your favorite restaurant"} with a store-specific experience.`}
+                {getStoreDescription(store) || "Store content is loaded from the backend for the active location."}
               </p>
               <div className="flex flex-wrap items-center justify-center gap-8 text-base text-white/90">
                 <div className="flex items-center gap-3">
@@ -266,7 +265,7 @@ function HomePageContent() {
                   </div>
                   <div className="text-left">
                     <div className="font-semibold text-white">{store?.address || "Fast delivery"}</div>
-                    <div className="text-sm text-white/80">Quick service</div>
+                    <div className="text-sm text-white/80">{getStoreAddress(store) || "Store address not published"}</div>
                   </div>
                 </div>
               </div>

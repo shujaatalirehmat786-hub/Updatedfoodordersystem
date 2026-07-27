@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useCart } from "@/hooks/use-cart"
 import { useStore } from "@/hooks/use-store"
 import { AuthDialog } from "./auth-dialog"
+import { getStoreName, getStorePhone } from "@/lib/store"
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth()
@@ -33,8 +34,9 @@ export function Header() {
     return user?.firstName || user?.companyName || user?.phone || "Guest"
   }, [user])
 
-  const storeLabel = store?.name || store?.subdomain || "Selected store"
+  const storeLabel = getStoreName(store) || store?.subdomain || "Selected store"
   const storeLogo = store?.logoUrl || store?.logo || store?.headerImageUrl || null
+  const storePhone = getStorePhone(store)
 
   return (
     <>
@@ -49,8 +51,8 @@ export function Header() {
               )}
             </div>
             <div className="flex flex-col">
-              <span className="text-base font-semibold tracking-tight text-white sm:text-xl">{store?.name || "FoodOrder"}</span>
-              <span className="hidden text-xs text-white/55 sm:block">Multi-store ordering, one premium flow</span>
+              <span className="text-base font-semibold tracking-tight text-white sm:text-xl">{getStoreName(store) || "Selected store"}</span>
+              <span className="hidden text-xs text-white/55 sm:block">{store?.subdomain || "Store-scoped ordering"}</span>
             </div>
           </Link>
 
@@ -77,10 +79,12 @@ export function Header() {
               </div>
             )}
 
-            <a href="tel:0947118058" className="hidden items-center gap-2 text-sm text-white/70 transition-colors hover:text-white md:flex">
-              <Phone className="h-4 w-4 text-orange-300" />
-              <span className="font-medium">{store?.phone || "094 711 80 58"}</span>
-            </a>
+            {storePhone && (
+              <a href={`tel:${storePhone.replace(/\s+/g, "")}`} className="hidden items-center gap-2 text-sm text-white/70 transition-colors hover:text-white md:flex">
+                <Phone className="h-4 w-4 text-orange-300" />
+                <span className="font-medium">{storePhone}</span>
+              </a>
+            )}
 
             <Link href="/cart">
               <Button
@@ -205,10 +209,12 @@ export function Header() {
                   <span>{storeLabel}</span>
                 </div>
               )}
-              <a href="tel:0947118058" className="mt-2 flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-white/70">
-                <Phone className="h-4 w-4 text-orange-300" />
-                <span className="font-medium">{store?.phone || "094 711 80 58"}</span>
-              </a>
+              {storePhone && (
+                <a href={`tel:${storePhone.replace(/\s+/g, "")}`} className="mt-2 flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-white/70">
+                  <Phone className="h-4 w-4 text-orange-300" />
+                  <span className="font-medium">{storePhone}</span>
+                </a>
+              )}
               {cart.totalItems > 0 && (
                 <div className="mt-2 rounded-xl px-3 py-2 text-sm font-semibold text-white">
                   Cart Total: ${Number(cart.finalTotal).toFixed(2)}

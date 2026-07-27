@@ -1478,10 +1478,6 @@
     border-color: var(--color-gray-300);
   }
 
-  .border-gray-700 {
-    border-color: var(--color-gray-700);
-  }
-
   .border-gray-800 {
     border-color: var(--color-gray-800);
   }
@@ -1592,10 +1588,6 @@
 
   .bg-gray-100 {
     background-color: var(--color-gray-100);
-  }
-
-  .bg-gray-800 {
-    background-color: var(--color-gray-800);
   }
 
   .bg-gray-900 {
@@ -2609,10 +2601,6 @@
   .antialiased {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-
-  .placeholder-gray-500::placeholder {
-    color: var(--color-gray-500);
   }
 
   .opacity-0 {

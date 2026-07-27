@@ -3,19 +3,17 @@
 import Link from "next/link"
 import { Phone, Mail, MapPin, Facebook, Twitter, Instagram, Utensils } from "lucide-react"
 import { useStore } from "@/hooks/use-store"
+import { getStoreAddress, getStoreDescription, getStoreEmail, getStoreName, getStorePhone, getStoreSocialLinks } from "@/lib/store"
 
 export function Footer() {
   const { store } = useStore()
-  const storeName = store?.name || "FoodOrder"
-  const storeDescription =
-    store?.description || store?.orderWebsiteId?.aboutUs || "Order Food Delivery From Your Favorite Restaurants!"
-  const storePhone = store?.phone || "094 711 80 58"
-  const storeAddress = store?.address || "Chicago, IL 60606"
+  const storeName = getStoreName(store) || "Selected store"
+  const storeDescription = getStoreDescription(store)
+  const storePhone = getStorePhone(store)
+  const storeAddress = getStoreAddress(store)
+  const storeEmail = getStoreEmail(store)
   const storeLogo = store?.logoUrl || store?.logo || store?.headerImageUrl || null
-  const website = store?.orderWebsiteId
-  const facebookUrl = website?.facebookUrl || "#"
-  const twitterUrl = website?.twitterUrl || "#"
-  const instagramUrl = website?.instagramUrl || "#"
+  const socialLinks = getStoreSocialLinks(store)
 
   return (
     <footer className="bg-gray-900 text-gray-300">
@@ -33,17 +31,23 @@ export function Footer() {
               </div>
               <span className="text-xl font-bold text-white">{storeName}</span>
             </div>
-            <p className="mb-4 text-sm text-gray-400">{storeDescription}</p>
+            {storeDescription && <p className="mb-4 text-sm text-gray-400">{storeDescription}</p>}
             <div className="flex space-x-4">
-              <a href={facebookUrl} className="text-gray-400 transition-colors hover:text-orange-500" target="_blank" rel="noreferrer">
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href={twitterUrl} className="text-gray-400 transition-colors hover:text-orange-500" target="_blank" rel="noreferrer">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href={instagramUrl} className="text-gray-400 transition-colors hover:text-orange-500" target="_blank" rel="noreferrer">
-                <Instagram className="h-5 w-5" />
-              </a>
+              {socialLinks.facebookUrl && (
+                <a href={socialLinks.facebookUrl} className="text-gray-400 transition-colors hover:text-orange-500" target="_blank" rel="noreferrer">
+                  <Facebook className="h-5 w-5" />
+                </a>
+              )}
+              {socialLinks.twitterUrl && (
+                <a href={socialLinks.twitterUrl} className="text-gray-400 transition-colors hover:text-orange-500" target="_blank" rel="noreferrer">
+                  <Twitter className="h-5 w-5" />
+                </a>
+              )}
+              {socialLinks.instagramUrl && (
+                <a href={socialLinks.instagramUrl} className="text-gray-400 transition-colors hover:text-orange-500" target="_blank" rel="noreferrer">
+                  <Instagram className="h-5 w-5" />
+                </a>
+              )}
             </div>
           </div>
 
@@ -57,22 +61,22 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/" className="transition-colors hover:text-orange-500">
+                <Link href="/about" className="transition-colors hover:text-orange-500">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link href="/" className="transition-colors hover:text-orange-500">
+                <Link href="/categories" className="transition-colors hover:text-orange-500">
                   Menu
                 </Link>
               </li>
               <li>
-                <Link href="/" className="transition-colors hover:text-orange-500">
+                <Link href="/contacts" className="transition-colors hover:text-orange-500">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/" className="transition-colors hover:text-orange-500">
+                <Link href="/contacts" className="transition-colors hover:text-orange-500">
                   Contacts
                 </Link>
               </li>
@@ -83,18 +87,24 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-lg font-semibold text-white">Contact Us</h3>
             <ul className="space-y-3 text-sm">
-              <li className="flex items-start gap-3">
-                <Phone className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
-                <span>{storePhone}</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Mail className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
-                <span>info@foodorder.com</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
-                <span>{storeAddress}</span>
-              </li>
+              {storePhone && (
+                <li className="flex items-start gap-3">
+                  <Phone className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
+                  <span>{storePhone}</span>
+                </li>
+              )}
+              {storeEmail && (
+                <li className="flex items-start gap-3">
+                  <Mail className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
+                  <span>{storeEmail}</span>
+                </li>
+              )}
+              {storeAddress && (
+                <li className="flex items-start gap-3">
+                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
+                  <span>{storeAddress}</span>
+                </li>
+              )}
             </ul>
           </div>
 
@@ -102,21 +112,11 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-lg font-semibold text-white">Newsletter</h3>
             <p className="mb-4 text-sm text-gray-400">
-              Want Coupons or Deep Thoughts About Food? Get Our Weekly Email:
+              {storeDescription || "Stay in touch with the store for updates and offers."}
             </p>
-            <form className="space-y-2">
-              <input
-                type="email"
-                placeholder="Your email"
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm text-white placeholder-gray-500 focus:border-orange-500 focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-700"
-              >
-                Subscribe
-              </button>
-            </form>
+              <div className="rounded-lg border border-gray-800 bg-gray-900 px-4 py-3 text-sm text-gray-400">
+                Newsletter signup can be wired to the store backend when that endpoint is available.
+              </div>
           </div>
         </div>
 

@@ -8,6 +8,7 @@ export interface Store {
   subdomain: string
   address?: string
   phone?: string
+  email?: string
   logo?: string
   logoUrl?: string
   headerImageUrl?: string
@@ -41,6 +42,9 @@ export interface Store {
     facebookUrl?: string
     instagramUrl?: string
     twitterUrl?: string
+    email?: string
+    phone?: string
+    address?: string
     aboutUs?: string
   }
 }
@@ -85,8 +89,9 @@ function normalizeStorePayload(storeData: any, fallback?: Store | null): Store {
     _id: storeData?._id || website?._id || fallback?._id || DEFAULT_STORE._id,
     name: storeData?.name || website?.name || fallback?.name || DEFAULT_STORE.name,
     subdomain,
-    address: storeData?.address || fallback?.address,
-    phone: storeData?.phone || fallback?.phone,
+    address: storeData?.address || website?.address || fallback?.address,
+    phone: storeData?.phone || website?.phone || fallback?.phone,
+    email: storeData?.email || website?.email || fallback?.email,
     logo: storeData?.logo || storeData?.logoId?.fileUrl || fallback?.logo,
     logoUrl: storeData?.logoId?.fileUrl || storeData?.logo || fallback?.logoUrl || fallback?.logo,
     headerImageUrl: storeData?.headerImageId?.fileUrl || fallback?.headerImageUrl,
@@ -237,9 +242,9 @@ export async function getStoreFromSubdomain(): Promise<Store | null> {
       }
 
       const fallbackStore = cachedStore || DEFAULT_STORE
-      setActiveStore(fallbackStore)
-      return fallbackStore
-    }
+    setActiveStore(fallbackStore)
+    return fallbackStore
+  }
 
     return DEFAULT_STORE
   } catch (error) {
@@ -252,5 +257,58 @@ export async function getStoreFromSubdomain(): Promise<Store | null> {
     }
 
     return DEFAULT_STORE
+  }
+}
+
+function firstString(...values: Array<string | null | undefined>): string | undefined {
+  return values.find((value): value is string => typeof value === "string" && value.trim().length > 0)?.trim()
+}
+
+export function getStoreName(store?: Store | null): string | undefined {
+  return firstString(store?.name, store?.orderWebsiteId?.name, store?.raw?.name, store?.raw?.orderWebsiteId?.name)
+}
+
+export function getStoreDescription(store?: Store | null): string | undefined {
+  return firstString(
+    store?.description,
+    store?.orderWebsiteId?.aboutUs,
+    store?.raw?.description,
+    store?.raw?.aboutUs,
+    store?.raw?.orderWebsiteId?.aboutUs,
+  )
+}
+
+export function getStorePhone(store?: Store | null): string | undefined {
+  return firstString(store?.phone, store?.orderWebsiteId?.phone, store?.raw?.phone, store?.raw?.contactPhone)
+}
+
+export function getStoreEmail(store?: Store | null): string | undefined {
+  return firstString(store?.email, store?.orderWebsiteId?.email, store?.raw?.email, store?.raw?.contactEmail)
+}
+
+export function getStoreAddress(store?: Store | null): string | undefined {
+  return firstString(
+    store?.address,
+    store?.orderWebsiteId?.address,
+    store?.raw?.address,
+    store?.raw?.companyAddress,
+    store?.raw?.location,
+  )
+}
+
+export function getStoreBusinessHours(store?: Store | null): Array<{
+  day: string
+  isOpen: boolean
+  startTime: string
+  endTime: string
+}> {
+  return store?.orderWebsiteId?.businessHours || []
+}
+
+export function getStoreSocialLinks(store?: Store | null) {
+  return {
+    facebookUrl: firstString(store?.orderWebsiteId?.facebookUrl, store?.raw?.facebookUrl, store?.raw?.facebook) || null,
+    instagramUrl: firstString(store?.orderWebsiteId?.instagramUrl, store?.raw?.instagramUrl, store?.raw?.instagram) || null,
+    twitterUrl: firstString(store?.orderWebsiteId?.twitterUrl, store?.raw?.twitterUrl, store?.raw?.twitter) || null,
   }
 }
