@@ -12,9 +12,17 @@ import {
 } from "@/lib/cart"
 
 export function useCart() {
-  const [cart, setCart] = useState<Cart>(() => getCart())
+  const [cart, setCart] = useState<Cart>({
+    items: [],
+    totalItems: 0,
+    subTotal: 0,
+    totalTax: 0,
+    finalTotal: 0,
+  })
 
   useEffect(() => {
+    setCart(getCart())
+
     // Listen for cart updates across tabs
     const handleStorageChange = () => {
       setCart(getCart())

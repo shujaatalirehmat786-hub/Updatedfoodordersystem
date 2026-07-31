@@ -22,8 +22,9 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
-  // Generate a random rating for display (between 3.5 and 5.0)
-  const rating = (Math.random() * 1.5 + 3.5).toFixed(2)
+  // Keep the decorative rating stable between server and browser renders.
+  const ratingSeed = Array.from(product._id || product.name).reduce((sum, character) => sum + character.charCodeAt(0), 0)
+  const rating = (3.5 + (ratingSeed % 151) / 100).toFixed(2)
   
   return (
     <>

@@ -6,13 +6,11 @@ import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useCart } from "@/hooks/use-cart"
 import { useAuth } from "@/hooks/use-auth"
 import { api } from "@/lib/api"
-import { getStoreFromSubdomain } from "@/lib/store"
-import { Loader2, CreditCard, Banknote, Truck, ShoppingBag } from "lucide-react"
+import { Loader2, Truck, ShoppingBag, Banknote } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { AuthDialog } from "@/components/auth-dialog"
 
@@ -23,27 +21,21 @@ export default function CheckoutPage() {
   const { toast } = useToast()
   const [mounted, setMounted] = useState(false)
   const [orderType, setOrderType] = useState<"WEB_PICKUP" | "WEB_DELIVERY">("WEB_PICKUP")
-  const [paymentMethod, setPaymentMethod] = useState<"cash" | "card">("cash")
   const [isPlacingOrder, setIsPlacingOrder] = useState(false)
   const isPlacingOrderRef = useRef(false)
   const [authDialogOpen, setAuthDialogOpen] = useState(false)
-  const [cardDetails, setCardDetails] = useState({
-    cardNumber: "",
-    cardName: "",
-    expiryDate: "",
-    cvv: "",
-    cardType: "credit card" as "credit card" | "debit card",
-  })
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
   useEffect(() => {
-    if (cart.items.length === 0) {
+    // Cart state is restored from localStorage after hydration. Do not send
+    // the user back to /cart while that initial restore is still in progress.
+    if (mounted && cart.items.length === 0) {
       router.push("/cart")
     }
-  }, [cart.items.length])
+  }, [cart.items.length, mounted, router])
 
   const handlePlaceOrder = async () => {
     if (isPlacingOrderRef.current) {
@@ -61,21 +53,6 @@ export default function CheckoutPage() {
       setAuthDialogOpen(true)
       resetPlacingOrder()
       return
-    }
-
-    if (paymentMethod === "card") {
-      try {
-        await api.payment.acquireInitialApiKey()
-      } catch (gatewayError) {
-        console.error("[v0] Failed to acquire payment gateway key:", gatewayError)
-        toast({
-          title: "Payment gateway unavailable",
-          description: "We could not prepare the card payment gateway. Please try cash or try again.",
-          variant: "destructive",
-        })
-        resetPlacingOrder()
-        return
-      }
     }
 
     // Check if user has complete profile information
@@ -124,19 +101,6 @@ export default function CheckoutPage() {
       return
     }
 
-    // Validate card details if card payment is selected
-    if (paymentMethod === "card") {
-      if (!cardDetails.cardNumber || !cardDetails.cardName || !cardDetails.expiryDate || !cardDetails.cvv) {
-        toast({
-          title: "Card details required",
-          description: "Please fill in all card details.",
-          variant: "destructive",
-        })
-        resetPlacingOrder()
-        return
-      }
-    }
-
     try {
       const orderItems = cart.items.map((item) => ({
         discount: item.discount,
@@ -148,37 +112,37 @@ export default function CheckoutPage() {
         productId: item.productId,
         quantity: item.quantity,
         subTotal: item.subTotal,
+        tax: item.tax,
       }))
 
       const totalDiscount = cart.items.reduce((sum, item) => sum + Number(item.discount || 0), 0)
-      const orderPaymentMethod = paymentMethod === "card" ? cardDetails.cardType : "cash"
 
-      const resolvedCustomerId =
-        latestProfile?.customerId || latestProfile?._id || latestProfile?.id || user?._id
       const orderData = {
         orderItems,
         totalDiscount,
-        customerId: resolvedCustomerId,
-        paymentMethod: orderPaymentMethod,
         totalTax: cart.totalTax,
         subTotal: cart.subTotal,
-        finalTotal: cart.finalTotal.toString(),
+        finalTotal: cart.finalTotal,
         type: orderType,
       }
 
       // Place order first
       const orderResponse = await api.order.place(orderData)
-      const orderId = orderResponse?._id || orderResponse?.data?._id || orderResponse?.id || orderResponse?.data?.id || ""
+      const orderId =
+        orderResponse?.order?._id ||
+        orderResponse?.data?.order?._id ||
+        orderResponse?._id ||
+        orderResponse?.data?._id ||
+        orderResponse?.id ||
+        orderResponse?.data?.id ||
+        ""
 
-      const paymentRecordingMethod = paymentMethod === "card" ? cardDetails.cardType : "cash"
+      if (!orderId) {
+        throw new Error("Order was created but the API did not return an order ID.")
+      }
 
       try {
-        await api.payment.makePayment({
-          amount: cart.finalTotal,
-          paymentMethod: paymentRecordingMethod,
-          orderId,
-          status: "PAID",
-        })
+        await api.payment.makePayment({ orderId, paymentMethod: "cash" })
       } catch (paymentError: any) {
         console.error("[v0] Make payment failed:", paymentError)
         toast({
@@ -262,118 +226,13 @@ export default function CheckoutPage() {
             {/* Payment Method */}
             <Card className="p-6">
               <h2 className="mb-4 text-xl font-semibold">Payment Method</h2>
-              <RadioGroup value={paymentMethod} onValueChange={(value: any) => setPaymentMethod(value)}>
-                <div className="flex items-center space-x-3 rounded-lg border border-border p-4 transition-colors hover:bg-accent">
-                  <RadioGroupItem value="cash" id="cash" />
-                  <Label htmlFor="cash" className="flex flex-1 cursor-pointer items-center gap-3">
-                    <Banknote className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="font-semibold">Cash on {orderType === "WEB_DELIVERY" ? "Delivery" : "Pickup"}</p>
-                      <p className="text-sm text-muted-foreground">Pay when you receive your order</p>
-                    </div>
-                  </Label>
+              <div className="flex items-center space-x-3 rounded-lg border border-border p-4">
+                <Banknote className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="font-semibold">Cash on {orderType === "WEB_DELIVERY" ? "Delivery" : "Pickup"}</p>
+                  <p className="text-sm text-muted-foreground">Pay when you receive your order</p>
                 </div>
-                <div className="flex items-center space-x-3 rounded-lg border border-border p-4 transition-colors hover:bg-accent">
-                  <RadioGroupItem value="card" id="card" />
-                  <Label htmlFor="card" className="flex flex-1 cursor-pointer items-center gap-3">
-                    <CreditCard className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="font-semibold">Credit/Debit Card</p>
-                      <p className="text-sm text-muted-foreground">Pay online securely</p>
-                    </div>
-                  </Label>
-                </div>
-              </RadioGroup>
-
-              {/* Card Details Form */}
-              {paymentMethod === "card" && (
-                <div className="mt-6 space-y-4 rounded-lg border border-border bg-muted/50 p-4">
-                  <h3 className="font-semibold">Card Details</h3>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="cardType">Card Type</Label>
-                    <RadioGroup
-                      value={cardDetails.cardType}
-                      onValueChange={(value: any) => setCardDetails({ ...cardDetails, cardType: value })}
-                      className="flex gap-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="credit card" id="credit" />
-                        <Label htmlFor="credit">Credit Card</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="debit card" id="debit" />
-                        <Label htmlFor="debit">Debit Card</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="cardNumber">Card Number</Label>
-                    <Input
-                      id="cardNumber"
-                      type="text"
-                      placeholder="1234 5678 9012 3456"
-                      value={cardDetails.cardNumber}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\s/g, "").replace(/\D/g, "")
-                        const formatted = value.match(/.{1,4}/g)?.join(" ") || value
-                        setCardDetails({ ...cardDetails, cardNumber: formatted })
-                      }}
-                      maxLength={19}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="cardName">Cardholder Name</Label>
-                    <Input
-                      id="cardName"
-                      type="text"
-                      placeholder="John Doe"
-                      value={cardDetails.cardName}
-                      onChange={(e) => setCardDetails({ ...cardDetails, cardName: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="expiryDate">Expiry Date</Label>
-                      <Input
-                        id="expiryDate"
-                        type="text"
-                        placeholder="MM/YY"
-                        value={cardDetails.expiryDate}
-                        onChange={(e) => {
-                          let value = e.target.value.replace(/\D/g, "")
-                          if (value.length >= 2) {
-                            value = value.slice(0, 2) + "/" + value.slice(2, 4)
-                          }
-                          setCardDetails({ ...cardDetails, expiryDate: value })
-                        }}
-                        maxLength={5}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cvv">CVV</Label>
-                      <Input
-                        id="cvv"
-                        type="text"
-                        placeholder="123"
-                        value={cardDetails.cvv}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, "").slice(0, 4)
-                          setCardDetails({ ...cardDetails, cvv: value })
-                        }}
-                        maxLength={4}
-                      />
-                    </div>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground">
-                    Card payment is recorded through the payment gateway after the order is placed.
-                  </p>
-                </div>
-              )}
+              </div>
             </Card>
 
             {/* Order Items Summary */}

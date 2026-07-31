@@ -54,6 +54,7 @@ export default function ProductDetailPage() {
       name: product.name,
       price: product.price,
       quantity,
+      modifiers: [],
       image: product.image,
       subTotal: total,
       tax: total * TAX_RATE,

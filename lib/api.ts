@@ -54,13 +54,11 @@ function normalizeId(value: unknown): string {
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getAuthToken()
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    ...options.headers,
-  }
+  const headers = new Headers(options.headers)
+  headers.set("Content-Type", "application/json")
 
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`
+    headers.set("Authorization", `Bearer ${token}`)
   }
 
   let lastError: unknown = null
@@ -73,12 +71,20 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       })
 
       if (!response.ok) {
-        const errorData = (await response.json().catch(() => ({}))) as { error?: string; message?: string }
+        const errorData = (await response.json().catch(() => ({}))) as {
+          error?: string
+          message?: string
+          details?: unknown
+          errors?: unknown
+          validationErrors?: unknown
+        }
+        const validationDetails = errorData.details || errorData.errors || errorData.validationErrors
+        const detailSuffix = validationDetails ? `: ${JSON.stringify(validationDetails)}` : ""
         const errorMessage =
           typeof errorData.error === "string"
-            ? errorData.error
+            ? `${errorData.error}${detailSuffix}`
             : typeof errorData.message === "string"
-              ? errorData.message
+              ? `${errorData.message}${detailSuffix}`
               : `API Error: ${response.statusText}`
         throw new Error(errorMessage)
       }
@@ -100,13 +106,11 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
 async function apiRequestLocal<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getAuthToken()
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    ...options.headers,
-  }
+  const headers = new Headers(options.headers)
+  headers.set("Content-Type", "application/json")
 
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`
+    headers.set("Authorization", `Bearer ${token}`)
   }
 
   const response = await fetch(`${PAYMENT_PROXY_URL}${endpoint}`, {
@@ -131,13 +135,11 @@ async function apiRequestLocal<T>(endpoint: string, options: RequestInit = {}): 
 async function apiRequestOptional<T>(endpoint: string, options: RequestInit = {}): Promise<T | null> {
   const token = getAuthToken()
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    ...options.headers,
-  }
+  const headers = new Headers(options.headers)
+  headers.set("Content-Type", "application/json")
 
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`
+    headers.set("Authorization", `Bearer ${token}`)
   }
 
   let lastError: unknown = null
@@ -212,12 +214,12 @@ async function apiRequestOptionalMulti<T>(endpoints: string[], options: RequestI
 export const api = {
   auth: {
     login: (phone: string, store: string) =>
-      apiRequest<{ token?: string; user?: any; data?: any }>("/auth/login", {
+      apiRequest<{ token?: string; accessToken?: string; user?: any; data?: any }>("/auth/login", {
         method: "POST",
         body: JSON.stringify({ phone, store }),
       }),
     verifyOtp: (phone: string, otp: string, store: string) =>
-      apiRequest<{ token?: string; user?: any; data?: any }>("/auth/verify-otp", {
+      apiRequest<{ token?: string; accessToken?: string; user?: any; data?: any }>("/auth/verify-otp", {
         method: "POST",
         body: JSON.stringify({ phone, otp, store }),
       }),
@@ -302,16 +304,14 @@ export const api = {
   },
 
   payment: {
-    acquireInitialApiKey: () => apiRequestLocal<any>("/acquire-api-key", { method: "POST" }),
-    makePayment: (params: { amount: number; paymentMethod: string; orderId: string; status: string }) => {
-      const queryString = buildQueryString({
-        amount: params.amount,
-        paymentMethod: params.paymentMethod,
-        orderId: params.orderId,
-        status: params.status,
+    makePayment: (params: { orderId: string; paymentMethod: string }) => {
+      return apiRequestLocal<any>("/make-payment", {
+        method: "POST",
+        body: JSON.stringify({
+          orderId: params.orderId,
+          paymentMethod: params.paymentMethod,
+        }),
       })
-
-      return apiRequestLocal<any>(`/make-payment?${queryString}`)
     },
   },
 }

@@ -28,7 +28,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       let errorMessage: string
       try {
         const errorData = JSON.parse(errorText)
-        errorMessage = errorData.error || errorData.message || errorText
+        const details = errorData.details || errorData.errors || errorData.validationErrors
+        const detailSuffix = details ? `: ${JSON.stringify(details)}` : ""
+        errorMessage = `${errorData.error || errorData.message || errorText}${detailSuffix}`
       } catch {
         errorMessage = errorText || response.statusText || `HTTP ${response.status}`
       }
@@ -70,7 +72,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       let errorMessage: string
       try {
         const errorData = JSON.parse(errorText)
-        errorMessage = errorData.error || errorData.message || errorText
+        const details = errorData.details || errorData.errors || errorData.validationErrors
+        const detailSuffix = details ? `: ${JSON.stringify(details)}` : ""
+        errorMessage = `${errorData.error || errorData.message || errorText}${detailSuffix}`
       } catch {
         errorMessage = errorText || response.statusText || `HTTP ${response.status}`
       }
@@ -126,4 +130,3 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "Failed to fetch from external API" }, { status: 500 })
   }
 }
-

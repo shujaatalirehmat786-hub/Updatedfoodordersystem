@@ -16,8 +16,10 @@ import {
 import { clearCart } from "@/lib/cart"
 
 export function useStore() {
-  const [store, setStoreState] = useState<Store | null>(() => getActiveStore())
-  const [storeSlug, setStoreSlugState] = useState<string | null>(() => getActiveStoreSlug())
+  // localStorage is only available after hydration. Start with a stable
+  // server/client value and hydrate the active store in the effect below.
+  const [store, setStoreState] = useState<Store | null>(null)
+  const [storeSlug, setStoreSlugState] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

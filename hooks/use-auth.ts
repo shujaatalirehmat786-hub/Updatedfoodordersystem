@@ -36,13 +36,19 @@ function normalizeOtpErrorMessage(message: string): string {
 }
 
 export function useAuth() {
-  const [user, setUserState] = useState<User | null>(() => getUser())
-  const [isLoading, setIsLoading] = useState(false)
+  // Read persisted authentication state after hydration to keep SSR output
+  // identical to the first browser render.
+  const [user, setUserState] = useState<User | null>(null)
+  // Authentication is resolved from localStorage/profile after hydration.
+  // Keep protected pages in a loading state until that check completes.
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (isAuthenticated() && !user) {
       void fetchProfile()
+    } else {
+      setIsLoading(false)
     }
 
     const handleAuthUpdate = () => {

@@ -66,6 +66,7 @@ export function ProductOrderDialog({ product, open, onOpenChange }: ProductOrder
       name: fullProduct?.name || product.name,
       price: finalPrice,
       quantity,
+      modifiers: [],
       image: fullProduct?.image || product.image,
       subTotal: total,
       tax: total * TAX_RATE,

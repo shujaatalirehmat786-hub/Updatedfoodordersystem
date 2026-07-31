@@ -77,7 +77,9 @@ async function GET(request, { params }) {
             let errorMessage;
             try {
                 const errorData = JSON.parse(errorText);
-                errorMessage = errorData.error || errorData.message || errorText;
+                const details = errorData.details || errorData.errors || errorData.validationErrors;
+                const detailSuffix = details ? `: ${JSON.stringify(details)}` : "";
+                errorMessage = `${errorData.error || errorData.message || errorText}${detailSuffix}`;
             } catch  {
                 errorMessage = errorText || response.statusText || `HTTP ${response.status}`;
             }
@@ -121,7 +123,9 @@ async function POST(request, { params }) {
             let errorMessage;
             try {
                 const errorData = JSON.parse(errorText);
-                errorMessage = errorData.error || errorData.message || errorText;
+                const details = errorData.details || errorData.errors || errorData.validationErrors;
+                const detailSuffix = details ? `: ${JSON.stringify(details)}` : "";
+                errorMessage = `${errorData.error || errorData.message || errorText}${detailSuffix}`;
             } catch  {
                 errorMessage = errorText || response.statusText || `HTTP ${response.status}`;
             }

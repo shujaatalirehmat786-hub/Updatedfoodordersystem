@@ -34,9 +34,11 @@ export function Header() {
     return user?.firstName || user?.companyName || user?.phone || "Guest"
   }, [user])
 
-  const storeLabel = getStoreName(store) || store?.subdomain || "Selected store"
-  const storeLogo = store?.logoUrl || store?.logo || store?.headerImageUrl || null
-  const storePhone = getStorePhone(store)
+  // Store data is loaded from localStorage/API after hydration. Keep the
+  // server and first client render identical so the header cannot mismatch.
+  const storeLabel = mounted ? getStoreName(store) || store?.subdomain || "Selected store" : "Selected store"
+  const storeLogo = mounted ? store?.logoUrl || store?.logo || store?.headerImageUrl || null : null
+  const storePhone = mounted ? getStorePhone(store) : undefined
 
   return (
     <>
@@ -51,8 +53,8 @@ export function Header() {
               )}
             </div>
             <div className="flex flex-col">
-              <span className="text-base font-semibold tracking-tight text-white sm:text-xl">{getStoreName(store) || "Selected store"}</span>
-              <span className="hidden text-xs text-white/55 sm:block">{store?.subdomain || "Store-scoped ordering"}</span>
+              <span className="text-base font-semibold tracking-tight text-white sm:text-xl">{storeLabel}</span>
+              <span className="hidden text-xs text-white/55 sm:block">{mounted ? store?.subdomain || "Store-scoped ordering" : "Store-scoped ordering"}</span>
             </div>
           </Link>
 
@@ -203,7 +205,7 @@ export function Header() {
               >
                 Contacts
               </Link>
-              {store && (
+              {mounted && store && (
                 <div className="mt-2 flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70">
                   <Store className="h-4 w-4 text-orange-300" />
                   <span>{storeLabel}</span>

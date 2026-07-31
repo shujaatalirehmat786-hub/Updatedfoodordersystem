@@ -28,6 +28,9 @@ interface Order {
   totalTax: number
   finalTotal: number
   paymentMethod: string
+  payment?: {
+    paymentMethod?: string
+  }
   createdAt: string
 }
 
@@ -149,7 +152,9 @@ export default function OrdersPage() {
                       </div>
                       <div>
                         <span className="text-muted-foreground">Payment: </span>
-                        <span className="font-medium capitalize">{order.paymentMethod}</span>
+                        <span className="font-medium capitalize">
+                          {order.paymentMethod || order.payment?.paymentMethod || "Cash"}
+                        </span>
                       </div>
                     </div>
                   </div>
