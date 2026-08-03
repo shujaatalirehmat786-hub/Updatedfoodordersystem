@@ -11,12 +11,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ShoppingCart, User, LogOut, History, Phone, Menu, Home, Utensils, X, Store } from "lucide-react"
+import { ShoppingCart, User, LogOut, History, Menu, Home, Utensils, X, Store } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useCart } from "@/hooks/use-cart"
 import { useStore } from "@/hooks/use-store"
 import { AuthDialog } from "./auth-dialog"
-import { getStoreName, getStorePhone } from "@/lib/store"
+import { getStoreName } from "@/lib/store"
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth()
@@ -38,7 +38,6 @@ export function Header() {
   // server and first client render identical so the header cannot mismatch.
   const storeLabel = mounted ? getStoreName(store) || store?.subdomain || "Selected store" : "Selected store"
   const storeLogo = mounted ? store?.logoUrl || store?.logo || store?.headerImageUrl || null : null
-  const storePhone = mounted ? getStorePhone(store) : undefined
 
   return (
     <>
@@ -79,13 +78,6 @@ export function Header() {
                 <Store className="h-3.5 w-3.5 text-orange-300" />
                 <span>{storeLabel}</span>
               </div>
-            )}
-
-            {storePhone && (
-              <a href={`tel:${storePhone.replace(/\s+/g, "")}`} className="hidden items-center gap-2 text-sm text-white/70 transition-colors hover:text-white md:flex">
-                <Phone className="h-4 w-4 text-orange-300" />
-                <span className="font-medium">{storePhone}</span>
-              </a>
             )}
 
             <Link href="/cart">
@@ -210,12 +202,6 @@ export function Header() {
                   <Store className="h-4 w-4 text-orange-300" />
                   <span>{storeLabel}</span>
                 </div>
-              )}
-              {storePhone && (
-                <a href={`tel:${storePhone.replace(/\s+/g, "")}`} className="mt-2 flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-white/70">
-                  <Phone className="h-4 w-4 text-orange-300" />
-                  <span className="font-medium">{storePhone}</span>
-                </a>
               )}
               {cart.totalItems > 0 && (
                 <div className="mt-2 rounded-xl px-3 py-2 text-sm font-semibold text-white">

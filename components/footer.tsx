@@ -1,15 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { Phone, Mail, MapPin, Facebook, Twitter, Instagram, Utensils } from "lucide-react"
+import { Mail, MapPin, Facebook, Twitter, Instagram, Utensils } from "lucide-react"
 import { useStore } from "@/hooks/use-store"
-import { getStoreAddress, getStoreDescription, getStoreEmail, getStoreName, getStorePhone, getStoreSocialLinks } from "@/lib/store"
+import { getStoreAddress, getStoreDescription, getStoreEmail, getStoreName, getStoreSocialLinks } from "@/lib/store"
 
 export function Footer() {
   const { store } = useStore()
   const storeName = getStoreName(store) || "Selected store"
   const storeDescription = getStoreDescription(store)
-  const storePhone = getStorePhone(store)
   const storeAddress = getStoreAddress(store)
   const storeEmail = getStoreEmail(store)
   const storeLogo = store?.logoUrl || store?.logo || store?.headerImageUrl || null
@@ -87,12 +86,6 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-lg font-semibold text-white">Contact Us</h3>
             <ul className="space-y-3 text-sm">
-              {storePhone && (
-                <li className="flex items-start gap-3">
-                  <Phone className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
-                  <span>{storePhone}</span>
-                </li>
-              )}
               {storeEmail && (
                 <li className="flex items-start gap-3">
                   <Mail className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />

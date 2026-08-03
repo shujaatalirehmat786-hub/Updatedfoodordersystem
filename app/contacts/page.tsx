@@ -4,14 +4,13 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Phone, Mail, MapPin, Clock } from "lucide-react"
+import { Mail, MapPin, Clock } from "lucide-react"
 import { useStore } from "@/hooks/use-store"
-import { getStoreAddress, getStoreEmail, getStorePhone, getStoreBusinessHours, getStoreName } from "@/lib/store"
+import { getStoreAddress, getStoreEmail, getStoreBusinessHours, getStoreName } from "@/lib/store"
 
 export default function ContactsPage() {
   const { store } = useStore()
   const storeName = getStoreName(store) || "Selected store"
-  const storePhone = getStorePhone(store)
   const storeAddress = getStoreAddress(store)
   const storeEmail = getStoreEmail(store)
   const businessHours = getStoreBusinessHours(store)
@@ -36,18 +35,7 @@ export default function ContactsPage() {
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="p-6 text-center">
-            <div className="mb-4 flex justify-center">
-              <div className="rounded-full bg-orange-100 p-4 dark:bg-orange-900/30">
-                <Phone className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
-            <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">Phone</h3>
-            <p className="text-gray-600 dark:text-gray-400">{storePhone || "Not published"}</p>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-500">Store support number</p>
-          </Card>
-
+        <div className="grid gap-8 md:grid-cols-3">
           <Card className="p-6 text-center">
             <div className="mb-4 flex justify-center">
               <div className="rounded-full bg-orange-100 p-4 dark:bg-orange-900/30">
