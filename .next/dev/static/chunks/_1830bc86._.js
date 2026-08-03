@@ -929,18 +929,12 @@ const KNOWN_STORES = {
     savera: {
         _id: "68c328b7a277614f117d8226",
         name: "Savera",
-        subdomain: "savera",
-        address: "123 Main Street, City",
-        phone: "+1234567890",
-        description: "Delicious food delivered to your door"
+        subdomain: "savera"
     },
     jolibee: {
         _id: "68c328b7a277614f117d8227",
         name: "Jollibee",
-        subdomain: "jolibee",
-        address: "456 Market Street, City",
-        phone: "+1234567891",
-        description: "Fresh meals and quick service"
+        subdomain: "jolibee"
     }
 };
 const DEFAULT_STORE = KNOWN_STORES.savera;
@@ -951,17 +945,17 @@ function normalizeStorePayload(storeData, fallback) {
         _id: storeData?._id || website?._id || fallback?._id || DEFAULT_STORE._id,
         name: storeData?.name || website?.name || fallback?.name || DEFAULT_STORE.name,
         subdomain,
-        address: storeData?.address || website?.address || fallback?.address,
-        phone: storeData?.phone || website?.phone || fallback?.phone,
-        email: storeData?.email || website?.email || fallback?.email,
-        logo: storeData?.logo || storeData?.logoId?.fileUrl || fallback?.logo,
-        logoUrl: storeData?.logoId?.fileUrl || storeData?.logo || fallback?.logoUrl || fallback?.logo,
-        headerImageUrl: storeData?.headerImageId?.fileUrl || fallback?.headerImageUrl,
-        description: storeData?.description || website?.aboutUs || fallback?.description,
-        logoId: storeData?.logoId || fallback?.logoId,
-        headerImageId: storeData?.headerImageId || fallback?.headerImageId,
+        address: storeData?.address || website?.address,
+        phone: storeData?.phone || website?.phone,
+        email: storeData?.email || website?.email,
+        logo: storeData?.logo || storeData?.logoId?.fileUrl,
+        logoUrl: storeData?.logoId?.fileUrl || storeData?.logo,
+        headerImageUrl: storeData?.headerImageId?.fileUrl,
+        description: storeData?.description || website?.aboutUs,
+        logoId: storeData?.logoId,
+        headerImageId: storeData?.headerImageId,
         raw: storeData || fallback?.raw,
-        orderWebsiteId: website?.subDomain || website?.name ? website : fallback?.orderWebsiteId
+        orderWebsiteId: website?.subDomain || website?.name || website?.address || website?.phone || website?.email ? website : fallback?.orderWebsiteId
     };
 }
 function getHostnameSubdomain() {
@@ -1094,13 +1088,13 @@ function getStoreDescription(store) {
     return firstString(store?.description, store?.orderWebsiteId?.aboutUs, store?.raw?.description, store?.raw?.aboutUs, store?.raw?.orderWebsiteId?.aboutUs);
 }
 function getStorePhone(store) {
-    return firstString(store?.phone, store?.orderWebsiteId?.phone, store?.raw?.phone, store?.raw?.contactPhone);
+    return firstString(store?.phone, store?.orderWebsiteId?.phone, store?.raw?.phone, store?.raw?.contactPhone, store?.raw?.contactNo, store?.raw?.contactNumber, store?.raw?.phoneNumber);
 }
 function getStoreEmail(store) {
     return firstString(store?.email, store?.orderWebsiteId?.email, store?.raw?.email, store?.raw?.contactEmail);
 }
 function getStoreAddress(store) {
-    return firstString(store?.address, store?.orderWebsiteId?.address, store?.raw?.address, store?.raw?.companyAddress, store?.raw?.location);
+    return firstString(store?.address, store?.orderWebsiteId?.address, store?.raw?.address, store?.raw?.companyAddress, store?.raw?.location, store?.raw?.contactAddress);
 }
 function getStoreBusinessHours(store) {
     return store?.orderWebsiteId?.businessHours || [];
