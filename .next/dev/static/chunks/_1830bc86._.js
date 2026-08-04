@@ -1187,9 +1187,11 @@ function useAuth() {
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["setUser"])(userData);
             setUserState(userData);
             setError(null);
+            return userData;
         } catch (err) {
             console.error("[v0] Error fetching profile:", err);
             setError("Failed to fetch profile");
+            return null;
         } finally{
             setIsLoading(false);
         }
@@ -1217,8 +1219,10 @@ function useAuth() {
             const { slug, apiStore } = await resolveStoreForApi(storeOverride);
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["setActiveStoreSlug"])(slug);
             const response = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["api"].auth.verifyOtp(phone, otp, apiStore);
-            const token = response?.token || response?.data?.token || response?.data?.accessToken || response?.accessToken;
-            let userData = response?.user || response?.data?.user || response?.data;
+            const authResponse = response;
+            const token = authResponse?.token || authResponse?.data?.token || authResponse?.data?.accessToken || authResponse?.accessToken;
+            const responseData = authResponse?.data;
+            let userData = authResponse?.user || responseData?.user || responseData?.customer || (responseData?._id && responseData?.phone ? responseData : undefined) || (authResponse?._id && authResponse?.phone ? authResponse : undefined);
             if (!token) {
                 throw new Error("No token received");
             }
@@ -1227,8 +1231,10 @@ function useAuth() {
                 (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["setUser"])(userData);
                 setUserState(userData);
             } else {
-                await fetchProfile();
-                userData = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getUser"])();
+                userData = await fetchProfile() || (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getUser"])();
+            }
+            if (!userData) {
+                throw new Error("Authentication succeeded, but the customer profile could not be loaded");
             }
             window.dispatchEvent(new Event("auth_updated"));
             return {
@@ -1781,6 +1787,7 @@ function AuthDialog({ open, onOpenChange }) {
     const [otp, setOtp] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const [step, setStep] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("details");
     const otpRefs = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])([]);
+    const otpSubmitInFlightRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(false);
     const { login, verifyOtp, isLoading, error, user } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useAuth"])();
     const { store, refreshStore } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])();
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
@@ -1848,19 +1855,27 @@ function AuthDialog({ open, onOpenChange }) {
     };
     const handleOtpSubmit = async (e)=>{
         e.preventDefault();
-        const result = await verifyOtp(phone, otp, currentStoreSlug);
-        if (result?.success) {
-            onOpenChange(false);
-            setPhone("");
-            setOtp("");
-            setStep("details");
-            const currentUser = result.user || user;
-            const profileAlreadyCompleted = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["hasCompletedProfile"])(currentStoreSlug);
-            const profileLooksIncomplete = !currentUser?.firstName || !currentUser?.lastName;
-            if (profileLooksIncomplete && !profileAlreadyCompleted) {
-                (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["markProfileCompleted"])(currentStoreSlug);
-                router.push("/profile?fromAuth=true");
+        if (otpSubmitInFlightRef.current || otp.length < 6) {
+            return;
+        }
+        otpSubmitInFlightRef.current = true;
+        try {
+            const result = await verifyOtp(phone, otp, currentStoreSlug);
+            if (result?.success) {
+                const currentUser = result.user || user;
+                const profileAlreadyCompleted = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["hasCompletedProfile"])(currentStoreSlug);
+                const profileLooksIncomplete = !currentUser?.firstName || !currentUser?.lastName;
+                setPhone("");
+                setOtp("");
+                setStep("details");
+                onOpenChange(false);
+                if (profileLooksIncomplete && !profileAlreadyCompleted) {
+                    (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["markProfileCompleted"])(currentStoreSlug);
+                    router.push("/profile?fromAuth=true");
+                }
             }
+        } finally{
+            otpSubmitInFlightRef.current = false;
         }
     };
     const handleDialogClose = (nextOpen)=>{
@@ -1884,14 +1899,14 @@ function AuthDialog({ open, onOpenChange }) {
                         className: "absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.14),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(251,191,36,0.12),_transparent_28%)]"
                     }, void 0, false, {
                         fileName: "[project]/components/auth-dialog.tsx",
-                        lineNumber: 123,
+                        lineNumber: 133,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(15,23,42,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.05)_1px,transparent_1px)] [background-size:28px_28px]"
                     }, void 0, false, {
                         fileName: "[project]/components/auth-dialog.tsx",
-                        lineNumber: 124,
+                        lineNumber: 134,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1907,14 +1922,14 @@ function AuthDialog({ open, onOpenChange }) {
                                                 className: "h-3.5 w-3.5"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 129,
+                                                lineNumber: 139,
                                                 columnNumber: 17
                                             }, this),
                                             step === "verify" ? "Verification" : "Store login"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 128,
+                                        lineNumber: 138,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogTitle"], {
@@ -1922,7 +1937,7 @@ function AuthDialog({ open, onOpenChange }) {
                                         children: step === "verify" ? "Enter the code" : "Welcome back"
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 132,
+                                        lineNumber: 142,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogDescription"], {
@@ -1930,13 +1945,13 @@ function AuthDialog({ open, onOpenChange }) {
                                         children: step === "verify" ? `We sent a 6-digit text message code to ${phone}.` : "Enter your phone number to continue."
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 135,
+                                        lineNumber: 145,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/auth-dialog.tsx",
-                                lineNumber: 127,
+                                lineNumber: 137,
                                 columnNumber: 13
                             }, this),
                             step === "details" ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -1955,7 +1970,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                             children: "Step 1"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/auth-dialog.tsx",
-                                                            lineNumber: 147,
+                                                            lineNumber: 157,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1963,18 +1978,18 @@ function AuthDialog({ open, onOpenChange }) {
                                                             children: "Current store"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/auth-dialog.tsx",
-                                                            lineNumber: 148,
+                                                            lineNumber: 158,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/auth-dialog.tsx",
-                                                    lineNumber: 146,
+                                                    lineNumber: 156,
                                                     columnNumber: 21
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 145,
+                                                lineNumber: 155,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
@@ -1982,7 +1997,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                 children: "Store name"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 152,
+                                                lineNumber: 162,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1994,12 +2009,12 @@ function AuthDialog({ open, onOpenChange }) {
                                                             className: "h-5 w-5"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/auth-dialog.tsx",
-                                                            lineNumber: 155,
+                                                            lineNumber: 165,
                                                             columnNumber: 23
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 154,
+                                                        lineNumber: 164,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2009,7 +2024,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                                 children: currentStoreName
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                                lineNumber: 158,
+                                                                lineNumber: 168,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2017,25 +2032,25 @@ function AuthDialog({ open, onOpenChange }) {
                                                                 children: "This store is selected from the current domain."
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                                lineNumber: 159,
+                                                                lineNumber: 169,
                                                                 columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 157,
+                                                        lineNumber: 167,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 153,
+                                                lineNumber: 163,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 144,
+                                        lineNumber: 154,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2051,7 +2066,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                                 children: "Step 2"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                                lineNumber: 167,
+                                                                lineNumber: 177,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2059,13 +2074,13 @@ function AuthDialog({ open, onOpenChange }) {
                                                                 children: "Enter your phone"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                                lineNumber: 168,
+                                                                lineNumber: 178,
                                                                 columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 166,
+                                                        lineNumber: 176,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2073,13 +2088,13 @@ function AuthDialog({ open, onOpenChange }) {
                                                         children: "We will send a secure code"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 170,
+                                                        lineNumber: 180,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 165,
+                                                lineNumber: 175,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
@@ -2088,7 +2103,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                 children: "Phone number"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 173,
+                                                lineNumber: 183,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -2102,13 +2117,13 @@ function AuthDialog({ open, onOpenChange }) {
                                                 className: "mt-3 rounded-2xl border-zinc-200 bg-white px-4 py-6 shadow-sm"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 176,
+                                                lineNumber: 186,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 164,
+                                        lineNumber: 174,
                                         columnNumber: 17
                                     }, this),
                                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2116,7 +2131,7 @@ function AuthDialog({ open, onOpenChange }) {
                                         children: error
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 188,
+                                        lineNumber: 198,
                                         columnNumber: 27
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -2129,7 +2144,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                     className: "mr-2 h-4 w-4 animate-spin"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/auth-dialog.tsx",
-                                                    lineNumber: 197,
+                                                    lineNumber: 207,
                                                     columnNumber: 23
                                                 }, this),
                                                 "Sending code"
@@ -2137,13 +2152,13 @@ function AuthDialog({ open, onOpenChange }) {
                                         }, void 0, true) : "Send verification code"
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 190,
+                                        lineNumber: 200,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/auth-dialog.tsx",
-                                lineNumber: 143,
+                                lineNumber: 153,
                                 columnNumber: 15
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
                                 onSubmit: handleOtpSubmit,
@@ -2157,7 +2172,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                 children: "Store"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 208,
+                                                lineNumber: 218,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2170,7 +2185,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                                 children: currentStoreName
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                                lineNumber: 211,
+                                                                lineNumber: 221,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2178,13 +2193,13 @@ function AuthDialog({ open, onOpenChange }) {
                                                                 children: phone
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                                lineNumber: 212,
+                                                                lineNumber: 222,
                                                                 columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 210,
+                                                        lineNumber: 220,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2192,19 +2207,19 @@ function AuthDialog({ open, onOpenChange }) {
                                                         children: "SMS sent"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 214,
+                                                        lineNumber: 224,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 209,
+                                                lineNumber: 219,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 207,
+                                        lineNumber: 217,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2216,7 +2231,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                 children: "Verification code"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 221,
+                                                lineNumber: 231,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2224,7 +2239,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                 children: "Enter the 6-digit text message code sent to your phone. You can paste it directly."
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 224,
+                                                lineNumber: 234,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2246,18 +2261,18 @@ function AuthDialog({ open, onOpenChange }) {
                                                         className: "h-12 rounded-2xl border-zinc-200 bg-zinc-50 text-center text-lg font-semibold shadow-sm transition-all duration-200 focus-visible:scale-[1.03] focus-visible:bg-white"
                                                     }, index, false, {
                                                         fileName: "[project]/components/auth-dialog.tsx",
-                                                        lineNumber: 227,
+                                                        lineNumber: 237,
                                                         columnNumber: 23
                                                     }, this))
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 225,
+                                                lineNumber: 235,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 220,
+                                        lineNumber: 230,
                                         columnNumber: 17
                                     }, this),
                                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2265,7 +2280,7 @@ function AuthDialog({ open, onOpenChange }) {
                                         children: error
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 245,
+                                        lineNumber: 255,
                                         columnNumber: 27
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -2278,7 +2293,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                     className: "mr-2 h-4 w-4 animate-spin"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/auth-dialog.tsx",
-                                                    lineNumber: 254,
+                                                    lineNumber: 264,
                                                     columnNumber: 23
                                                 }, this),
                                                 "Verifying"
@@ -2286,7 +2301,7 @@ function AuthDialog({ open, onOpenChange }) {
                                         }, void 0, true) : "Verify and continue"
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 247,
+                                        lineNumber: 257,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2303,7 +2318,7 @@ function AuthDialog({ open, onOpenChange }) {
                                                 children: "Change phone"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 263,
+                                                lineNumber: 273,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2314,45 +2329,45 @@ function AuthDialog({ open, onOpenChange }) {
                                                 children: "Resend code"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/auth-dialog.tsx",
-                                                lineNumber: 274,
+                                                lineNumber: 284,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/auth-dialog.tsx",
-                                        lineNumber: 262,
+                                        lineNumber: 272,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/auth-dialog.tsx",
-                                lineNumber: 206,
+                                lineNumber: 216,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/auth-dialog.tsx",
-                        lineNumber: 126,
+                        lineNumber: 136,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/auth-dialog.tsx",
-                lineNumber: 122,
+                lineNumber: 132,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/components/auth-dialog.tsx",
-            lineNumber: 118,
+            lineNumber: 128,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/auth-dialog.tsx",
-        lineNumber: 117,
+        lineNumber: 127,
         columnNumber: 5
     }, this);
 }
-_s(AuthDialog, "xyDXMJSLMfUl4IQL1B2EeKmKuBk=", false, function() {
+_s(AuthDialog, "DFvPpKzum8V4/kV/cMSY4PZQD40=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"],
         __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$use$2d$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useAuth"],

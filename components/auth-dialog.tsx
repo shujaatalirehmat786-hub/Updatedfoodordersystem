@@ -26,6 +26,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const [otp, setOtp] = useState("")
   const [step, setStep] = useState<"details" | "verify">("details")
   const otpRefs = useRef<Array<HTMLInputElement | null>>([])
+  const otpSubmitInFlightRef = useRef(false)
   const { login, verifyOtp, isLoading, error, user } = useAuth()
   const { store, refreshStore } = useStore()
 
@@ -86,21 +87,30 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const result = await verifyOtp(phone, otp, currentStoreSlug)
-    if (result?.success) {
-      onOpenChange(false)
-      setPhone("")
-      setOtp("")
-      setStep("details")
+    if (otpSubmitInFlightRef.current || otp.length < 6) {
+      return
+    }
 
-      const currentUser = result.user || user
-      const profileAlreadyCompleted = hasCompletedProfile(currentStoreSlug)
-      const profileLooksIncomplete = !currentUser?.firstName || !currentUser?.lastName
+    otpSubmitInFlightRef.current = true
+    try {
+      const result = await verifyOtp(phone, otp, currentStoreSlug)
+      if (result?.success) {
+        const currentUser = result.user || user
+        const profileAlreadyCompleted = hasCompletedProfile(currentStoreSlug)
+        const profileLooksIncomplete = !currentUser?.firstName || !currentUser?.lastName
 
-      if (profileLooksIncomplete && !profileAlreadyCompleted) {
-        markProfileCompleted(currentStoreSlug)
-        router.push("/profile?fromAuth=true")
+        setPhone("")
+        setOtp("")
+        setStep("details")
+        onOpenChange(false)
+
+        if (profileLooksIncomplete && !profileAlreadyCompleted) {
+          markProfileCompleted(currentStoreSlug)
+          router.push("/profile?fromAuth=true")
+        }
       }
+    } finally {
+      otpSubmitInFlightRef.current = false
     }
   }
 

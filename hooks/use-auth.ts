@@ -63,7 +63,7 @@ export function useAuth() {
     }
   }, [])
 
-  const fetchProfile = async () => {
+  const fetchProfile = async (): Promise<User | null> => {
     try {
       setIsLoading(true)
       const response = await api.profile.get()
@@ -71,9 +71,11 @@ export function useAuth() {
       setUser(userData)
       setUserState(userData)
       setError(null)
+      return userData
     } catch (err) {
       console.error("[v0] Error fetching profile:", err)
       setError("Failed to fetch profile")
+      return null
     } finally {
       setIsLoading(false)
     }
@@ -103,9 +105,16 @@ export function useAuth() {
       const { slug, apiStore } = await resolveStoreForApi(storeOverride)
       setActiveStoreSlug(slug)
       const response = await api.auth.verifyOtp(phone, otp, apiStore)
+      const authResponse = response as any
 
-      const token = response?.token || response?.data?.token || response?.data?.accessToken || response?.accessToken
-      let userData = response?.user || response?.data?.user || response?.data
+      const token = authResponse?.token || authResponse?.data?.token || authResponse?.data?.accessToken || authResponse?.accessToken
+      const responseData = authResponse?.data
+      let userData =
+        authResponse?.user ||
+        responseData?.user ||
+        responseData?.customer ||
+        (responseData?._id && responseData?.phone ? responseData : undefined) ||
+        (authResponse?._id && authResponse?.phone ? authResponse : undefined)
 
       if (!token) {
         throw new Error("No token received")
@@ -116,8 +125,11 @@ export function useAuth() {
         setUser(userData)
         setUserState(userData)
       } else {
-        await fetchProfile()
-        userData = getUser()
+        userData = (await fetchProfile()) || getUser()
+      }
+
+      if (!userData) {
+        throw new Error("Authentication succeeded, but the customer profile could not be loaded")
       }
 
       window.dispatchEvent(new Event("auth_updated"))
