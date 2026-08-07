@@ -5,6 +5,8 @@ import { api } from "@/lib/api"
 import {
   getUser,
   isAuthenticated,
+  isAuthSessionExpired,
+  clearAuthSession,
   removeAuthToken,
   setActiveStoreSlug,
   setAuthToken,
@@ -45,11 +47,22 @@ export function useAuth() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    const syncSessionState = () => {
+      if (isAuthSessionExpired()) {
+        clearAuthSession()
+        setUserState(null)
+        setIsLoading(false)
+      }
+    }
+
     if (isAuthenticated() && !user) {
       void fetchProfile()
     } else {
       setIsLoading(false)
     }
+
+    syncSessionState()
+    const sessionTimer = window.setInterval(syncSessionState, 5 * 60 * 1000)
 
     const handleAuthUpdate = () => {
       setUserState(getUser())
@@ -58,6 +71,7 @@ export function useAuth() {
     window.addEventListener("storage", handleAuthUpdate)
     window.addEventListener("auth_updated", handleAuthUpdate)
     return () => {
+      window.clearInterval(sessionTimer)
       window.removeEventListener("storage", handleAuthUpdate)
       window.removeEventListener("auth_updated", handleAuthUpdate)
     }
@@ -74,6 +88,11 @@ export function useAuth() {
       return userData
     } catch (err) {
       console.error("[v0] Error fetching profile:", err)
+      const status = (err as any)?.status
+      if (status === 401 || status === 403) {
+        clearAuthSession()
+        setUserState(null)
+      }
       setError("Failed to fetch profile")
       return null
     } finally {

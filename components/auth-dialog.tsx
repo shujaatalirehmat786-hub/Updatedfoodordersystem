@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/hooks/use-auth"
-import { hasCompletedProfile, markProfileCompleted } from "@/lib/auth"
+import { markProfileCompleted } from "@/lib/auth"
 import { useStore } from "@/hooks/use-store"
 import { Loader2, Sparkles, Store } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -96,17 +96,17 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       const result = await verifyOtp(phone, otp, currentStoreSlug)
       if (result?.success) {
         const currentUser = result.user || user
-        const profileAlreadyCompleted = hasCompletedProfile(currentStoreSlug)
-        const profileLooksIncomplete = !currentUser?.firstName || !currentUser?.lastName
+        const profileLooksIncomplete = !currentUser?.firstName?.trim() || !currentUser?.lastName?.trim()
 
         setPhone("")
         setOtp("")
         setStep("details")
         onOpenChange(false)
 
-        if (profileLooksIncomplete && !profileAlreadyCompleted) {
-          markProfileCompleted(currentStoreSlug)
+        if (profileLooksIncomplete) {
           router.push("/profile?fromAuth=true")
+        } else {
+          markProfileCompleted(currentStoreSlug, currentUser?.phone || phone)
         }
       }
     } finally {

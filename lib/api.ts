@@ -1,3 +1,5 @@
+import { getAuthToken as getValidAuthToken } from "@/lib/auth"
+
 const BACKEND_URL = "https://api.livedatanow.com/api/online-order"
 const PROXY_URL = "/api/online-order"
 const PAYMENT_PROXY_URL = "/api/payment"
@@ -23,13 +25,6 @@ export interface ApiResponse<T> {
   success?: boolean
 }
 
-function getAuthToken(): string | null {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("auth_token")
-  }
-  return null
-}
-
 function buildQueryString(params: Record<string, string | number | undefined | null>): string {
   const queryParams = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
@@ -52,7 +47,7 @@ function normalizeId(value: unknown): string {
 }
 
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = getAuthToken()
+  const token = getValidAuthToken()
 
   const headers = new Headers(options.headers)
   headers.set("Content-Type", "application/json")
@@ -86,7 +81,7 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
             : typeof errorData.message === "string"
               ? `${errorData.message}${detailSuffix}`
               : `API Error: ${response.statusText}`
-        throw new Error(errorMessage)
+        throw Object.assign(new Error(errorMessage), { status: response.status, response })
       }
 
       return response.json()
@@ -104,7 +99,7 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
 }
 
 async function apiRequestLocal<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = getAuthToken()
+  const token = getValidAuthToken()
 
   const headers = new Headers(options.headers)
   headers.set("Content-Type", "application/json")
@@ -126,14 +121,14 @@ async function apiRequestLocal<T>(endpoint: string, options: RequestInit = {}): 
         : typeof errorData.message === "string"
           ? errorData.message
           : `API Error: ${response.statusText}`
-    throw new Error(errorMessage)
+    throw Object.assign(new Error(errorMessage), { status: response.status, response })
   }
 
   return response.json()
 }
 
 async function apiRequestOptional<T>(endpoint: string, options: RequestInit = {}): Promise<T | null> {
-  const token = getAuthToken()
+  const token = getValidAuthToken()
 
   const headers = new Headers(options.headers)
   headers.set("Content-Type", "application/json")

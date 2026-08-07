@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useCart } from "@/hooks/use-cart"
 import { useAuth } from "@/hooks/use-auth"
 import { api } from "@/lib/api"
+import { clearAuthSession } from "@/lib/auth"
 import { Loader2, Truck, ShoppingBag, Banknote } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { AuthDialog } from "@/components/auth-dialog"
@@ -62,6 +63,18 @@ export default function CheckoutPage() {
       latestProfile = profileResponse?.data || profileResponse
     } catch (profileError) {
       console.error("[v0] Failed to refresh profile:", profileError)
+      const status = (profileError as any)?.status
+      if (status === 401 || status === 403) {
+        clearAuthSession()
+        setAuthDialogOpen(true)
+        toast({
+          title: "Session expired",
+          description: "Please verify your phone number again before placing an order.",
+          variant: "destructive",
+        })
+        resetPlacingOrder()
+        return
+      }
     }
 
     if (!latestProfile?.phone) {

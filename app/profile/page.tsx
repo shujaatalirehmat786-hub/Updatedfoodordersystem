@@ -99,7 +99,7 @@ function ProfilePageContent() {
       })
 
       if (success) {
-        markProfileCompleted(getActiveStoreSlug() || undefined)
+        markProfileCompleted(getActiveStoreSlug() || undefined, formData.phone)
         toast({
           title: "Profile updated successfully!",
           description: "Your information has been saved.",
