@@ -5,7 +5,6 @@ import { api } from "@/lib/api"
 import {
   getUser,
   isAuthenticated,
-  isAuthSessionExpired,
   clearAuthSession,
   removeAuthToken,
   setActiveStoreSlug,
@@ -47,22 +46,16 @@ export function useAuth() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const syncSessionState = () => {
-      if (isAuthSessionExpired()) {
-        clearAuthSession()
-        setUserState(null)
-        setIsLoading(false)
-      }
+    const persistedUser = getUser()
+    if (persistedUser) {
+      setUserState(persistedUser)
     }
 
-    if (isAuthenticated() && !user) {
+    if (isAuthenticated()) {
       void fetchProfile()
     } else {
       setIsLoading(false)
     }
-
-    syncSessionState()
-    const sessionTimer = window.setInterval(syncSessionState, 5 * 60 * 1000)
 
     const handleAuthUpdate = () => {
       setUserState(getUser())
@@ -71,7 +64,6 @@ export function useAuth() {
     window.addEventListener("storage", handleAuthUpdate)
     window.addEventListener("auth_updated", handleAuthUpdate)
     return () => {
-      window.clearInterval(sessionTimer)
       window.removeEventListener("storage", handleAuthUpdate)
       window.removeEventListener("auth_updated", handleAuthUpdate)
     }
