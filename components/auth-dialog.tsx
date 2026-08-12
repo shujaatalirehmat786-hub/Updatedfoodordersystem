@@ -18,13 +18,16 @@ import { type ClipboardEvent, type KeyboardEvent } from "react"
 interface AuthDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  mode?: "new" | "existing"
+  onModeChange?: (mode: "new" | "existing") => void
 }
 
-export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
+export function AuthDialog({ open, onOpenChange, mode = "new", onModeChange }: AuthDialogProps) {
   const router = useRouter()
   const [phone, setPhone] = useState("")
   const [otp, setOtp] = useState("")
   const [step, setStep] = useState<"details" | "verify">("details")
+  const [notice, setNotice] = useState<string | null>(null)
   const otpRefs = useRef<Array<HTMLInputElement | null>>([])
   const otpSubmitInFlightRef = useRef(false)
   const { login, verifyOtp, isLoading, error, user } = useAuth()
@@ -35,6 +38,23 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       void refreshStore()
     }
   }, [open, refreshStore])
+
+  useEffect(() => {
+    if (open) {
+      setPhone("")
+      setOtp("")
+      setStep("details")
+    }
+  }, [mode, open])
+
+  useEffect(() => {
+    if (!open) {
+      setPhone("")
+      setOtp("")
+      setStep("details")
+      setNotice(null)
+    }
+  }, [open])
 
   const currentStoreName = useMemo(() => store?.name || "Savera", [store])
   const currentStoreSlug = useMemo(() => store?.subdomain || "savera", [store])
@@ -78,8 +98,18 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const success = await login(phone, currentStoreSlug)
-      if (success) setStep("verify")
+      const result = await login(phone, currentStoreSlug)
+      if (result.success) {
+        setNotice(null)
+        setStep("verify")
+        return
+      }
+
+      if (result.reason === "user_exists" && mode === "new") {
+        setNotice(result.message || "This user already exists. Please sign in as an existing user.")
+        onModeChange?.("existing")
+        setStep("details")
+      }
     } catch {
       return
     }
@@ -96,18 +126,18 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       const result = await verifyOtp(phone, otp, currentStoreSlug)
       if (result?.success) {
         const currentUser = result.user || user
-        const profileLooksIncomplete = !currentUser?.firstName?.trim() || !currentUser?.lastName?.trim()
+        const successRedirect = mode === "new" ? "/profile?fromAuth=true" : "/"
 
         setPhone("")
         setOtp("")
         setStep("details")
         onOpenChange(false)
 
-        if (profileLooksIncomplete) {
-          router.push("/profile?fromAuth=true")
-        } else {
+        if (mode === "existing") {
           markProfileCompleted(currentStoreSlug, currentUser?.phone || phone)
         }
+
+        router.push(successRedirect)
       }
     } finally {
       otpSubmitInFlightRef.current = false
@@ -137,45 +167,80 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
             <DialogHeader className="mb-5 text-left">
               <div className="mb-3 inline-flex items-center gap-2 self-start rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-orange-600">
                 <Sparkles className="h-3.5 w-3.5" />
-                {step === "verify" ? "Verification" : "Store login"}
+                {mode === "existing" ? "Existing user" : step === "verify" ? "Verification" : "New user"}
               </div>
               <DialogTitle className="text-2xl font-semibold tracking-tight sm:text-[2rem]">
-                {step === "verify" ? "Enter the code" : "Welcome back"}
+                {step === "verify"
+                  ? "Enter the code"
+                  : mode === "existing"
+                    ? "Welcome back"
+                    : "Welcome back, new user"}
               </DialogTitle>
               <DialogDescription className="mt-1 text-sm leading-6 text-zinc-500">
                 {step === "verify"
                   ? `We sent a 6-digit text message code to ${phone}.`
-                  : "Enter your phone number to continue."}
+                  : mode === "existing"
+                    ? "Sign in with your phone number to continue."
+                    : "Enter your phone number to start your account setup."}
               </DialogDescription>
             </DialogHeader>
 
             {step === "details" ? (
               <form onSubmit={handlePhoneSubmit} className="space-y-6">
-                <div className="rounded-[1.5rem] border border-zinc-100 bg-gradient-to-br from-zinc-50 to-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">Step 1</p>
-                      <p className="mt-1 text-sm font-semibold text-zinc-950">Current store</p>
+                  {mode === "new" ? (
+                  <div className="rounded-[1.5rem] border border-zinc-100 bg-gradient-to-br from-zinc-50 to-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">Step 1</p>
+                        <p className="mt-1 text-sm font-semibold text-zinc-950">Current store</p>
+                      </div>
+                    </div>
+
+                    <Label className="text-sm font-medium text-zinc-700">Store name</Label>
+                    <div className="mt-3 flex items-center gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white">
+                        <Store className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-orange-700">{currentStoreName}</p>
+                        <p className="mt-1 text-xs text-orange-600/80">This store is selected from the current domain.</p>
+                      </div>
                     </div>
                   </div>
-
-                  <Label className="text-sm font-medium text-zinc-700">Store name</Label>
-                  <div className="mt-3 flex items-center gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white">
-                      <Store className="h-5 w-5" />
+                ) : (
+                  <div className="rounded-[1.5rem] border border-zinc-100 bg-gradient-to-br from-zinc-50 to-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">Existing user</p>
+                        <p className="mt-1 text-sm font-semibold text-zinc-950">Quick sign in</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-orange-700">{currentStoreName}</p>
-                      <p className="mt-1 text-xs text-orange-600/80">This store is selected from the current domain.</p>
+
+                    <div className="flex items-center gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white">
+                        <Store className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-orange-700">{currentStoreName}</p>
+                        <p className="mt-1 text-xs text-orange-600/80">You will be signed into the current store.</p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                <div className="rounded-[1.5rem] border border-zinc-100 bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
+                {notice && (
+                  <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    {notice}
+                  </p>
+                )}
+
+                  <div className="rounded-[1.5rem] border border-zinc-100 bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">Step 2</p>
-                      <p className="mt-1 text-sm font-semibold text-zinc-950">Enter your phone</p>
+                      <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">{mode === "new" ? "Step 2" : "Step 1"}</p>
+                      <p className="mt-1 text-sm font-semibold text-zinc-950">
+                        {mode === "existing" ? "Enter your phone" : "Enter your phone"}
+                      </p>
                     </div>
                     <div className="text-xs text-zinc-500">We will send a secure code</div>
                   </div>
@@ -211,6 +276,22 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                     "Send verification code"
                   )}
                 </Button>
+
+                {mode === "existing" && (
+                  <div className="border-t border-zinc-100 pt-4 text-center">
+                    <button
+                      type="button"
+                      className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-950"
+                      onClick={() => {
+                        setNotice(null)
+                        onModeChange?.("new")
+                      }}
+                      disabled={isLoading}
+                    >
+                      Login as new user
+                    </button>
+                  </div>
+                )}
               </form>
             ) : (
               <form onSubmit={handleOtpSubmit} className="space-y-6">
@@ -251,6 +332,12 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                     ))}
                   </div>
                 </div>
+
+                {notice && (
+                  <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    {notice}
+                  </p>
+                )}
 
                 {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 

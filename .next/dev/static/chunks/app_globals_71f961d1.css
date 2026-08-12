@@ -107,9 +107,12 @@
     --color-orange-800: #9f2d00;
     --color-orange-900: #7e2a0c;
     --color-orange-950: #441306;
+    --color-amber-50: #fffbeb;
+    --color-amber-200: #fee685;
     --color-amber-300: #ffd236;
     --color-amber-400: #fcbb00;
     --color-amber-500: #f99c00;
+    --color-amber-800: #953d00;
     --color-yellow-300: #ffe02a;
     --color-yellow-400: #fac800;
     --color-emerald-50: #ecfdf5;
@@ -209,9 +212,12 @@
       --color-orange-800: lab(37.1566% 46.6433 50.5562);
       --color-orange-900: lab(30.2951% 36.0434 37.671);
       --color-orange-950: lab(14.1747% 23.4515 19.4461);
+      --color-amber-50: lab(98.6252% -.635922 8.42309);
+      --color-amber-200: lab(91.7203% -.505269 49.9084);
       --color-amber-300: lab(86.4156% 6.13147 78.3961);
       --color-amber-400: lab(80.1641% 16.6016 99.2089);
       --color-amber-500: lab(72.7183% 31.8672 97.9407);
+      --color-amber-800: lab(37.8822% 37.1699 52.2718);
       --color-yellow-300: lab(89.7033% -.480294 84.4917);
       --color-yellow-400: lab(83.2664% 8.65132 106.895);
       --color-emerald-50: lab(97.8462% -6.94966 1.85487);
@@ -1458,6 +1464,10 @@
     border-bottom-width: 1px;
   }
 
+  .border-amber-200 {
+    border-color: var(--color-amber-200);
+  }
+
   .border-border {
     border-color: var(--border);
   }
@@ -1546,6 +1556,10 @@
 
   .border-t-transparent {
     border-top-color: #0000;
+  }
+
+  .bg-amber-50 {
+    background-color: var(--color-amber-50);
   }
 
   .bg-background {
@@ -2334,6 +2348,10 @@
 
   .whitespace-nowrap {
     white-space: nowrap;
+  }
+
+  .text-amber-800 {
+    color: var(--color-amber-800);
   }
 
   .text-card-foreground {

@@ -36,6 +36,23 @@ function normalizeOtpErrorMessage(message: string): string {
   return message
 }
 
+function normalizeLoginErrorMessage(message: string): { message: string; reason?: "user_exists" } {
+  const lower = message.toLowerCase()
+  if (
+    lower.includes("user already exists") ||
+    lower.includes("already exists") ||
+    lower.includes("already registered") ||
+    lower.includes("account already exists")
+  ) {
+    return {
+      message: "This user already exists. Please sign in as an existing user.",
+      reason: "user_exists",
+    }
+  }
+
+  return { message }
+}
+
 export function useAuth() {
   // Read persisted authentication state after hydration to keep SSR output
   // identical to the first browser render.
@@ -99,11 +116,12 @@ export function useAuth() {
       const { slug, apiStore } = await resolveStoreForApi(storeOverride)
       setActiveStoreSlug(slug)
       await api.auth.login(phone, apiStore)
-      return true
+      return { success: true as const }
     } catch (err: any) {
       console.error("[v0] Login error:", err)
-      setError(normalizeOtpErrorMessage(err?.message || "Login failed"))
-      return false
+      const normalized = normalizeLoginErrorMessage(err?.message || "Login failed")
+      setError(normalized.message)
+      return { success: false as const, reason: normalized.reason, message: normalized.message }
     } finally {
       setIsLoading(false)
     }

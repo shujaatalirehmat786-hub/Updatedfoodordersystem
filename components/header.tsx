@@ -23,6 +23,7 @@ export function Header() {
   const { cart } = useCart()
   const { store } = useStore()
   const [authDialogOpen, setAuthDialogOpen] = useState(false)
+  const [authDialogMode, setAuthDialogMode] = useState<"new" | "existing">("existing")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -146,7 +147,10 @@ export function Header() {
               </DropdownMenu>
             ) : (
               <Button
-                onClick={() => setAuthDialogOpen(true)}
+                onClick={() => {
+                  setAuthDialogMode("existing")
+                  setAuthDialogOpen(true)
+                }}
                 className="h-10 rounded-full bg-gradient-to-r from-orange-500 to-amber-400 px-4 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition-transform duration-200 hover:-translate-y-0.5 hover:from-orange-400 hover:to-amber-300"
               >
                 Login
@@ -213,7 +217,12 @@ export function Header() {
         )}
       </header>
 
-      <AuthDialog open={authDialogOpen} onOpenChange={setAuthDialogOpen} />
+      <AuthDialog
+        open={authDialogOpen}
+        onOpenChange={setAuthDialogOpen}
+        mode={authDialogMode}
+        onModeChange={setAuthDialogMode}
+      />
     </>
   )
 }

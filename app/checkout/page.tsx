@@ -25,6 +25,7 @@ export default function CheckoutPage() {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false)
   const isPlacingOrderRef = useRef(false)
   const [authDialogOpen, setAuthDialogOpen] = useState(false)
+  const [authDialogMode, setAuthDialogMode] = useState<"new" | "existing">("existing")
 
   useEffect(() => {
     setMounted(true)
@@ -51,6 +52,7 @@ export default function CheckoutPage() {
     }
 
     if (!isAuthenticated) {
+      setAuthDialogMode("existing")
       setAuthDialogOpen(true)
       resetPlacingOrder()
       return
@@ -66,6 +68,7 @@ export default function CheckoutPage() {
       const status = (profileError as any)?.status
       if (status === 401 || status === 403) {
         clearAuthSession()
+        setAuthDialogMode("existing")
         setAuthDialogOpen(true)
         toast({
           title: "Session expired",
@@ -323,7 +326,12 @@ export default function CheckoutPage() {
         </div>
       </main>
 
-      <AuthDialog open={authDialogOpen} onOpenChange={setAuthDialogOpen} />
+      <AuthDialog
+        open={authDialogOpen}
+        onOpenChange={setAuthDialogOpen}
+        mode={authDialogMode}
+        onModeChange={setAuthDialogMode}
+      />
     </div>
   )
 }
