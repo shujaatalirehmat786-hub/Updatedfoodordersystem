@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ProductCard } from "@/components/product-card"
-import { api } from "@/lib/api"
+import { api, getProductPrice } from "@/lib/api"
 import { getStoreFromSubdomain } from "@/lib/store"
 import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
@@ -104,16 +104,17 @@ export default function CategoriesPage() {
 
   const handleAddToCart = (product: any) => {
     const TAX_RATE = 0.0832
+    const productPrice = getProductPrice(product)
 
     const cartItem = {
       productId: product._id,
       name: product.name,
-      price: Number(product.price),
+      price: productPrice,
       quantity: 1,
       modifiers: [],
       image: product.image,
-      subTotal: Number(product.price),
-      tax: Number(product.price) * TAX_RATE,
+      subTotal: productPrice,
+      tax: productPrice * TAX_RATE,
       discount: 0,
     }
 
@@ -446,5 +447,4 @@ export default function CategoriesPage() {
     </div>
   )
 }
-
 

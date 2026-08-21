@@ -46,6 +46,66 @@ function normalizeId(value: unknown): string {
   return String(value ?? "")
 }
 
+function parseProductPrice(value: unknown): number {
+  const parsed = typeof value === "number" ? value : Number(value)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+/**
+ * The product API can return a zero `price` while the actual selling price is
+ * in `priceYouCharge` (as used by Smokey's Paradise). Preserve a non-zero
+ * `price` when it exists for existing stores, then use the backend fallbacks.
+ */
+export function getProductPrice(product: any): number {
+  const price = parseProductPrice(product?.price)
+  if (price > 0) {
+    return price
+  }
+
+  for (const candidate of [product?.priceYouCharge, product?.effectivePrice, product?.priceAfterTax]) {
+    const fallbackPrice = parseProductPrice(candidate)
+    if (fallbackPrice > 0) {
+      return fallbackPrice
+    }
+  }
+
+  return 0
+}
+
+function normalizeProduct(product: any): any {
+  if (!product || typeof product !== "object") {
+    return product
+  }
+
+  return {
+    ...product,
+    price: getProductPrice(product),
+  }
+}
+
+function normalizeProductResponse(response: any): any {
+  if (Array.isArray(response)) {
+    return response.map(normalizeProduct)
+  }
+
+  if (Array.isArray(response?.products)) {
+    return { ...response, products: response.products.map(normalizeProduct) }
+  }
+
+  if (Array.isArray(response?.data?.products)) {
+    return {
+      ...response,
+      data: { ...response.data, products: response.data.products.map(normalizeProduct) },
+    }
+  }
+
+  if (response?.data?._id) {
+    return { ...response, data: normalizeProduct(response.data) }
+  }
+
+  return response?._id ? normalizeProduct(response) : response
+}
+
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getValidAuthToken()
 
@@ -256,7 +316,7 @@ export const api = {
   },
 
   product: {
-    list: (params: {
+    list: async (params: {
       storeId: string
       page?: number
       limit?: number
@@ -274,9 +334,13 @@ export const api = {
         order: params.order ?? "desc",
         search: params.search ?? "",
       })
-      return apiRequest<any>(`/product?${queryString}`)
+      const response = await apiRequest<any>(`/product?${queryString}`)
+      return normalizeProductResponse(response)
     },
-    getById: (id: string) => apiRequest<any>(`/product/${id}`),
+    getById: async (id: string) => {
+      const response = await apiRequest<any>(`/product/${id}`)
+      return normalizeProductResponse(response)
+    },
   },
 
   modifier: {

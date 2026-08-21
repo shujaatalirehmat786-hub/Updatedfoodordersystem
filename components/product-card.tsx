@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Plus, Star } from "lucide-react"
 import Link from "next/link"
 import { ProductOrderDialog } from "@/components/product-order-dialog"
+import { getProductPrice } from "@/lib/api"
 
 interface ProductCardProps {
   product: {
@@ -22,6 +23,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
+  const productPrice = getProductPrice(product)
   // Keep the decorative rating stable between server and browser renders.
   const ratingSeed = Array.from(product._id || product.name).reduce((sum, character) => sum + character.charCodeAt(0), 0)
   const rating = (3.5 + (ratingSeed % 151) / 100).toFixed(2)
@@ -62,7 +64,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           )}
           <div className="mt-4 flex items-center justify-between">
             <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-              ${Number(product.price).toFixed(2)}
+              ${productPrice.toFixed(2)}
             </p>
           </div>
         </CardContent>

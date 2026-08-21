@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
-import { api } from "@/lib/api"
+import { api, getProductPrice } from "@/lib/api"
 import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2, Minus, Plus, ArrowLeft } from "lucide-react"
@@ -41,7 +41,7 @@ export default function ProductDetailPage() {
   }
 
   const calculateTotal = () => {
-    const basePrice = Number(product.price) * quantity
+    const basePrice = getProductPrice(product) * quantity
     return basePrice
   }
 
@@ -52,7 +52,7 @@ export default function ProductDetailPage() {
     const cartItem = {
       productId: product._id,
       name: product.name,
-      price: product.price,
+      price: getProductPrice(product),
       quantity,
       modifiers: [],
       image: product.image,
@@ -116,7 +116,7 @@ export default function ProductDetailPage() {
             <div>
               <h1 className="text-balance text-3xl font-bold text-foreground">{product.name}</h1>
               {product.description && <p className="mt-2 text-muted-foreground">{product.description}</p>}
-              <p className="mt-4 text-3xl font-bold text-primary">${Number(product.price).toFixed(2)}</p>
+              <p className="mt-4 text-3xl font-bold text-primary">${getProductPrice(product).toFixed(2)}</p>
             </div>
 
             {/* Quantity */}

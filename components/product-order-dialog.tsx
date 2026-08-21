@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X, Minus, Plus } from "lucide-react"
-import { api } from "@/lib/api"
+import { api, getProductPrice } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
@@ -52,14 +52,14 @@ export function ProductOrderDialog({ product, open, onOpenChange }: ProductOrder
   }
 
   const calculateTotal = () => {
-    const basePrice = Number(fullProduct?.price || product.price)
+    const basePrice = getProductPrice(fullProduct || product)
     return basePrice * quantity
   }
 
   const handleAddToCart = () => {
     const TAX_RATE = 0.0832
     const total = calculateTotal()
-    const finalPrice = Number(fullProduct?.price || product.price)
+    const finalPrice = getProductPrice(fullProduct || product)
 
     const cartItem = {
       productId: fullProduct?._id || product._id,
@@ -85,7 +85,7 @@ export function ProductOrderDialog({ product, open, onOpenChange }: ProductOrder
   if (!product) return null
 
   const displayProduct = fullProduct || product
-  const basePrice = Number(displayProduct.price)
+  const basePrice = getProductPrice(displayProduct)
   const discount = displayProduct.discount || 0
   const originalPrice = discount > 0 ? basePrice / (1 - discount / 100) : basePrice
   const dialogTitle = displayProduct?.name || product?.name || "Product details"

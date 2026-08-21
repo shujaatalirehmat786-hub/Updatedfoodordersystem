@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Header } from "@/components/header"
 import { ProductCard } from "@/components/product-card"
-import { api } from "@/lib/api"
+import { api, getProductPrice } from "@/lib/api"
 import { getStoreAddress, getStoreDescription, getStoreFromSubdomain, getStoreName } from "@/lib/store"
 import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
@@ -137,16 +137,17 @@ function HomePageContent() {
 
   const handleAddToCart = (product: any) => {
     const TAX_RATE = 0.0832
+    const productPrice = getProductPrice(product)
 
     const cartItem = {
       productId: product._id,
       name: product.name,
-      price: Number(product.price),
+      price: productPrice,
       quantity: 1,
       modifiers: [],
       image: product.image,
-      subTotal: Number(product.price),
-      tax: Number(product.price) * TAX_RATE,
+      subTotal: productPrice,
+      tax: productPrice * TAX_RATE,
       discount: 0,
     }
 
@@ -536,7 +537,7 @@ function HomePageContent() {
                         </div>
                         <div className="flex items-center justify-between gap-3">
                           <div className="text-2xl font-semibold tracking-tight text-zinc-950">
-                            {Number(product.price).toFixed(2)}
+                            {getProductPrice(product).toFixed(2)}
                             <span className="ml-1 text-sm font-medium text-zinc-500">USD</span>
                           </div>
                           <Badge className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50">
