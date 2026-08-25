@@ -1,17 +1,12 @@
-[00:00:02.910] Server  LOG      ✓ Ready in 2.5s
-[00:00:05.985] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:06.161] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:00:06.161] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
-[00:00:06.161] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3001/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3001/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1787341706853} /_vercel/insights/view
-[00:00:09.330] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:09.506] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
-[00:00:09.506] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
-[00:00:09.506] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3001/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3001/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1787341710198} /_vercel/insights/view
-[00:00:10.178] Browser ERROR   [v0] API request failed: {"response":{},"status":401}
-[00:00:10.178] Browser ERROR   [v0] Error fetching profile: {"response":{},"status":401}
-[00:00:10.254] Browser ERROR   [v0] API request failed: {"response":{},"status":401}
-[00:00:10.254] Browser ERROR   [v0] Error fetching profile: {"response":{},"status":401}
-[00:00:10.437] Browser ERROR   [v0] API request failed: {"response":{},"status":401}
-[00:00:10.437] Browser ERROR   [v0] Error fetching profile: {"response":{},"status":401}
-[00:00:10.751] Browser ERROR   [v0] API request failed: {"response":{},"status":401}
-[00:00:10.751] Browser ERROR   [v0] Error fetching profile: {"response":{},"status":401}
+[00:00:01.865] Server  LOG      ✓ Ready in 1405ms
+[00:00:05.224] Server  LOG      ○ Compiling / ...
+[00:00:07.677] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:08.362] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:00:08.362] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:00:08.362] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1787687527659} /_vercel/insights/view
+[00:00:09.576] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:09.963] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:00:09.963] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:00:09.963] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1787687529262} /_vercel/insights/view
+[00:03:30.660] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:03:30.660] Browser LOG     %c[Vercel Web Analytics]%c [view] http://localhost:3000/profile?fromAuth=true color: rgb(120, 120, 120) color: inherit {"dp":"/profile","o":"http://localhost:3000/profile?fromAuth=true","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1787687729944} /_vercel/insights/view

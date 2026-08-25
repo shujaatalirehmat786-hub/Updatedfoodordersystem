@@ -16,6 +16,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { markProfileCompleted } from '@/lib/auth';
+import { DEFAULT_PHONE_COUNTRY, getCountryOption, type PhoneFieldState } from '@/lib/phone';
+import { PhoneCountryInput } from '@/components/phone-country-input';
 import { useStore } from '@/hooks/use-store';
 import { Loader2, Sparkles, Store } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -35,10 +37,19 @@ export function AuthDialog({
   onModeChange,
 }: AuthDialogProps) {
   const router = useRouter();
-  const [phone, setPhone] = useState('');
+  const createInitialPhoneField = (): PhoneFieldState => ({
+    country: getCountryOption(DEFAULT_PHONE_COUNTRY),
+    rawValue: '',
+    normalizedValue: '',
+    isValid: false,
+    isPossible: false,
+    error: null,
+  });
+  const [phoneField, setPhoneField] = useState<PhoneFieldState>(createInitialPhoneField);
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'details' | 'verify'>('details');
   const [notice, setNotice] = useState<string | null>(null);
+  const [phoneValidationError, setPhoneValidationError] = useState<string | null>(null);
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
   const otpSubmitInFlightRef = useRef(false);
   const { login, verifyOtp, isLoading, error, user } = useAuth();
@@ -52,18 +63,20 @@ export function AuthDialog({
 
   useEffect(() => {
     if (open) {
-      setPhone('');
+      setPhoneField(createInitialPhoneField());
       setOtp('');
       setStep('details');
+      setPhoneValidationError(null);
     }
   }, [mode, open]);
 
   useEffect(() => {
     if (!open) {
-      setPhone('');
+      setPhoneField(createInitialPhoneField());
       setOtp('');
       setStep('details');
       setNotice(null);
+      setPhoneValidationError(null);
     }
   }, [open]);
 
@@ -117,8 +130,15 @@ export function AuthDialog({
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!phoneField.isValid || !phoneField.normalizedValue) {
+      setPhoneValidationError(
+        phoneField.error || 'Please enter a valid international phone number.',
+      );
+      return;
+    }
+
     try {
-      const result = await login(phone, currentStoreSlug);
+      const result = await login(phoneField.normalizedValue, currentStoreSlug);
       if (result.success) {
         setNotice(null);
         setStep('verify');
@@ -146,18 +166,21 @@ export function AuthDialog({
 
     otpSubmitInFlightRef.current = true;
     try {
-      const result = await verifyOtp(phone, otp, currentStoreSlug);
+      const result = await verifyOtp(phoneField.normalizedValue, otp, currentStoreSlug);
       if (result?.success) {
         const currentUser = result.user || user;
         const successRedirect = mode === 'new' ? '/profile?fromAuth=true' : '/';
 
-        setPhone('');
+        setPhoneField(createInitialPhoneField());
         setOtp('');
         setStep('details');
         onOpenChange(false);
 
         if (mode === 'existing') {
-          markProfileCompleted(currentStoreSlug, currentUser?.phone || phone);
+          markProfileCompleted(
+            currentStoreSlug,
+            currentUser?.phone || phoneField.normalizedValue,
+          );
         }
 
         router.push(successRedirect);
@@ -169,9 +192,10 @@ export function AuthDialog({
 
   const handleDialogClose = (nextOpen: boolean) => {
     if (!nextOpen) {
-      setPhone('');
+      setPhoneField(createInitialPhoneField());
       setOtp('');
       setStep('details');
+      setPhoneValidationError(null);
     }
     onOpenChange(nextOpen);
   };
@@ -205,7 +229,7 @@ export function AuthDialog({
               </DialogTitle>
               <DialogDescription className="mt-1 text-sm leading-6 text-zinc-500">
                 {step === 'verify'
-                  ? `We sent a 6-digit text message code to ${phone}.`
+                  ? `We sent a 6-digit text message code to ${phoneField.normalizedValue || phoneField.rawValue}.`
                   : mode === 'existing'
                     ? 'Sign in with your phone number to continue.'
                     : 'Enter your phone number to start your account setup.'}
@@ -296,21 +320,18 @@ export function AuthDialog({
                     </div>
                   </div>
 
-                  <Label
-                    htmlFor="phone"
-                    className="text-sm font-medium text-zinc-700"
-                  >
-                    Phone number
-                  </Label>
-                  <Input
+                  <PhoneCountryInput
                     id="phone"
-                    type="tel"
-                    placeholder="+923001234567"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
+                    label="Phone number"
+                    value={phoneField.rawValue}
+                    countryCode={phoneField.country.code}
+                    onChange={(next) => {
+                      setPhoneField(next);
+                      setPhoneValidationError(null);
+                    }}
                     disabled={isLoading}
-                    className="mt-3 rounded-2xl border-zinc-200 bg-white px-4 py-6 shadow-sm"
+                    helperText="Pakistan (+92) is selected by default. You can search and choose another country."
+                    error={phoneValidationError}
                   />
                 </div>
 
@@ -362,7 +383,9 @@ export function AuthDialog({
                       <p className="font-medium text-zinc-900">
                         {currentStoreName}
                       </p>
-                      <p className="text-sm text-zinc-500">{phone}</p>
+                      <p className="text-sm text-zinc-500">
+                        {phoneField.normalizedValue || phoneField.rawValue}
+                      </p>
                     </div>
                     <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-orange-600 shadow-sm">
                       SMS sent
@@ -448,7 +471,7 @@ export function AuthDialog({
                   <button
                     type="button"
                     className="font-medium text-orange-600 transition-colors hover:text-orange-700"
-                    onClick={() => login(phone, currentStoreSlug)}
+                    onClick={() => login(phoneField.normalizedValue, currentStoreSlug)}
                     disabled={isLoading}
                   >
                     Resend code
