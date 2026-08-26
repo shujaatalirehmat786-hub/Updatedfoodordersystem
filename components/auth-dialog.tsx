@@ -148,7 +148,7 @@ export function AuthDialog({
       if (result.reason === 'user_exists' && mode === 'new') {
         setNotice(
           result.message ||
-            'This user already exists. Please sign in as an existing user.',
+            'This account already exists. Please use the alternate sign-in option.',
         );
         onModeChange?.('existing');
         setStep('details');
@@ -214,88 +214,35 @@ export function AuthDialog({
             <DialogHeader className="mb-5 text-left">
               <div className="mb-3 inline-flex items-center gap-2 self-start rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-orange-600">
                 <Sparkles className="h-3.5 w-3.5" />
-                {mode === 'existing'
-                  ? 'Existing user'
-                  : step === 'verify'
-                    ? 'Verification'
-                    : 'New user'}
+                {step === 'verify' ? 'Text verification' : 'Secure access'}
               </div>
               <DialogTitle className="text-2xl font-semibold tracking-tight sm:text-[2rem]">
-                {step === 'verify'
-                  ? 'Enter the code'
-                  : mode === 'existing'
-                    ? 'Welcome back'
-                    : "Welcome, let's get started"}
+                {step === 'verify' ? 'Enter the code' : 'Sign in to continue'}
               </DialogTitle>
               <DialogDescription className="mt-1 text-sm leading-6 text-zinc-500">
                 {step === 'verify'
                   ? `We sent a 6-digit text message code to ${phoneField.normalizedValue || phoneField.rawValue}.`
-                  : mode === 'existing'
-                    ? 'Sign in with your phone number to continue.'
-                    : 'Enter your phone number to start your account setup.'}
+                  : 'Enter your phone number to continue.'}
               </DialogDescription>
             </DialogHeader>
 
             {step === 'details' ? (
               <form onSubmit={handlePhoneSubmit} className="space-y-6">
-                {mode === 'new' ? (
-                  <div className="rounded-[1.5rem] border border-zinc-100 bg-gradient-to-br from-zinc-50 to-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
-                    <div className="mb-4 flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">
-                          Step 1
-                        </p>
-                        <p className="mt-1 text-sm font-semibold text-zinc-950">
-                          Current store
-                        </p>
-                      </div>
+                <div className="rounded-[1.5rem] border border-zinc-100 bg-gradient-to-br from-zinc-50 to-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
+                  <div className="flex items-center gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white">
+                      <Store className="h-5 w-5" />
                     </div>
-
-                    <Label className="text-sm font-medium text-zinc-700">
-                      Store name
-                    </Label>
-                    <div className="mt-3 flex items-center gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white">
-                        <Store className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-orange-700">
-                          {currentStoreName}
-                        </p>
-                        <p className="mt-1 text-xs text-orange-600/80">
-                          This store is selected from the current domain.
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-sm font-semibold text-orange-700">
+                        {currentStoreName}
+                      </p>
+                      <p className="mt-1 text-xs text-orange-600/80">
+                        This store is selected from the current domain.
+                      </p>
                     </div>
                   </div>
-                ) : (
-                  <div className="rounded-[1.5rem] border border-zinc-100 bg-gradient-to-br from-zinc-50 to-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
-                    <div className="mb-4 flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">
-                          Existing user
-                        </p>
-                        <p className="mt-1 text-sm font-semibold text-zinc-950">
-                          Quick sign in
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white">
-                        <Store className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-orange-700">
-                          {currentStoreName}
-                        </p>
-                        <p className="mt-1 text-xs text-orange-600/80">
-                          You will be signed into the current store.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                </div>
 
                 {notice && (
                   <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -306,13 +253,8 @@ export function AuthDialog({
                 <div className="rounded-[1.5rem] border border-zinc-100 bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">
-                        {mode === 'new' ? 'Step 2' : 'Step 1'}
-                      </p>
-                      <p className="mt-1 text-sm font-semibold text-zinc-950">
-                        {mode === 'existing'
-                          ? 'Enter your phone'
-                          : 'Enter your phone'}
+                      <p className="text-sm font-semibold text-zinc-950">
+                        Phone number
                       </p>
                     </div>
                     <div className="text-xs text-zinc-500">
@@ -367,7 +309,7 @@ export function AuthDialog({
                       }}
                       disabled={isLoading}
                     >
-                      Login as new user
+                      Switch to first-time sign in
                     </button>
                   </div>
                 )}
