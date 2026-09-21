@@ -206,20 +206,20 @@ export function AuthDialog({
         showCloseButton={false}
         className="overflow-hidden border-0 bg-transparent p-0 shadow-none sm:max-w-lg"
       >
-        <div className="relative mx-auto isolate overflow-hidden rounded-[1.75rem] border border-white/20 bg-white text-zinc-950 shadow-[0_28px_80px_rgba(0,0,0,0.32)]">
+        <div className="relative mx-auto isolate overflow-hidden rounded-[1.75rem] border border-white/20 bg-white text-ink shadow-[0_28px_80px_rgba(0,0,0,0.32)]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.14),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(251,191,36,0.12),_transparent_28%)]" />
           <div className="absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(15,23,42,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.05)_1px,transparent_1px)] [background-size:28px_28px]" />
 
           <div className="relative p-5 sm:p-6">
             <DialogHeader className="mb-5 text-left">
-              <div className="mb-3 inline-flex items-center gap-2 self-start rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-orange-600">
+              <div className="mb-3 inline-flex items-center gap-2 self-start rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-brand">
                 <Sparkles className="h-3.5 w-3.5" />
                 {step === 'verify' ? 'Text verification' : 'Secure access'}
               </div>
               <DialogTitle className="text-2xl font-semibold tracking-tight sm:text-[2rem]">
                 {step === 'verify' ? 'Enter the code' : 'Sign in to continue'}
               </DialogTitle>
-              <DialogDescription className="mt-1 text-sm leading-6 text-zinc-500">
+              <DialogDescription className="mt-1 text-sm leading-6 text-muted-foreground">
                 {step === 'verify'
                   ? `We sent a 6-digit text message code to ${phoneField.normalizedValue || phoneField.rawValue}.`
                   : 'Enter your phone number to continue.'}
@@ -228,16 +228,16 @@ export function AuthDialog({
 
             {step === 'details' ? (
               <form onSubmit={handlePhoneSubmit} className="space-y-6">
-                <div className="rounded-[1.5rem] border border-zinc-100 bg-gradient-to-br from-zinc-50 to-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
-                  <div className="flex items-center gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-4 py-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white">
+                <div className="rounded-[1.5rem] border border-line bg-cream-light p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
+                  <div className="flex items-center gap-3 rounded-2xl border border-brand/20 bg-brand-soft px-4 py-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft0 text-white">
                       <Store className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-orange-700">
+                      <p className="text-sm font-semibold text-brand-dark">
                         {currentStoreName}
                       </p>
-                      <p className="mt-1 text-xs text-orange-600/80">
+                      <p className="mt-1 text-xs text-brand/80">
                         This store is selected from the current domain.
                       </p>
                     </div>
@@ -245,19 +245,19 @@ export function AuthDialog({
                 </div>
 
                 {notice && (
-                  <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  <p className="rounded-2xl border border-brand/30 bg-brand-soft px-4 py-3 text-sm text-brand-dark">
                     {notice}
                   </p>
                 )}
 
-                <div className="rounded-[1.5rem] border border-zinc-100 bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
+                <div className="rounded-[1.5rem] border border-line bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-zinc-950">
+                      <p className="text-sm font-semibold text-ink">
                         Phone number
                       </p>
                     </div>
-                    <div className="text-xs text-zinc-500">
+                    <div className="text-xs text-muted-foreground">
                       We will send a secure code
                     </div>
                   </div>
@@ -285,7 +285,7 @@ export function AuthDialog({
 
                 <Button
                   type="submit"
-                  className="h-12 w-full rounded-2xl bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-800 text-white shadow-[0_18px_40px_rgba(9,9,11,0.22)] transition-transform duration-200 hover:-translate-y-0.5 hover:from-zinc-900 hover:to-zinc-700"
+                  className="h-12 w-full rounded-2xl bg-ink text-white transition-colors hover:bg-ink/90"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -299,10 +299,10 @@ export function AuthDialog({
                 </Button>
 
                 {mode === 'existing' && (
-                  <div className="border-t border-zinc-100 pt-4 text-center">
+                  <div className="border-t border-line pt-4 text-center">
                     <button
                       type="button"
-                      className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-950"
+                      className="text-sm font-medium text-muted-foreground transition-colors hover:text-brand"
                       onClick={() => {
                         setNotice(null);
                         onModeChange?.('new');
@@ -316,33 +316,33 @@ export function AuthDialog({
               </form>
             ) : (
               <form onSubmit={handleOtpSubmit} className="space-y-6">
-                <div className="rounded-[1.5rem] border border-zinc-100 bg-gradient-to-r from-zinc-50 via-white to-orange-50 p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400">
+                <div className="rounded-[1.5rem] border border-line bg-cream-light p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
                     Store
                   </p>
                   <div className="mt-2 flex items-center justify-between gap-3">
                     <div>
-                      <p className="font-medium text-zinc-900">
+                      <p className="font-medium text-ink">
                         {currentStoreName}
                       </p>
-                      <p className="text-sm text-zinc-500">
+                      <p className="text-sm text-muted-foreground">
                         {phoneField.normalizedValue || phoneField.rawValue}
                       </p>
                     </div>
-                    <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-orange-600 shadow-sm">
+                    <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand shadow-sm">
                       SMS sent
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-[1.5rem] border border-zinc-100 bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
+                <div className="rounded-[1.5rem] border border-line bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.04)]">
                   <Label
                     htmlFor="otp"
-                    className="text-sm font-medium text-zinc-700"
+                    className="text-sm font-medium text-ink-soft"
                   >
                     Verification code
                   </Label>
-                  <p className="mt-1 text-xs text-zinc-500">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Enter the 6-digit text message code sent to your phone. You
                     can paste it directly.
                   </p>
@@ -365,14 +365,14 @@ export function AuthDialog({
                         }
                         onKeyDown={(event) => handleOtpKeyDown(index, event)}
                         disabled={isLoading}
-                        className="h-12 rounded-2xl border-zinc-200 bg-zinc-50 text-center text-lg font-semibold shadow-sm transition-all duration-200 focus-visible:scale-[1.03] focus-visible:bg-white"
+                        className="h-12 rounded-2xl border-line bg-cream-light text-center text-lg font-semibold shadow-sm transition-all duration-200 focus-visible:scale-[1.03] focus-visible:bg-white"
                       />
                     ))}
                   </div>
                 </div>
 
                 {notice && (
-                  <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  <p className="rounded-2xl border border-brand/30 bg-brand-soft px-4 py-3 text-sm text-brand-dark">
                     {notice}
                   </p>
                 )}
@@ -385,7 +385,7 @@ export function AuthDialog({
 
                 <Button
                   type="submit"
-                  className="h-12 w-full rounded-2xl bg-gradient-to-r from-orange-500 via-orange-500 to-amber-400 text-white shadow-[0_18px_40px_rgba(249,115,22,0.24)] transition-transform duration-200 hover:-translate-y-0.5 hover:from-orange-400 hover:to-amber-300"
+                  className="h-12 w-full rounded-2xl bg-brand text-white transition-colors hover:bg-brand-dark"
                   disabled={isLoading || otp.length < 6}
                 >
                   {isLoading ? (
@@ -401,7 +401,7 @@ export function AuthDialog({
                 <div className="flex items-center justify-between gap-3 text-sm">
                   <button
                     type="button"
-                    className="font-medium text-zinc-600 transition-colors hover:text-zinc-900"
+                    className="font-medium text-muted-foreground transition-colors hover:text-brand"
                     onClick={() => {
                       setStep('details');
                       setOtp('');
@@ -412,7 +412,7 @@ export function AuthDialog({
                   </button>
                   <button
                     type="button"
-                    className="font-medium text-orange-600 transition-colors hover:text-orange-700"
+                    className="font-medium text-brand transition-colors hover:text-brand-dark"
                     onClick={() => login(phoneField.normalizedValue, currentStoreSlug)}
                     disabled={isLoading}
                   >

@@ -1,115 +1,169 @@
 "use client"
 
+import { Mail, MapPin, Phone, Clock, Facebook, Instagram, Twitter } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Mail, MapPin, Clock } from "lucide-react"
+import { PageHero } from "@/components/page-hero"
 import { useStore } from "@/hooks/use-store"
-import { getStoreAddress, getStoreEmail, getStoreBusinessHours, getStoreName } from "@/lib/store"
+import {
+  getStoreAddress,
+  getStoreBusinessHours,
+  getStoreEmail,
+  getStoreName,
+  getStorePhone,
+  getStoreSocialLinks,
+} from "@/lib/store"
 
 export default function ContactsPage() {
   const { store } = useStore()
-  const storeName = getStoreName(store) || "Selected store"
+  const storeName = getStoreName(store) || store?.subdomain || ""
+  const displayStoreName = storeName.replace(/[.,\s]+$/, "")
   const storeAddress = getStoreAddress(store)
   const storeEmail = getStoreEmail(store)
+  const storePhone = getStorePhone(store)
   const businessHours = getStoreBusinessHours(store)
-  const storeHours =
-    businessHours.length
-      ? businessHours
-          .map((slot) => `${slot.day}: ${slot.isOpen ? `${slot.startTime} - ${slot.endTime}` : "Closed"}`)
-          .join(", ")
-      : null
+  const social = getStoreSocialLinks(store)
+
+  const contactCards = [
+    storeAddress ? { Icon: MapPin, label: "Address", value: storeAddress, href: null } : null,
+    storePhone
+      ? { Icon: Phone, label: "Phone", value: storePhone, href: `tel:${storePhone.replace(/\s+/g, "")}` }
+      : null,
+    storeEmail ? { Icon: Mail, label: "Email", value: storeEmail, href: `mailto:${storeEmail}` } : null,
+  ].filter(Boolean) as Array<{ Icon: typeof MapPin; label: string; value: string; href: string | null }>
+
+  const socialItems = [
+    { href: social.instagramUrl, Icon: Instagram, label: "Instagram" },
+    { href: social.facebookUrl, Icon: Facebook, label: "Facebook" },
+    { href: social.twitterUrl, Icon: Twitter, label: "Twitter" },
+  ].filter((item) => Boolean(item.href))
+
+  const mapQuery = storeAddress ? encodeURIComponent(storeAddress) : null
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-12 text-center">
-          <h1 className="mb-4 text-4xl font-bold text-gray-900 dark:text-white md:text-5xl">
-            Contact {storeName}
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            Reach out through the contact details published by this store.
-          </p>
-        </div>
+      <main>
+        <PageHero
+          eyebrow="Get in touch"
+          title={displayStoreName ? `Contact ${displayStoreName}` : "Contact us"}
+          description="Every detail below is published by the store."
+          crumbs={[
+            { label: "Home", href: "/" },
+            { label: "Contacts" },
+          ]}
+        />
 
-        <div className="grid gap-8 md:grid-cols-3">
-          <Card className="p-6 text-center">
-            <div className="mb-4 flex justify-center">
-              <div className="rounded-full bg-orange-100 p-4 dark:bg-orange-900/30">
-                <Mail className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+        {/* Contact details */}
+        <section className="bg-background py-16 lg:py-24">
+          <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+            {contactCards.length > 0 ? (
+              <div className="mx-auto flex max-w-5xl flex-wrap justify-center gap-7">
+                {contactCards.map(({ Icon, label, value, href }) => (
+                  <article
+                    key={label}
+                    className="w-full max-w-sm flex-1 basis-72 border border-line/80 bg-card p-8 text-center dark:border-border"
+                  >
+                    <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-brand/40 text-brand">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <h3 className="mt-6 font-display text-[24px] font-semibold text-ink dark:text-foreground">
+                      {label}
+                    </h3>
+                    <div className="mx-auto mt-4 h-px w-full bg-line dark:bg-border" />
+                    {href ? (
+                      <a
+                        href={href}
+                        className="mt-4 block text-[15px] leading-[1.7] text-ink-soft transition-colors hover:text-brand dark:text-foreground/75"
+                      >
+                        {value}
+                      </a>
+                    ) : (
+                      <p className="mt-4 text-[15px] leading-[1.7] text-ink-soft dark:text-foreground/75">{value}</p>
+                    )}
+                  </article>
+                ))}
               </div>
-            </div>
-            <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">Email</h3>
-            <p className="text-gray-600 dark:text-gray-400">{storeEmail || "Not published"}</p>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-500">Store email</p>
-          </Card>
+            ) : (
+              <p className="text-center text-muted-foreground">
+                This store has not published any contact details yet.
+              </p>
+            )}
 
-          <Card className="p-6 text-center">
-            <div className="mb-4 flex justify-center">
-              <div className="rounded-full bg-orange-100 p-4 dark:bg-orange-900/30">
-                <MapPin className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+            {socialItems.length > 0 && (
+              <div className="mt-14 flex flex-col items-center">
+                <span className="eyebrow eyebrow-center">Follow along</span>
+                <div className="mt-6 flex items-center gap-4">
+                  {socialItems.map(({ href, Icon, label }) => (
+                    <a
+                      key={label}
+                      href={href as string}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={label}
+                      className="flex h-12 w-12 items-center justify-center rounded-full border border-ink/25 text-ink transition-colors hover:border-brand hover:bg-brand hover:text-white dark:border-foreground/30 dark:text-foreground"
+                    >
+                      <Icon className="h-[18px] w-[18px]" />
+                    </a>
+                  ))}
+                </div>
               </div>
-            </div>
-            <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">Address</h3>
-            <p className="text-gray-600 dark:text-gray-400">{storeAddress || "Not published"}</p>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-500">Store location</p>
-          </Card>
+            )}
+          </div>
+        </section>
 
-          <Card className="p-6 text-center">
-            <div className="mb-4 flex justify-center">
-              <div className="rounded-full bg-orange-100 p-4 dark:bg-orange-900/30">
-                <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
-            <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">Hours</h3>
-            <p className="text-gray-600 dark:text-gray-400">{storeHours || "Not published"}</p>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-500">
-              {businessHours.length ? "Configured by store" : "Not published"}
-            </p>
-          </Card>
-        </div>
+        {/* Opening hours + map */}
+        {(businessHours.length > 0 || mapQuery) && (
+          <section className="surface-paper py-16 lg:py-24">
+            <div className="mx-auto grid max-w-[1560px] gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-10">
+              {businessHours.length > 0 && (
+                <div>
+                  <span className="eyebrow">Opening hours</span>
+                  <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[38px] dark:text-foreground">
+                    When we're open
+                  </h2>
 
-        <Card className="mt-8 p-8">
-          <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">Send us a Message</h2>
-          <form className="space-y-4">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Name
-              </label>
-              <input
-                type="text"
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-orange-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                placeholder="Your name"
-              />
+                  <div className="mt-8 divide-y divide-line border border-line bg-card dark:divide-border dark:border-border">
+                    {businessHours.map((slot) => (
+                      <div key={slot.day} className="flex items-center justify-between px-6 py-4">
+                        <span className="flex items-center gap-3 font-display text-[19px] font-semibold text-ink dark:text-foreground">
+                          <Clock className="h-4 w-4 text-brand" />
+                          {slot.day}
+                        </span>
+                        <span
+                          className={`text-[15px] ${
+                            slot.isOpen ? "text-ink-soft dark:text-foreground/75" : "text-muted-foreground"
+                          }`}
+                        >
+                          {slot.isOpen ? `${slot.startTime} – ${slot.endTime}` : "Closed"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {mapQuery && (
+                <div>
+                  <span className="eyebrow">Find us</span>
+                  <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[38px] dark:text-foreground">
+                    Where to find us
+                  </h2>
+                  <div className="mt-8 overflow-hidden border border-line bg-card dark:border-border">
+                    <iframe
+                      title="Store location"
+                      src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
+                      className="h-[360px] w-full border-0"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Email
-              </label>
-              <input
-                type="email"
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-orange-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                placeholder="your@email.com"
-              />
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Message
-              </label>
-              <textarea
-                rows={4}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 focus:border-orange-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                placeholder="Your message..."
-              />
-            </div>
-            <Button className="w-full bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600">
-              Send Message
-            </Button>
-          </form>
-        </Card>
+          </section>
+        )}
       </main>
 
       <Footer />

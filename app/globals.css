@@ -3,79 +3,101 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+  Savera design tokens (Figma: SAVERA KITCHEN, node 6002-209).
+  Brand orange #f54a00, cream paper surfaces, ink #111,
+  Cormorant Garamond display + Inter body.
+*/
 :root {
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.15 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0 0);
-  --primary: oklch(0.55 0.18 28);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.01 85);
-  --secondary-foreground: oklch(0.15 0 0);
-  --muted: oklch(0.96 0.01 85);
-  --muted-foreground: oklch(0.5 0 0);
-  --accent: oklch(0.91 0.03 85);
-  --accent-foreground: oklch(0.15 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.9 0 0);
-  --input: oklch(0.9 0 0);
-  --ring: oklch(0.55 0.18 28);
-  --chart-1: oklch(0.55 0.18 28);
-  --chart-2: oklch(0.6 0.15 85);
-  --chart-3: oklch(0.7 0.12 140);
-  --chart-4: oklch(0.45 0.15 210);
-  --chart-5: oklch(0.65 0.1 320);
-  --radius: 0.5rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --brand: #f54a00;
+  --brand-dark: #d94100;
+  --brand-soft: #fff1ea;
+  --ink: #111111;
+  --ink-soft: #2c2f30;
+  --ink-muted: #3b3633;
+  --cream: #f5f1ec;
+  --cream-deep: #f4f0eb;
+  --cream-light: #f8f4f0;
+  --line: #e7e0d7;
+
+  --background: #ffffff;
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --card-foreground: var(--ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink);
+  --primary: var(--brand);
+  --primary-foreground: #ffffff;
+  --secondary: var(--cream);
+  --secondary-foreground: var(--ink);
+  --muted: var(--cream);
+  --muted-foreground: #6f6a64;
+  --accent: var(--cream-deep);
+  --accent-foreground: var(--ink);
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--brand);
+  --chart-1: var(--brand);
+  --chart-2: #f59e0b;
+  --chart-3: #4d7c0f;
+  --chart-4: #0f766e;
+  --chart-5: #7c3aed;
+  --radius: 0.75rem;
+  --sidebar: var(--cream-light);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--cream);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--line);
+  --sidebar-ring: var(--brand);
 }
 
 .dark {
-  --background: oklch(0.15 0 0);
-  --foreground: oklch(0.99 0 0);
-  --card: oklch(0.18 0 0);
-  --card-foreground: oklch(0.99 0 0);
-  --popover: oklch(0.18 0 0);
-  --popover-foreground: oklch(0.99 0 0);
-  --primary: oklch(0.6 0.18 28);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.25 0.01 85);
-  --secondary-foreground: oklch(0.99 0 0);
-  --muted: oklch(0.25 0.01 85);
-  --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.3 0.03 85);
-  --accent-foreground: oklch(0.99 0 0);
-  --destructive: oklch(0.5 0.2 27);
-  --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.25 0 0);
-  --input: oklch(0.25 0 0);
-  --ring: oklch(0.6 0.18 28);
-  --chart-1: oklch(0.6 0.18 28);
-  --chart-2: oklch(0.65 0.15 85);
-  --chart-3: oklch(0.75 0.12 140);
-  --chart-4: oklch(0.5 0.15 210);
-  --chart-5: oklch(0.7 0.1 320);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --background: #111111;
+  --foreground: #f7f4f0;
+  --card: #1a1917;
+  --card-foreground: #f7f4f0;
+  --popover: #1a1917;
+  --popover-foreground: #f7f4f0;
+  --primary: #ff5a10;
+  --primary-foreground: #ffffff;
+  --secondary: #23211e;
+  --secondary-foreground: #f7f4f0;
+  --muted: #23211e;
+  --muted-foreground: #a8a29a;
+  --accent: #2b2825;
+  --accent-foreground: #f7f4f0;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #2e2b27;
+  --input: #2e2b27;
+  --ring: #ff5a10;
+  --sidebar: #1a1917;
+  --sidebar-foreground: #f7f4f0;
+  --sidebar-accent: #23211e;
+  --sidebar-accent-foreground: #f7f4f0;
+  --sidebar-border: #2e2b27;
+  --sidebar-ring: #ff5a10;
 }
 
 @theme inline {
-  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-cormorant), "Cormorant Garamond", ui-serif, Georgia, serif;
+
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-soft: var(--brand-soft);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+  --color-cream: var(--cream);
+  --color-cream-deep: var(--cream-deep);
+  --color-cream-light: var(--cream-light);
+  --color-line: var(--line);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -118,24 +140,74 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground antialiased;
-    background-image:
-      radial-gradient(circle at top, rgba(249, 115, 22, 0.14), transparent 30%),
-      radial-gradient(circle at bottom right, rgba(251, 191, 36, 0.08), transparent 28%);
-    background-attachment: fixed;
-  }
 
   html {
     scroll-behavior: smooth;
   }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+  }
 }
 
-/* Hide HOME and MENU navigation buttons in hero section only */
-/* Target the first section in main (hero section) but exclude header */
-main > section:first-of-type[class*="relative"] a[href="/"]:not(header a),
-main > section:first-of-type[class*="relative"] a[href="/categories"]:not(header a),
-main > section:first-of-type[class*="relative"] button[class*="bg-white"],
-main > section:first-of-type[class*="relative"] button[class*="bg-orange"] {
-  display: none !important;
+@layer components {
+  /* Cream "paper" surface used behind several sections in the design. */
+  .surface-paper {
+    background-color: var(--cream);
+    background-image: url("/savera/paper-texture.jpg");
+    background-size: 720px auto;
+    background-repeat: repeat;
+  }
+
+  .dark .surface-paper {
+    background-color: #1a1917;
+    background-image: none;
+  }
+
+  /* Eyebrow label: orange uppercase caption flanked by hairlines. */
+  .eyebrow {
+    @apply inline-flex items-center gap-4 text-xs font-normal uppercase tracking-[0.12em] text-brand sm:text-sm;
+  }
+
+  .eyebrow::after {
+    content: "";
+    @apply block h-px w-14 bg-brand/60 sm:w-[86px];
+  }
+
+  .eyebrow-center::before {
+    content: "";
+    @apply block h-px w-14 bg-brand/60 sm:w-[86px];
+  }
+
+  /* Over the dark photo bands the orange caption loses contrast. */
+  .eyebrow-light {
+    @apply text-white/90;
+  }
+
+  .eyebrow-light::after,
+  .eyebrow-light.eyebrow-center::before {
+    @apply bg-white/50;
+  }
+
+  .display-heading {
+    font-family: var(--font-display);
+    @apply font-medium uppercase leading-[1.05] tracking-[-0.01em];
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }

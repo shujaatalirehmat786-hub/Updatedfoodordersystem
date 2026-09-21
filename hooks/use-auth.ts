@@ -96,11 +96,16 @@ export function useAuth() {
       setError(null)
       return userData
     } catch (err) {
-      console.error("[v0] Error fetching profile:", err)
       const status = (err as any)?.status
       if (status === 401 || status === 403) {
+        // A stored token the backend no longer accepts is an expected state
+        // (the session expired), and it is already handled by signing out.
+        // Log it as a warning so it does not surface as a console error.
+        console.warn("[v0] Stored session is no longer valid, signing out")
         clearAuthSession()
         setUserState(null)
+      } else {
+        console.error("[v0] Error fetching profile:", err)
       }
       setError("Failed to fetch profile")
       return null

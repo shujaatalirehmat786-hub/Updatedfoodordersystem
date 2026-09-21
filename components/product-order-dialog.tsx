@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X, Minus, Plus } from "lucide-react"
 import { api, getProductPrice } from "@/lib/api"
+import { getCurrencySymbol, getProductImage } from "@/lib/media"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/hooks/use-cart"
+import { useStore } from "@/hooks/use-store"
 import { useToast } from "@/hooks/use-toast"
 
 interface ProductOrderDialogProps {
@@ -23,6 +25,7 @@ export function ProductOrderDialog({ product, open, onOpenChange }: ProductOrder
   const [specialInstructions, setSpecialInstructions] = useState("")
   const [loading, setLoading] = useState(false)
   const { addToCart } = useCart()
+  const { store } = useStore()
   const { toast } = useToast()
 
   useEffect(() => {
@@ -89,6 +92,7 @@ export function ProductOrderDialog({ product, open, onOpenChange }: ProductOrder
   const discount = displayProduct.discount || 0
   const originalPrice = discount > 0 ? basePrice / (1 - discount / 100) : basePrice
   const dialogTitle = displayProduct?.name || product?.name || "Product details"
+  const currency = getCurrencySymbol(store)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -97,16 +101,12 @@ export function ProductOrderDialog({ product, open, onOpenChange }: ProductOrder
         showCloseButton={false}
       >
         {/* Product Image */}
-        <div className="relative h-64 w-full overflow-hidden">
-          <img
-            src={displayProduct.image || `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop&q=${encodeURIComponent(displayProduct.name)}`}
-            alt={displayProduct.name}
-            className="h-full w-full object-cover"
-          />
+        <div className="relative h-64 w-full overflow-hidden bg-cream">
+          <img src={getProductImage(displayProduct)} alt={displayProduct.name} className="h-full w-full object-cover" />
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-4 top-4 rounded-full bg-white/90 hover:bg-white"
+            className="absolute right-4 top-4 rounded-full bg-white/90 text-ink hover:bg-white"
             onClick={() => onOpenChange(false)}
           >
             <X className="h-5 w-5" />
@@ -117,7 +117,7 @@ export function ProductOrderDialog({ product, open, onOpenChange }: ProductOrder
           <DialogHeader className="space-y-2 text-left">
             <DialogTitle
               className={cn(
-                "text-2xl font-bold text-gray-900 dark:text-white",
+                "font-display text-[28px] font-semibold text-ink dark:text-foreground",
                 loading && "sr-only",
               )}
             >
@@ -126,22 +126,24 @@ export function ProductOrderDialog({ product, open, onOpenChange }: ProductOrder
             {!loading && (
               <>
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold text-pink-600 dark:text-pink-400">
-                    ${basePrice.toFixed(2)}
+                  <span className="text-[26px] font-semibold tracking-tight text-ink dark:text-foreground">
+                    {currency}
+                    {basePrice.toFixed(2)}
                   </span>
                   {discount > 0 && (
                     <>
-                      <span className="text-lg text-gray-400 line-through">
-                        ${originalPrice.toFixed(2)}
+                      <span className="text-lg text-muted-foreground line-through">
+                        {currency}
+                        {originalPrice.toFixed(2)}
                       </span>
-                      <span className="rounded-full bg-pink-100 px-2 py-1 text-xs font-semibold text-pink-600 dark:bg-pink-900/30 dark:text-pink-400">
+                      <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand">
                         {discount}% off
                       </span>
                     </>
                   )}
                 </div>
                 {displayProduct.description && (
-                  <DialogDescription className="text-sm text-gray-600 dark:text-gray-400">
+                  <DialogDescription className="text-[15px] leading-[1.7] text-muted-foreground">
                     {displayProduct.description}
                   </DialogDescription>
                 )}
@@ -151,35 +153,35 @@ export function ProductOrderDialog({ product, open, onOpenChange }: ProductOrder
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-600 border-t-transparent" />
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
             </div>
           ) : (
             <>
               {/* Special Instructions */}
               <div className="mt-6">
-                <Label className="mb-2 block text-base font-semibold text-gray-900 dark:text-white">
+                <Label className="mb-2 block font-display text-[20px] font-semibold text-ink dark:text-foreground">
                   Special instructions
                 </Label>
-                <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mb-3 text-sm text-muted-foreground">
                   Special requests are subject to the restaurant's approval. Tell us here!
                 </p>
                 <Input
                   placeholder="e.g. No mayo"
                   value={specialInstructions}
                   onChange={(e) => setSpecialInstructions(e.target.value)}
-                  className="w-full"
+                  className="h-12 w-full rounded-full border-line px-5"
                 />
               </div>
 
               {/* Quantity and Add to Cart - Fixed at bottom */}
-              <div className="sticky bottom-0 mt-8 flex items-center justify-between gap-4 border-t border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+              <div className="sticky bottom-0 mt-8 flex items-center justify-between gap-4 border-t border-line bg-card p-4 dark:border-border">
                 <div className="flex items-center gap-3">
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1}
-                    className="h-10 w-10 rounded-full"
+                    className="h-11 w-11 rounded-full border-ink/20"
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
@@ -188,16 +190,17 @@ export function ProductOrderDialog({ product, open, onOpenChange }: ProductOrder
                     variant="outline"
                     size="icon"
                     onClick={() => setQuantity(quantity + 1)}
-                    className="h-10 w-10 rounded-full"
+                    className="h-11 w-11 rounded-full border-ink/20"
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
                 <Button
                   onClick={handleAddToCart}
-                  className="flex-1 bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
+                  className="h-11 flex-1 rounded-full bg-brand text-[15px] font-normal text-white hover:bg-brand-dark"
                 >
-                  Add to cart - ${calculateTotal().toFixed(2)}
+                  Add to cart · {currency}
+                  {calculateTotal().toFixed(2)}
                 </Button>
               </div>
             </>

@@ -13,6 +13,7 @@ export interface Store {
   logoUrl?: string
   headerImageUrl?: string
   description?: string
+  currencySymbol?: string
   logoId?: {
     _id?: string
     fileName?: string
@@ -90,6 +91,7 @@ function normalizeStorePayload(storeData: any, fallback?: Store | null): Store {
     logoUrl: storeData?.logoId?.fileUrl || storeData?.logo,
     headerImageUrl: storeData?.headerImageId?.fileUrl,
     description: storeData?.description || website?.aboutUs,
+    currencySymbol: storeData?.currencySymbol || fallback?.currencySymbol,
     logoId: storeData?.logoId,
     headerImageId: storeData?.headerImageId,
     raw: storeData || fallback?.raw,

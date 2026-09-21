@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Header } from "@/components/header"
-import { Card } from "@/components/ui/card"
+import { Footer } from "@/components/footer"
+import { PageHero } from "@/components/page-hero"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
+import { useStore } from "@/hooks/use-store"
 import { api } from "@/lib/api"
+import { getCurrencySymbol } from "@/lib/media"
 import { Loader2, Package, ShoppingBag, Truck } from "lucide-react"
 import { format } from "date-fns"
 
@@ -37,6 +39,7 @@ interface Order {
 export default function OrdersPage() {
   const router = useRouter()
   const { isAuthenticated, isLoading: authLoading } = useAuth()
+  const { store } = useStore()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -73,46 +76,70 @@ export default function OrdersPage() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex items-center justify-center py-32">
+          <Loader2 className="h-8 w-8 animate-spin text-brand" />
         </div>
+        <Footer />
       </div>
     )
   }
+
+  const currency = getCurrencySymbol(store)
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container px-4 py-8">
-        <h1 className="mb-8 text-3xl font-bold">Order History</h1>
+      <main>
+        <PageHero
+          eyebrow="Your account"
+          title="Order history"
+          description={
+            orders.length > 0
+              ? `${orders.length} ${orders.length === 1 ? "order" : "orders"} placed with this store.`
+              : null
+          }
+          crumbs={[
+            { label: "Home", href: "/" },
+            { label: "Orders" },
+          ]}
+        />
 
+        <div className="mx-auto max-w-[1560px] px-4 py-14 sm:px-6 lg:px-10 lg:py-20">
         {orders.length === 0 ? (
-          <div className="mx-auto max-w-2xl text-center">
-            <Package className="mx-auto h-24 w-24 text-muted-foreground" />
-            <h2 className="mt-6 text-2xl font-semibold">No orders yet</h2>
-            <p className="mt-2 text-muted-foreground">Start ordering delicious food to see your history here.</p>
-            <Button onClick={() => router.push("/")} className="mt-6">
-              Browse Products
-            </Button>
+          <div className="mx-auto max-w-2xl py-10 text-center">
+            <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-brand/40 text-brand">
+              <Package className="h-8 w-8" />
+            </span>
+            <h2 className="display-heading mt-8 text-[28px] text-ink dark:text-foreground">No orders yet</h2>
+            <p className="mt-4 text-[15px] text-muted-foreground">
+              Your completed orders will appear here.
+            </p>
+            <button
+              type="button"
+              onClick={() => router.push("/categories")}
+              className="mt-8 rounded-full bg-brand px-9 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
+            >
+              Browse the Menu
+            </button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {orders.map((order) => (
-              <Card key={order._id} className="p-6">
+              <article key={order._id} className="border border-line/80 bg-card p-6 dark:border-border">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   {/* Order Info */}
                   <div className="flex-1 space-y-4">
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold">
+                          <h3 className="font-display text-[22px] font-semibold text-ink dark:text-foreground">
                             Order #{order.orderNumber || order._id.slice(-8).toUpperCase()}
                           </h3>
                           {order.type === "WEB_DELIVERY" ? (
-                            <Truck className="h-5 w-5 text-primary" />
+                            <Truck className="h-5 w-5 text-brand" />
                           ) : (
-                            <ShoppingBag className="h-5 w-5 text-primary" />
+                            <ShoppingBag className="h-5 w-5 text-brand" />
                           )}
                         </div>
                         <p className="mt-1 text-sm text-muted-foreground">
@@ -140,7 +167,10 @@ export default function OrdersPage() {
                               <p className="text-muted-foreground">{item.modifiers.map((m) => m.name).join(", ")}</p>
                             )}
                           </div>
-                          <p className="font-medium">${Number(item.subTotal || 0).toFixed(2)}</p>
+                          <p className="font-medium">
+                            {currency}
+                            {Number(item.subTotal || 0).toFixed(2)}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -163,23 +193,35 @@ export default function OrdersPage() {
                   <div className="flex flex-col items-end gap-2 lg:min-w-[160px]">
                     <div className="text-right">
                       <p className="text-sm text-muted-foreground">Subtotal</p>
-                      <p className="font-medium">${Number(order.subTotal || 0).toFixed(2)}</p>
+                      <p className="font-medium">
+                        {currency}
+                        {Number(order.subTotal || 0).toFixed(2)}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-muted-foreground">Tax</p>
-                      <p className="font-medium">${Number(order.totalTax || 0).toFixed(2)}</p>
+                      <p className="font-medium">
+                        {currency}
+                        {Number(order.totalTax || 0).toFixed(2)}
+                      </p>
                     </div>
                     <div className="mt-2 border-t border-border pt-2 text-right">
                       <p className="text-sm text-muted-foreground">Total</p>
-                      <p className="text-xl font-bold text-primary">${Number(order.finalTotal || 0).toFixed(2)}</p>
+                      <p className="text-[22px] font-semibold text-brand">
+                        {currency}
+                        {Number(order.finalTotal || 0).toFixed(2)}
+                      </p>
                     </div>
                   </div>
                 </div>
-              </Card>
+              </article>
             ))}
           </div>
         )}
+        </div>
       </main>
+
+      <Footer />
     </div>
   )
 }

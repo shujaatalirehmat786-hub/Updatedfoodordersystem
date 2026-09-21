@@ -3,12 +3,15 @@
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { PageHero } from "@/components/page-hero"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useCart } from "@/hooks/use-cart"
 import { useAuth } from "@/hooks/use-auth"
+import { useStore } from "@/hooks/use-store"
+import { getCurrencySymbol } from "@/lib/media"
 import { api } from "@/lib/api"
 import { clearAuthSession } from "@/lib/auth"
 import { Loader2, Truck, ShoppingBag, Banknote } from "lucide-react"
@@ -19,6 +22,7 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { cart, clearCart } = useCart()
   const { user, isAuthenticated } = useAuth()
+  const { store } = useStore()
   const { toast } = useToast()
   const [mounted, setMounted] = useState(false)
   const [orderType, setOrderType] = useState<"WEB_PICKUP" | "WEB_DELIVERY">("WEB_PICKUP")
@@ -191,9 +195,10 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex items-center justify-center py-32">
+          <Loader2 className="h-8 w-8 animate-spin text-brand" />
         </div>
+        <Footer />
       </div>
     )
   }
@@ -202,24 +207,35 @@ export default function CheckoutPage() {
     return null
   }
 
+  const currency = getCurrencySymbol(store)
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container px-4 py-8">
-        <h1 className="mb-8 text-3xl font-bold">Checkout</h1>
+      <main>
+        <PageHero
+          eyebrow="Almost there"
+          title="Checkout"
+          description={`${cart.totalItems} ${cart.totalItems === 1 ? "item" : "items"} in this order.`}
+          crumbs={[
+            { label: "Home", href: "/" },
+            { label: "Cart", href: "/cart" },
+            { label: "Checkout" },
+          ]}
+        />
 
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="mx-auto grid max-w-[1560px] gap-10 px-4 py-14 sm:px-6 lg:grid-cols-3 lg:px-10 lg:py-20">
           {/* Checkout Form */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-5">
             {/* Order Type */}
-            <Card className="p-6">
-              <h2 className="mb-4 text-xl font-semibold">Order Type</h2>
+            <section className="border border-line/80 bg-card p-7 dark:border-border">
+              <h2 className="mb-5 font-display text-[24px] font-semibold text-ink dark:text-foreground">Order Type</h2>
               <RadioGroup value={orderType} onValueChange={(value: any) => setOrderType(value)}>
                 <div className="flex items-center space-x-3 rounded-lg border border-border p-4 transition-colors hover:bg-accent">
                   <RadioGroupItem value="WEB_PICKUP" id="pickup" />
                   <Label htmlFor="pickup" className="flex flex-1 cursor-pointer items-center gap-3">
-                    <ShoppingBag className="h-5 w-5 text-primary" />
+                    <ShoppingBag className="h-5 w-5 text-brand" />
                     <div>
                       <p className="font-semibold">Pickup</p>
                       <p className="text-sm text-muted-foreground">Pick up your order at the store</p>
@@ -229,7 +245,7 @@ export default function CheckoutPage() {
                 <div className="flex items-center space-x-3 rounded-lg border border-border p-4 transition-colors hover:bg-accent">
                   <RadioGroupItem value="WEB_DELIVERY" id="delivery" />
                   <Label htmlFor="delivery" className="flex flex-1 cursor-pointer items-center gap-3">
-                    <Truck className="h-5 w-5 text-primary" />
+                    <Truck className="h-5 w-5 text-brand" />
                     <div>
                       <p className="font-semibold">Delivery</p>
                       <p className="text-sm text-muted-foreground">Get your order delivered to your door</p>
@@ -237,23 +253,25 @@ export default function CheckoutPage() {
                   </Label>
                 </div>
               </RadioGroup>
-            </Card>
+            </section>
 
             {/* Payment Method */}
-            <Card className="p-6">
-              <h2 className="mb-4 text-xl font-semibold">Payment Method</h2>
+            <section className="border border-line/80 bg-card p-7 dark:border-border">
+              <h2 className="mb-5 font-display text-[24px] font-semibold text-ink dark:text-foreground">Payment Method</h2>
               <div className="flex items-center space-x-3 rounded-lg border border-border p-4">
-                <Banknote className="h-5 w-5 text-primary" />
+                <Banknote className="h-5 w-5 text-brand" />
                 <div>
                   <p className="font-semibold">Cash on {orderType === "WEB_DELIVERY" ? "Delivery" : "Pickup"}</p>
                   <p className="text-sm text-muted-foreground">Pay when you receive your order</p>
                 </div>
               </div>
-            </Card>
+            </section>
 
             {/* Order Items Summary */}
-            <Card className="p-6">
-              <h2 className="mb-4 text-xl font-semibold">Order Items ({cart.totalItems})</h2>
+            <section className="border border-line/80 bg-card p-7 dark:border-border">
+              <h2 className="mb-5 font-display text-[24px] font-semibold text-ink dark:text-foreground">
+                Order Items ({cart.totalItems})
+              </h2>
               <div className="space-y-3">
                 {cart.items.map((item, index) => (
                   <div
@@ -268,41 +286,60 @@ export default function CheckoutPage() {
                         <p className="text-sm text-muted-foreground">{(item.modifiers || []).map((m) => m.name).join(", ")}</p>
                       )}
                     </div>
-                    <p className="font-semibold">${item.subTotal.toFixed(2)}</p>
+                    <p className="font-semibold">
+                      {currency}
+                      {item.subTotal.toFixed(2)}
+                    </p>
                   </div>
                 ))}
               </div>
-            </Card>
+            </section>
           </div>
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-20 p-6">
-              <h2 className="mb-4 text-xl font-semibold">Order Summary</h2>
+            <section className="sticky top-32 border border-line/80 bg-card p-7 dark:border-border">
+              <h2 className="mb-5 font-display text-[26px] font-semibold text-ink dark:text-foreground">
+                Order summary
+              </h2>
 
               <div className="space-y-3 border-b border-border pb-4">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-semibold">${cart.subTotal.toFixed(2)}</span>
+                  <span className="font-semibold">
+                    {currency}
+                    {cart.subTotal.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tax</span>
-                  <span className="font-semibold">${cart.totalTax.toFixed(2)}</span>
+                  <span className="font-semibold">
+                    {currency}
+                    {cart.totalTax.toFixed(2)}
+                  </span>
                 </div>
                 {orderType === "WEB_DELIVERY" && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Delivery Fee</span>
-                    <span className="font-semibold">$0.00</span>
+                    <span className="font-semibold">{currency}0.00</span>
                   </div>
                 )}
               </div>
 
-              <div className="mt-4 flex justify-between text-xl font-bold">
-                <span>Total</span>
-                <span className="text-primary">${cart.finalTotal.toFixed(2)}</span>
+              <div className="mt-5 flex items-center justify-between">
+                <span className="font-display text-[22px] font-semibold text-ink dark:text-foreground">Total</span>
+                <span className="text-[26px] font-semibold text-brand">
+                  {currency}
+                  {cart.finalTotal.toFixed(2)}
+                </span>
               </div>
 
-              <Button onClick={handlePlaceOrder} size="lg" className="mt-6 w-full" disabled={isPlacingOrder}>
+              <Button
+                onClick={handlePlaceOrder}
+                size="lg"
+                className="mt-7 h-auto w-full rounded-full bg-brand py-4 text-[15px] font-normal text-white hover:bg-brand-dark"
+                disabled={isPlacingOrder}
+              >
                 {isPlacingOrder ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -316,15 +353,17 @@ export default function CheckoutPage() {
               <Button
                 variant="outline"
                 size="lg"
-                className="mt-3 w-full bg-transparent"
+                className="mt-3 h-auto w-full rounded-full border-ink/20 bg-transparent py-4 text-[15px] font-normal hover:border-brand hover:text-brand dark:border-foreground/25"
                 onClick={() => router.push("/cart")}
               >
                 Back to Cart
               </Button>
-            </Card>
+            </section>
           </div>
         </div>
       </main>
+
+      <Footer />
 
       <AuthDialog
         open={authDialogOpen}

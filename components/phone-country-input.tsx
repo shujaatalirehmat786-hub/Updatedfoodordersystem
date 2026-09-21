@@ -103,15 +103,15 @@ export function PhoneCountryInput({
 
   return (
     <div ref={wrapperRef} className={cn("space-y-2", className)}>
-      <Label htmlFor={id} className="text-sm font-medium text-zinc-700">
+      <Label htmlFor={id} className="text-sm font-medium text-ink-soft">
         {label}
       </Label>
 
-      <div className="flex min-w-0 items-stretch overflow-visible rounded-2xl border border-zinc-200 bg-white shadow-sm focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100">
+      <div className="flex min-w-0 items-stretch overflow-visible rounded-2xl border border-line bg-white shadow-sm focus-within:border-brand/40 focus-within:ring-2 focus-within:ring-brand/15">
         <div className="relative shrink-0">
           <button
             type="button"
-            className="flex h-full min-h-[3.5rem] items-center gap-2 border-r border-zinc-200 bg-zinc-50 px-3 text-left text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4"
+            className="flex h-full min-h-[3.5rem] items-center gap-2 border-r border-line bg-cream-light px-3 text-left text-sm font-medium text-ink transition-colors hover:bg-cream disabled:cursor-not-allowed disabled:opacity-60 sm:px-4"
             onClick={() => setIsOpen((prev) => !prev)}
             aria-haspopup="listbox"
             aria-expanded={isOpen}
@@ -123,18 +123,18 @@ export function PhoneCountryInput({
             <span className="hidden whitespace-nowrap sm:inline">
               +{selectedCountry.callingCode}
             </span>
-            <ChevronDown className="h-4 w-4 text-zinc-500" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </button>
 
           {isOpen && (
             <div
               role="listbox"
               aria-label="Select country code"
-              className="absolute left-0 top-[calc(100%+0.5rem)] z-50 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl shadow-black/10"
+              className="absolute left-0 top-[calc(100%+0.5rem)] z-50 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-line bg-white shadow-2xl shadow-black/10"
             >
-              <div className="border-b border-zinc-100 p-3">
-                <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3">
-                  <Search className="h-4 w-4 text-zinc-400" />
+              <div className="border-b border-line p-3">
+                <div className="flex items-center gap-2 rounded-xl border border-line bg-cream-light px-3">
+                  <Search className="h-4 w-4 text-muted-foreground" />
                   <Input
                     ref={searchInputRef}
                     value={search}
@@ -158,8 +158,8 @@ export function PhoneCountryInput({
                       className={cn(
                         "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors",
                         isSelected
-                          ? "bg-orange-50 text-orange-700"
-                          : "text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950",
+                          ? "bg-brand-soft text-brand-dark"
+                          : "text-ink-soft hover:bg-cream hover:text-brand",
                       )}
                       onClick={() => handleCountrySelect(country)}
                       disabled={disabled}
@@ -169,7 +169,7 @@ export function PhoneCountryInput({
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-medium">{country.name}</span>
-                        <span className="block text-xs text-zinc-500">
+                        <span className="block text-xs text-muted-foreground">
                           {country.code} · +{country.callingCode}
                         </span>
                       </span>
@@ -178,7 +178,7 @@ export function PhoneCountryInput({
                 })}
 
                 {!filteredCountries.length && (
-                  <p className="px-3 py-4 text-sm text-zinc-500">No countries match your search.</p>
+                  <p className="px-3 py-4 text-sm text-muted-foreground">No countries match your search.</p>
                 )}
               </div>
             </div>
@@ -202,7 +202,7 @@ export function PhoneCountryInput({
       </div>
 
       {helperText && !error && (
-        <p id={phoneDescriptionId} className="text-xs text-zinc-500">
+        <p id={phoneDescriptionId} className="text-xs text-muted-foreground">
           {helperText}
         </p>
       )}

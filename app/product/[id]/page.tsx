@@ -1,13 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { Header } from "@/components/header"
-import { Button } from "@/components/ui/button"
-import { api, getProductPrice } from "@/lib/api"
-import { useCart } from "@/hooks/use-cart"
-import { useToast } from "@/hooks/use-toast"
 import { Loader2, Minus, Plus, ArrowLeft } from "lucide-react"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { api, getProductPrice } from "@/lib/api"
+import { getCurrencySymbol, getProductDepartmentName, getProductImage } from "@/lib/media"
+import { useCart } from "@/hooks/use-cart"
+import { useStore } from "@/hooks/use-store"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ProductDetailPage() {
   const params = useParams()
@@ -16,6 +19,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
   const { addToCart } = useCart()
+  const { store } = useStore()
   const { toast } = useToast()
 
   useEffect(() => {
@@ -73,9 +77,10 @@ export default function ProductDetailPage() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex items-center justify-center py-32">
+          <Loader2 className="h-8 w-8 animate-spin text-brand" />
         </div>
+        <Footer />
       </div>
     )
   }
@@ -84,73 +89,117 @@ export default function ProductDetailPage() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="container px-4 py-12 text-center">
-          <p className="text-muted-foreground">Product not found.</p>
+        <div className="mx-auto max-w-[1560px] px-4 py-32 text-center sm:px-6 lg:px-10">
+          <h1 className="display-heading text-[32px] text-ink dark:text-foreground">Dish not found</h1>
+          <p className="mt-4 text-[15px] text-muted-foreground">This item is no longer on the menu.</p>
+          <Link
+            href="/categories"
+            className="mt-8 inline-block rounded-full bg-brand px-9 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
+          >
+            Back to the menu
+          </Link>
         </div>
+        <Footer />
       </div>
     )
   }
+
+  const currency = getCurrencySymbol(store)
+  const departmentName = getProductDepartmentName(product)
+  const unitPrice = getProductPrice(product)
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container px-4 py-8">
-        <Button variant="ghost" onClick={() => router.back()} className="mb-6">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
+      <main className="surface-paper py-10 lg:py-16">
+        <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="mb-8 inline-flex items-center gap-2 text-[15px] text-ink-soft transition-colors hover:text-brand dark:text-foreground/70"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </button>
 
-        <div className="grid gap-8 lg:grid-cols-2">
-          {/* Product Image */}
-          <div className="aspect-square overflow-hidden rounded-lg bg-muted">
-            <img
-              src={product.image || `/placeholder.svg?height=600&width=600&query=${encodeURIComponent(product.name)}`}
-              alt={product.name}
-              className="h-full w-full object-cover"
-            />
-          </div>
-
-          {/* Product Details */}
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-balance text-3xl font-bold text-foreground">{product.name}</h1>
-              {product.description && <p className="mt-2 text-muted-foreground">{product.description}</p>}
-              <p className="mt-4 text-3xl font-bold text-primary">${getProductPrice(product).toFixed(2)}</p>
+          <div className="grid gap-10 border border-line/80 bg-card p-4 lg:grid-cols-2 lg:gap-16 lg:p-8 dark:border-border">
+            <div className="overflow-hidden rounded-[4px] bg-cream">
+              <img
+                src={getProductImage(product)}
+                alt={product.name}
+                className="aspect-square w-full object-cover"
+              />
             </div>
 
-            {/* Quantity */}
-            <div className="flex items-center space-x-4">
-              <span className="font-medium">Quantity:</span>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  disabled={quantity <= 1}
+            <div className="flex flex-col py-2">
+              {departmentName && <span className="eyebrow">{departmentName}</span>}
+
+              <h1 className="display-heading mt-5 text-[30px] text-ink sm:text-[42px] dark:text-foreground">
+                {product.name}
+              </h1>
+
+              {product.description && (
+                <p className="mt-5 text-[15px] leading-[1.75] text-ink-soft dark:text-foreground/70">
+                  {product.description}
+                </p>
+              )}
+
+              <p className="mt-7 text-[34px] font-semibold tracking-tight text-ink dark:text-foreground">
+                {currency}
+                {unitPrice.toFixed(2)}
+              </p>
+
+              <div className="mt-8 h-px w-full bg-line dark:bg-border" />
+
+              <div className="mt-8 flex items-center gap-5">
+                <span className="text-[15px] text-ink-soft dark:text-foreground/70">Quantity</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
+                    aria-label="Decrease quantity"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-ink/20 text-ink transition-colors hover:border-brand hover:text-brand disabled:pointer-events-none disabled:opacity-40 dark:border-foreground/25 dark:text-foreground"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+                  <span className="w-10 text-center text-[18px] font-semibold text-ink dark:text-foreground">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(quantity + 1)}
+                    aria-label="Increase quantity"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-ink/20 text-ink transition-colors hover:border-brand hover:text-brand dark:border-foreground/25 dark:text-foreground"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-10">
+                <div className="flex items-center justify-between">
+                  <span className="font-display text-[22px] font-semibold text-ink dark:text-foreground">Total</span>
+                  <span className="text-[26px] font-semibold text-brand">
+                    {currency}
+                    {calculateTotal().toFixed(2)}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  className="mt-6 w-full rounded-full bg-brand px-9 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
                 >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="w-12 text-center text-lg font-semibold">{quantity}</span>
-                <Button variant="outline" size="icon" onClick={() => setQuantity(quantity + 1)}>
-                  <Plus className="h-4 w-4" />
-                </Button>
+                  Add to Cart
+                </button>
               </div>
-            </div>
-
-            {/* Total & Add to Cart */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-2xl font-bold">
-                <span>Total:</span>
-                <span className="text-primary">${calculateTotal().toFixed(2)}</span>
-              </div>
-              <Button onClick={handleAddToCart} size="lg" className="w-full">
-                Add to Cart
-              </Button>
             </div>
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   )
 }

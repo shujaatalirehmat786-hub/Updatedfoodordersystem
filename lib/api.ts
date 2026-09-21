@@ -150,7 +150,15 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       if (baseUrl !== PROXY_URL) {
         continue
       }
-      console.error("[v0] API request failed:", error)
+      // 401/403 are expected when a stored session has expired. Callers handle
+      // that by signing out, so it is logged as a warning rather than an error.
+      // The error itself is still thrown unchanged.
+      const status = (error as any)?.status
+      if (status === 401 || status === 403) {
+        console.warn("[v0] API request unauthorized:", (error as Error)?.message)
+      } else {
+        console.error("[v0] API request failed:", error)
+      }
       throw error
     }
   }

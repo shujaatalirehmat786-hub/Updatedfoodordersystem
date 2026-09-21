@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -140,6 +141,8 @@ function ProfilePageContent() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         </main>
+
+      <Footer />
       </div>
     )
   }
@@ -153,17 +156,17 @@ function ProfilePageContent() {
 
       <main className="relative overflow-hidden">
         <div className="absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.18),_transparent_34%),radial-gradient(circle_at_top_right,_rgba(251,191,36,0.12),_transparent_28%)]" />
-        <div className="absolute inset-x-0 top-0 h-[420px] bg-gradient-to-b from-zinc-950/5 via-transparent to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-[420px] bg-gradient-to-b from-ink/5 via-transparent to-transparent" />
 
         <section className="container relative px-4 py-10 sm:py-14">
           <div className="mx-auto max-w-4xl space-y-8">
-            <Card className="relative overflow-hidden border-white/10 bg-zinc-950 p-0 text-white shadow-[0_28px_90px_rgba(0,0,0,0.18)]">
+            <Card className="relative overflow-hidden border-white/10 bg-ink p-0 text-white shadow-[0_28px_90px_rgba(0,0,0,0.18)]">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.28),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(251,191,36,0.12),_transparent_32%)]" />
               <div className="relative p-6 sm:p-8">
                 <div className="flex flex-col gap-7">
                   <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                     <div className="flex items-start gap-4">
-                      <div className="flex h-18 w-18 min-h-18 min-w-18 items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-orange-500 via-amber-400 to-yellow-300 text-xl font-semibold text-white shadow-[0_20px_50px_rgba(249,115,22,0.3)]">
+                      <div className="flex h-18 w-18 min-h-18 min-w-18 items-center justify-center rounded-[1.5rem] bg-brand text-xl font-semibold text-white shadow-[0_20px_50px_rgba(249,115,22,0.3)]">
                         {initials}
                       </div>
                       <div className="pt-1">
@@ -181,7 +184,7 @@ function ProfilePageContent() {
 
                     <Button
                       onClick={() => setEditorOpen(true)}
-                      className="h-11 rounded-2xl bg-white px-4 text-sm font-semibold text-zinc-950 hover:bg-white/90"
+                      className="h-11 rounded-2xl bg-white px-4 text-sm font-semibold text-ink hover:bg-white/90"
                     >
                       <PenLine className="mr-2 h-4 w-4" />
                       Edit information
@@ -207,14 +210,14 @@ function ProfilePageContent() {
             </Card>
 
             <Card className="overflow-hidden border-white/10 bg-white shadow-[0_18px_70px_rgba(0,0,0,0.08)]">
-              <div className="border-b border-zinc-100 p-6">
+              <div className="border-b border-line p-6">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-soft text-brand">
                     <Sparkles className="h-5 w-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-zinc-950">Profile details</h2>
-                    <p className="text-sm text-zinc-500">All of your information in one place</p>
+                    <h2 className="text-lg font-semibold text-ink">Profile details</h2>
+                    <p className="text-sm text-muted-foreground">All of your information in one place</p>
                   </div>
                 </div>
               </div>
@@ -231,24 +234,24 @@ function ProfilePageContent() {
                   { label: "State", value: user.state || "Not set" },
                   { label: "Country", value: user.country || "Not set" },
                 ].map((item) => (
-                  <div key={item.label} className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-100 bg-zinc-50/80 px-4 py-4">
+                  <div key={item.label} className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-cream-light px-4 py-4">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-zinc-400">{item.label}</p>
-                      <p className="mt-1 text-sm font-medium text-zinc-900">{item.value}</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{item.label}</p>
+                      <p className="mt-1 text-sm font-medium text-ink">{item.value}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t border-zinc-100 bg-gradient-to-r from-zinc-50 to-orange-50/70 p-6">
+              <div className="border-t border-line bg-gradient-to-r from-cream-light to-brand-soft p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-zinc-950">Ready to edit your details?</p>
-                    <p className="text-sm text-zinc-500">Open the secure form and update anything instantly.</p>
+                    <p className="text-sm font-semibold text-ink">Ready to edit your details?</p>
+                    <p className="text-sm text-muted-foreground">Open the secure form and update anything instantly.</p>
                   </div>
                   <Button
                     onClick={() => setEditorOpen(true)}
-                    className="h-11 rounded-2xl bg-zinc-950 px-4 text-sm font-semibold text-white hover:bg-zinc-800"
+                    className="h-11 rounded-2xl bg-ink px-4 text-sm font-semibold text-white hover:bg-ink/90"
                   >
                     <PenLine className="mr-2 h-4 w-4" />
                     Edit info
@@ -261,6 +264,8 @@ function ProfilePageContent() {
           </div>
         </section>
       </main>
+
+      <Footer />
 
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
@@ -429,6 +434,8 @@ export default function ProfilePage() {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           </main>
+
+      <Footer />
         </div>
       }
     >

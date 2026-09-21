@@ -1,12 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Plus, Star } from "lucide-react"
 import Link from "next/link"
 import { ProductOrderDialog } from "@/components/product-order-dialog"
 import { getProductPrice } from "@/lib/api"
+import { getProductImage } from "@/lib/media"
 
 interface ProductCardProps {
   product: {
@@ -15,78 +13,81 @@ interface ProductCardProps {
     price: number
     description?: string
     image?: string
-    department?: string
+    department?: any
     kitchen?: string
   }
   onAddToCart: (product: any) => void
+  /** "featured" shows the Order Now action, "compact" is the menu-grid card. */
+  variant?: "featured" | "compact"
+  /** Small label shown over the image (the design uses the category name). */
+  tag?: string | null
+  /** Currency symbol published by the store. */
+  currency?: string
 }
 
-export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+export function ProductCard({
+  product,
+  onAddToCart,
+  variant = "featured",
+  tag = null,
+  currency = "$",
+}: ProductCardProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const productPrice = getProductPrice(product)
-  // Keep the decorative rating stable between server and browser renders.
-  const ratingSeed = Array.from(product._id || product.name).reduce((sum, character) => sum + character.charCodeAt(0), 0)
-  const rating = (3.5 + (ratingSeed % 151) / 100).toFixed(2)
-  
+  const productImage = getProductImage(product)
+
   return (
     <>
-      <Card className="group overflow-hidden border-2 border-transparent transition-all hover:border-orange-500 hover:shadow-xl dark:hover:border-orange-400">
-        <Link href={`/product/${product._id}`}>
-          <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800">
+      <article className="group flex h-full flex-col rounded-[10px] border border-line/80 bg-card p-3 transition-shadow duration-300 hover:shadow-[0_18px_40px_rgba(17,17,17,0.10)] dark:border-border">
+        <Link href={`/product/${product._id}`} className="relative block overflow-hidden rounded-[6px]">
+          <div className="aspect-[330/304] w-full overflow-hidden bg-cream">
             <img
-              src={product.image || `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop&q=${encodeURIComponent(product.name)}`}
+              src={productImage}
               alt={product.name}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-            {/* Rating Badge */}
-            <div className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-1 text-xs font-semibold text-gray-900 shadow-md dark:bg-gray-900/90 dark:text-white">
-              <Star className="mr-1 inline h-3 w-3 fill-yellow-400 text-yellow-400" />
-              {rating}
-            </div>
           </div>
+          {tag && (
+            <span className="absolute left-2.5 top-2.5 rounded-[6px] bg-brand px-3 py-1.5 text-xs text-white">
+              {tag}
+            </span>
+          )}
         </Link>
-        <CardContent className="p-5">
+
+        <div className="flex flex-1 flex-col px-1 pt-5">
           <Link href={`/product/${product._id}`}>
-            <h3 className="text-balance text-lg font-bold leading-tight text-gray-900 transition-colors hover:text-orange-600 dark:text-white dark:hover:text-orange-400">
+            <h3 className="font-display text-[22px] font-semibold leading-tight text-ink transition-colors group-hover:text-brand dark:text-foreground">
               {product.name}
             </h3>
           </Link>
-          {product.description && (
-            <p className="mt-2 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">{product.description}</p>
-          )}
-          {product.department && (
-            <div className="mt-2">
-              <span className="inline-block rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
-                {product.department}
-              </span>
-            </div>
-          )}
-          <div className="mt-4 flex items-center justify-between">
-            <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-              ${productPrice.toFixed(2)}
-            </p>
-          </div>
-        </CardContent>
-        <CardFooter className="p-5 pt-0">
-          <Button 
-            onClick={(e) => {
-              e.preventDefault()
-              setDialogOpen(true)
-            }}
-            className="w-full bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Order
-          </Button>
-        </CardFooter>
-      </Card>
 
-      <ProductOrderDialog
-        product={product}
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-      />
+          {product.description && (
+            <p className="mt-2 line-clamp-2 text-[14px] leading-[1.55] text-muted-foreground">{product.description}</p>
+          )}
+
+          <div className="mt-auto flex items-center justify-between gap-3 pb-1 pt-5">
+            <p className="text-[24px] font-semibold tracking-tight text-ink dark:text-foreground">
+              {currency}
+              {productPrice.toFixed(2)}
+            </p>
+
+            {variant === "featured" && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.preventDefault()
+                  setDialogOpen(true)
+                }}
+                className="rounded-full bg-brand px-5 py-2.5 text-[14px] text-white transition-colors hover:bg-brand-dark"
+              >
+                Order Now
+              </button>
+            )}
+          </div>
+        </div>
+      </article>
+
+      <ProductOrderDialog product={product} open={dialogOpen} onOpenChange={setDialogOpen} />
     </>
   )
 }

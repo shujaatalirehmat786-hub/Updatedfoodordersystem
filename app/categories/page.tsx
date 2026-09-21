@@ -1,36 +1,29 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
+import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import { Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { PageHero } from "@/components/page-hero"
 import { ProductCard } from "@/components/product-card"
 import { api, getProductPrice } from "@/lib/api"
-import { getStoreFromSubdomain } from "@/lib/store"
+import { getStoreFromSubdomain, getStoreName } from "@/lib/store"
+import { getCurrencySymbol, getProductDepartmentId, getProductDepartmentName } from "@/lib/media"
 import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, Utensils, ChevronLeft, ChevronRight, Menu, X } from "lucide-react"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
 
 const ITEMS_PER_PAGE = 12
 
-export default function CategoriesPage() {
+function CategoriesPageContent() {
+  const searchParams = useSearchParams()
   const [departments, setDepartments] = useState<any[]>([])
   const [allProducts, setAllProducts] = useState<any[]>([])
   const [store, setStore] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string>("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [categoryMenuOpen, setCategoryMenuOpen] = useState(false)
-  const router = useRouter()
   const { addToCart } = useCart()
   const { toast } = useToast()
 
@@ -44,6 +37,18 @@ export default function CategoriesPage() {
       loadAllProducts()
     }
   }, [store])
+
+  // Deep links from the home page and footer arrive as ?category=<id>
+  useEffect(() => {
+    try {
+      const categoryParam = searchParams?.get("category")
+      if (categoryParam) {
+        setSelectedCategory(categoryParam)
+      }
+    } catch (error) {
+      console.log("Search params not available")
+    }
+  }, [searchParams])
 
   // Reset to page 1 when category changes
   useEffect(() => {
@@ -76,14 +81,6 @@ export default function CategoriesPage() {
       })
       const products = response.data?.products || response.products || []
       setAllProducts(products)
-      // Debug: Log first product to see department structure
-      if (products.length > 0) {
-        console.log("Sample product department structure:", {
-          department: products[0].department,
-          departmentId: products[0].departmentId,
-          fullProduct: products[0]
-        })
-      }
     } catch (error) {
       console.error("Error loading products:", error)
       toast({
@@ -94,12 +91,6 @@ export default function CategoriesPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleCategoryClick = (departmentId: string) => {
-    setSelectedCategory(departmentId === selectedCategory ? "" : departmentId)
-    setCurrentPage(1) // Reset to first page when category changes
-    setCategoryMenuOpen(false) // Close the menu after selection
   }
 
   const handleAddToCart = (product: any) => {
@@ -128,51 +119,19 @@ export default function CategoriesPage() {
   if (!store) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-brand" />
       </div>
     )
   }
 
-  // Filter products based on selected category
-  // Check multiple possible field names for department
+  // Filter products based on selected category. Products expose their
+  // department as a string id, a nested object, or `departmentId`.
   const filteredProducts = selectedCategory
-    ? allProducts.filter((p) => {
-        // Try different possible field names and formats
-        // Product might have: p.department (string ID), p.department._id (object), or p.departmentId
-        let productDeptId = null
-        
-        if (p.department) {
-          if (typeof p.department === 'string') {
-            productDeptId = p.department
-          } else if (p.department._id) {
-            productDeptId = p.department._id
-          } else if (p.department.id) {
-            productDeptId = p.department.id
-          }
-        } else if (p.departmentId) {
-          productDeptId = p.departmentId
-        }
-        
-        // Compare both as strings to handle type mismatches
-        const match = productDeptId && String(productDeptId) === String(selectedCategory)
-        
-        // Debug logging for troubleshooting
-        if (allProducts.indexOf(p) < 5 && selectedCategory) {
-          console.log("Filtering product:", {
-            productName: p.name,
-            productDept: p.department,
-            productDeptId: productDeptId,
-            selectedCategory: selectedCategory,
-            match: match
-          })
-        }
-        
-        return match
+    ? allProducts.filter((product) => {
+        const productDeptId = getProductDepartmentId(product)
+        return Boolean(productDeptId) && String(productDeptId) === String(selectedCategory)
       })
-    : allProducts // Show all products when "ALL" is selected
-
-  // Get popular products (5-7 items) from all products
-  const popularProducts = allProducts.slice(0, 7)
+    : allProducts
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)
@@ -183,261 +142,168 @@ export default function CategoriesPage() {
   // Handle page navigation - scroll to products section instead of top
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    // Scroll to products section instead of top
     const productsSection = document.getElementById("products-section")
     if (productsSection) {
       productsSection.scrollIntoView({ behavior: "smooth", block: "start" })
     }
   }
 
+  const storeName = getStoreName(store) || store?.subdomain || ""
+  const currency = getCurrencySymbol(store)
+  const activeDepartment = departments.find((department) => department._id === selectedCategory)
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       <main>
-        {/* Hero Section with Menu Text */}
-        <section className="relative h-[350px] overflow-hidden sm:h-[400px]">
-          {/* Background Image */}
-          <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: "url(https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1920&h=1080&fit=crop)",
-            }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70" />
-          </div>
-          
-          {/* Decorative Elements */}
-          <div className="absolute inset-0 z-0">
-            <div className="absolute top-10 left-10 h-32 w-32 rounded-full border border-white/10 blur-2xl" />
-            <div className="absolute bottom-10 right-10 h-40 w-40 rounded-full border border-white/10 blur-2xl" />
-          </div>
-          
-          {/* Content */}
-          <div className="relative z-10 flex h-full items-center justify-center">
-            <div className="mx-auto max-w-4xl px-4 text-center">
-              {/* Breadcrumb */}
-              <div className="mb-6 flex items-center justify-center gap-2 text-sm font-medium uppercase tracking-wider text-white/90">
-                <Link 
-                  href="/" 
-                  className="transition-colors hover:text-orange-400"
-                >
-                  Home
-                </Link>
-                <span className="text-white/50">/</span>
-                <span className="text-orange-400">Menu</span>
-              </div>
-              
-              {/* Main Title */}
-              <div className="mb-4 flex items-center justify-center gap-3">
-                <div className="h-px w-12 bg-gradient-to-r from-transparent to-orange-400 sm:w-20" />
-                <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl lg:text-7xl">
-                  Our Menu
-                </h1>
-                <div className="h-px w-12 bg-gradient-to-l from-transparent to-orange-400 sm:w-20" />
-              </div>
-              
-              {/* Subtitle */}
-              <p className="mx-auto max-w-2xl text-base text-white/90 sm:text-lg md:text-xl">
-                Discover our delicious selection of dishes crafted with passion and quality ingredients
-              </p>
-              
-              {/* Decorative Icon */}
-              <div className="mt-8 flex justify-center">
-                <div className="rounded-full bg-orange-500/20 p-3 backdrop-blur-sm">
-                  <Utensils className="h-6 w-6 text-orange-400 sm:h-8 sm:w-8" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <PageHero
+          eyebrow="Explore our menu"
+          title={activeDepartment ? activeDepartment.name : "From breakfast to dinner, there's something for everyone."}
+          description={
+            activeDepartment?.description ||
+            `Every dish, price and category on this page is published live by ${storeName || "this kitchen"}.`
+          }
+          crumbs={[
+            { label: "Home", href: "/" },
+            { label: "Our Menu" },
+          ]}
+        />
 
-        {/* Category Menu Section - Right after hero */}
-        <section className="bg-white py-6 dark:bg-gray-900">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            {departments.length === 0 ? (
-              <div className="py-12 text-center">
-                <Utensils className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                <p className="text-muted-foreground">No categories found.</p>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center gap-4">
-                {/* Selected Category Display */}
-                {selectedCategory && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Category:</span>
-                    <span className="rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white">
-                      {departments.find((d) => d._id === selectedCategory)?.name.toUpperCase() || "SELECTED"}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedCategory("")
-                        setCurrentPage(1)
-                      }}
-                      className="h-8 w-8 rounded-full p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-                
-                {/* Hamburger Menu Button */}
-                <Button
-                  onClick={() => setCategoryMenuOpen(true)}
-                  className="rounded-full bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-orange-600 dark:bg-orange-500 dark:hover:bg-orange-600"
-                >
-                  <Menu className="mr-2 h-5 w-5" />
-                  {selectedCategory ? "Change Category" : "Select Category"}
-                </Button>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Category Selection Dialog */}
-        <Dialog open={categoryMenuOpen} onOpenChange={setCategoryMenuOpen}>
-          <DialogContent className="max-h-[80vh] max-w-2xl overflow-hidden">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-                Select Category
-              </DialogTitle>
-            </DialogHeader>
-            <div className="mt-4 max-h-[60vh] overflow-y-auto">
-              <div className="space-y-2">
-                {/* All Button */}
-                <Button
-                  onClick={() => {
-                    setSelectedCategory("")
-                    setCurrentPage(1)
-                    setCategoryMenuOpen(false)
-                  }}
-                  className={`w-full justify-start rounded-lg px-4 py-3 text-left text-sm font-semibold uppercase transition-all ${
+        {/* Category filters */}
+        {departments.length > 0 && (
+          <section className="border-b border-line/70 bg-background py-6 dark:border-border">
+            <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+              <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory("")}
+                  className={`shrink-0 rounded-full border px-6 py-3 text-[15px] transition-colors ${
                     selectedCategory === ""
-                      ? "bg-orange-500 text-white shadow-lg hover:bg-orange-600 dark:bg-orange-500"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                      ? "border-brand bg-brand text-white"
+                      : "border-ink/20 text-ink hover:border-brand hover:text-brand dark:border-foreground/25 dark:text-foreground"
                   }`}
                 >
-                  ALL
-                </Button>
-                
-                {/* Category Buttons - Loaded from backend */}
-                {departments.map((dept) => (
-                  <Button
-                    key={dept._id}
-                    onClick={() => handleCategoryClick(dept._id)}
-                    className={`w-full justify-start rounded-lg px-4 py-3 text-left text-sm font-semibold uppercase transition-all ${
-                      selectedCategory === dept._id
-                        ? "bg-orange-500 text-white shadow-lg hover:bg-orange-600 dark:bg-orange-500"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  All
+                </button>
+                {departments.map((department) => (
+                  <button
+                    key={department._id}
+                    type="button"
+                    onClick={() => setSelectedCategory(department._id === selectedCategory ? "" : department._id)}
+                    className={`shrink-0 rounded-full border px-6 py-3 text-[15px] transition-colors ${
+                      selectedCategory === department._id
+                        ? "border-brand bg-brand text-white"
+                        : "border-ink/20 text-ink hover:border-brand hover:text-brand dark:border-foreground/25 dark:text-foreground"
                     }`}
                   >
-                    {dept.name.toUpperCase()}
-                  </Button>
+                    {department.name}
+                  </button>
                 ))}
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          </section>
+        )}
 
-        {/* Products Section with Pagination */}
-        <section id="products-section" className="bg-gray-50 py-12 dark:bg-gray-800">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-8 text-center">
-              <h2 className="mb-2 text-4xl font-bold text-gray-900 dark:text-white">
-                {selectedCategory ? departments.find((d) => d._id === selectedCategory)?.name?.toUpperCase() || "PRODUCTS" : "ALL PRODUCTS"}
+        {/* Products */}
+        <section id="products-section" className="surface-paper py-16 lg:py-20">
+          <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+            <div className="mb-10 flex flex-wrap items-baseline justify-between gap-4">
+              <h2 className="display-heading text-[26px] text-ink sm:text-[34px] dark:text-foreground">
+                {activeDepartment ? activeDepartment.name : "All dishes"}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
-                {selectedCategory ? "Category Products" : "Clients' Most Popular Choice"}
-              </p>
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Showing {filteredProducts.length} {filteredProducts.length === 1 ? "item" : "items"}
-                {selectedCategory && (
-                  <span className="ml-2 text-orange-600 dark:text-orange-400">
-                    (Filtered by: {departments.find((d) => d._id === selectedCategory)?.name || selectedCategory})
-                  </span>
-                )}
+              <p className="text-[15px] text-ink-soft dark:text-foreground/70">
+                {filteredProducts.length} {filteredProducts.length === 1 ? "item" : "items"}
+                {totalPages > 1 ? ` · page ${currentPage} of ${totalPages}` : ""}
               </p>
             </div>
 
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-brand" />
               </div>
             ) : paginatedProducts.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {paginatedProducts.map((product) => (
-                    <ProductCard key={product._id} product={product} onAddToCart={handleAddToCart} />
+                    <ProductCard
+                      key={product._id}
+                      product={product}
+                      onAddToCart={handleAddToCart}
+                      variant="featured"
+                      currency={currency}
+                      tag={selectedCategory ? null : getProductDepartmentName(product, departments)}
+                    />
                   ))}
                 </div>
 
-                {/* Pagination Controls */}
                 {totalPages > 1 && (
-                  <div className="mt-12 flex items-center justify-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
+                  <div className="mt-14 flex items-center justify-center gap-2">
+                    <button
+                      type="button"
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="border-orange-500 text-orange-600 hover:bg-orange-50 dark:border-orange-400 dark:text-orange-400"
+                      aria-label="Previous page"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border border-brand text-brand transition-colors hover:bg-brand hover:text-white disabled:pointer-events-none disabled:opacity-40"
                     >
                       <ChevronLeft className="h-4 w-4" />
-                    </Button>
+                    </button>
 
-                    {/* Page Numbers */}
                     <div className="flex items-center gap-1">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                        // Show first page, last page, current page, and pages around current
-                        if (
-                          page === 1 ||
-                          page === totalPages ||
-                          (page >= currentPage - 1 && page <= currentPage + 1)
-                        ) {
+                      {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => {
+                        if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
                           return (
-                            <Button
+                            <button
                               key={page}
-                              variant={currentPage === page ? "default" : "outline"}
+                              type="button"
                               onClick={() => handlePageChange(page)}
-                              className={
+                              className={`h-11 min-w-[44px] rounded-full px-3 text-[15px] transition-colors ${
                                 currentPage === page
-                                  ? "bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-500"
-                                  : "border-orange-500 text-orange-600 hover:bg-orange-50 dark:border-orange-400 dark:text-orange-400"
-                              }
+                                  ? "bg-brand text-white"
+                                  : "border border-ink/20 text-ink hover:border-brand hover:text-brand dark:border-foreground/25 dark:text-foreground"
+                              }`}
                             >
                               {page}
-                            </Button>
+                            </button>
                           )
-                        } else if (page === currentPage - 2 || page === currentPage + 2) {
-                          return <span key={page} className="px-2 text-gray-500">...</span>
+                        }
+                        if (page === currentPage - 2 || page === currentPage + 2) {
+                          return (
+                            <span key={page} className="px-2 text-muted-foreground">
+                              …
+                            </span>
+                          )
                         }
                         return null
                       })}
                     </div>
 
-                    <Button
-                      variant="outline"
-                      size="icon"
+                    <button
+                      type="button"
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className="border-orange-500 text-orange-600 hover:bg-orange-50 dark:border-orange-400 dark:text-orange-400"
+                      aria-label="Next page"
+                      className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white transition-colors hover:bg-brand-dark disabled:pointer-events-none disabled:opacity-40"
                     >
                       <ChevronRight className="h-4 w-4" />
-                    </Button>
+                    </button>
                   </div>
                 )}
-
-                {/* Page Info */}
-                <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-                  Page {currentPage} of {totalPages}
-                </div>
               </>
             ) : (
-              <Card className="py-12 text-center">
-                <Utensils className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                <p className="text-muted-foreground">No products found.</p>
-              </Card>
+              <div className="border border-line bg-card py-20 text-center dark:border-border">
+                <p className="font-display text-[24px] font-semibold text-ink dark:text-foreground">No dishes here yet</p>
+                <p className="mt-3 text-[15px] text-muted-foreground">
+                  Nothing is published in this category right now.
+                </p>
+                <Link
+                  href="/categories"
+                  onClick={() => setSelectedCategory("")}
+                  className="mt-7 inline-block rounded-full bg-brand px-8 py-3.5 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                >
+                  View all dishes
+                </Link>
+              </div>
             )}
           </div>
         </section>
@@ -448,3 +314,16 @@ export default function CategoriesPage() {
   )
 }
 
+export default function CategoriesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-brand" />
+        </div>
+      }
+    >
+      <CategoriesPageContent />
+    </Suspense>
+  )
+}
