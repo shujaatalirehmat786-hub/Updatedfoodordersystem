@@ -1,20 +1,197 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, useMemo, useRef, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Loader2, ChevronLeft, ChevronRight } from "lucide-react"
+import { ArrowLeft, ArrowRight, ChevronDown, LayoutGrid, List, Loader2, SlidersHorizontal } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { PageHero } from "@/components/page-hero"
 import { ProductCard } from "@/components/product-card"
+import { ProductOrderDialog } from "@/components/product-order-dialog"
 import { api, getProductPrice } from "@/lib/api"
 import { getStoreFromSubdomain, getStoreName } from "@/lib/store"
-import { getCurrencySymbol, getProductDepartmentId, getProductDepartmentName } from "@/lib/media"
+import {
+  getCurrencySymbol,
+  getDepartmentImage,
+  getProductDepartmentId,
+  getProductDepartmentName,
+  getProductImage,
+} from "@/lib/media"
 import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
 
-const ITEMS_PER_PAGE = 12
+const PAGE_SIZE = 12
+
+const SORT_OPTIONS = [
+  { value: "recommended", label: "Recommended" },
+  { value: "popular", label: "Most popular" },
+  { value: "price-asc", label: "Price: low to high" },
+  { value: "price-desc", label: "Price: high to low" },
+  { value: "name", label: "Name: A to Z" },
+]
+
+const PRICE_BANDS = [
+  { value: "", label: "Any price", test: () => true },
+  { value: "under-10", label: "Under 10", test: (p: number) => p < 10 },
+  { value: "10-20", label: "10 – 20", test: (p: number) => p >= 10 && p < 20 },
+  { value: "20-plus", label: "20 and above", test: (p: number) => p >= 20 },
+]
+
+/** Store names are often stored in all caps, which reads badly inside prose. */
+function toProseName(name: string): string {
+  if (!name || /[a-z]/.test(name)) return name
+  return name.toLowerCase().replace(/(^|[\s.\-'])([a-z])/g, (_, prefix, letter) => prefix + letter.toUpperCase())
+}
+
+/** getProductImage falls back to an inline monogram tile for photo-less records. */
+function hasPhoto(product: any): boolean {
+  return !getProductImage(product).startsWith("data:")
+}
+
+const SWEET_PATTERN = /sweet|dessert|cake|pastry|mousse|cookie|ice.?cream|kulfi|halwa|jamun/i
+const BREAKFAST_PATTERN = /breakfast|dosa|idli|vada|tiffin|south/i
+
+/** Menu-grid card: the design puts the category above the name, not on the image. */
+function MenuCard({
+  product,
+  category,
+  currency,
+  layout,
+}: {
+  product: any
+  category: string | null
+  currency: string
+  layout: "grid" | "list"
+}) {
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const price = getProductPrice(product)
+
+  if (layout === "list") {
+    return (
+      <>
+        <article className="flex gap-5 border border-line/80 bg-card p-3 transition-shadow hover:shadow-[0_18px_40px_rgba(17,17,17,0.10)] dark:border-border">
+          <Link href={`/product/${product._id}`} className="shrink-0">
+            <img
+              src={getProductImage(product)}
+              alt={product.name}
+              className="h-32 w-32 rounded-[4px] object-cover sm:h-36 sm:w-44"
+            />
+          </Link>
+          <div className="flex flex-1 flex-col py-1">
+            {category && <span className="text-[13px] text-brand">{category}</span>}
+            <Link href={`/product/${product._id}`}>
+              <h3 className="mt-1 font-display text-[21px] font-semibold text-ink dark:text-foreground">
+                {product.name}
+              </h3>
+            </Link>
+            {product.description && (
+              <p className="mt-1.5 line-clamp-2 text-[14px] leading-[1.55] text-muted-foreground">
+                {product.description}
+              </p>
+            )}
+            <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+              <p className="text-[22px] font-semibold text-ink dark:text-foreground">
+                {currency}
+                {price.toFixed(2)}
+              </p>
+              <button
+                type="button"
+                onClick={() => setDialogOpen(true)}
+                className="rounded-full bg-brand px-5 py-2.5 text-[14px] text-white transition-colors hover:bg-brand-dark"
+              >
+                Order Now
+              </button>
+            </div>
+          </div>
+        </article>
+        <ProductOrderDialog product={product} open={dialogOpen} onOpenChange={setDialogOpen} />
+      </>
+    )
+  }
+
+  return (
+    <>
+      <article className="group flex h-full flex-col border border-line/80 bg-card p-3 transition-shadow duration-300 hover:shadow-[0_18px_40px_rgba(17,17,17,0.10)] dark:border-border">
+        <Link href={`/product/${product._id}`} className="block overflow-hidden rounded-[4px]">
+          <div className="aspect-[330/304] w-full overflow-hidden bg-cream">
+            <img
+              src={getProductImage(product)}
+              alt={product.name}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </div>
+        </Link>
+
+        <div className="flex flex-1 flex-col px-1 pt-4">
+          {category && <span className="text-[13px] text-brand">{category}</span>}
+
+          <Link href={`/product/${product._id}`}>
+            <h3 className="mt-1 font-display text-[21px] font-semibold leading-tight text-ink transition-colors group-hover:text-brand dark:text-foreground">
+              {product.name}
+            </h3>
+          </Link>
+
+          {product.description && (
+            <p className="mt-2 line-clamp-2 text-[14px] leading-[1.55] text-muted-foreground">{product.description}</p>
+          )}
+
+          <div className="mt-auto flex items-center justify-between gap-3 pb-1 pt-5">
+            <p className="text-[22px] font-semibold text-ink dark:text-foreground">
+              {currency}
+              {price.toFixed(2)}
+            </p>
+            <button
+              type="button"
+              onClick={() => setDialogOpen(true)}
+              className="rounded-full bg-brand px-5 py-2.5 text-[14px] text-white transition-colors hover:bg-brand-dark"
+            >
+              Order Now
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <ProductOrderDialog product={product} open={dialogOpen} onOpenChange={setDialogOpen} />
+    </>
+  )
+}
+
+/** Horizontal rail with the design's circular prev/next controls. */
+function Rail({ children }: { children: React.ReactNode }) {
+  const railRef = useRef<HTMLDivElement>(null)
+
+  const scrollBy = (direction: 1 | -1) => {
+    const node = railRef.current
+    if (!node) return
+    node.scrollBy({ left: direction * Math.max(280, node.clientWidth * 0.8), behavior: "smooth" })
+  }
+
+  return (
+    <div className="relative">
+      <div ref={railRef} className="no-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-2">
+        {children}
+      </div>
+      <div className="mt-8 flex items-center justify-center gap-4 xl:mt-0">
+        <button
+          type="button"
+          onClick={() => scrollBy(-1)}
+          aria-label="Previous"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-brand text-brand transition-colors hover:bg-brand hover:text-white xl:absolute xl:-left-16 xl:top-1/2 xl:mt-0 xl:-translate-y-1/2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => scrollBy(1)}
+          aria-label="Next"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white transition-colors hover:bg-brand-dark xl:absolute xl:-right-16 xl:top-1/2 xl:mt-0 xl:-translate-y-1/2"
+        >
+          <ArrowRight className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  )
+}
 
 function CategoriesPageContent() {
   const searchParams = useSearchParams()
@@ -23,7 +200,11 @@ function CategoriesPageContent() {
   const [store, setStore] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string>("")
-  const [currentPage, setCurrentPage] = useState(1)
+  const [priceBand, setPriceBand] = useState<string>("")
+  const [sortBy, setSortBy] = useState<string>("recommended")
+  const [layout, setLayout] = useState<"grid" | "list">("grid")
+  const [filtersOpen, setFiltersOpen] = useState(true)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const { addToCart } = useCart()
   const { toast } = useToast()
 
@@ -50,10 +231,10 @@ function CategoriesPageContent() {
     }
   }, [searchParams])
 
-  // Reset to page 1 when category changes
+  // Any change to the filters restarts the visible window.
   useEffect(() => {
-    setCurrentPage(1)
-  }, [selectedCategory])
+    setVisibleCount(PAGE_SIZE)
+  }, [selectedCategory, priceBand, sortBy])
 
   const loadStore = async () => {
     const storeData = await getStoreFromSubdomain()
@@ -116,6 +297,57 @@ function CategoriesPageContent() {
     })
   }
 
+  // Filter products based on selected category. Products expose their
+  // department as a string id, a nested object, or `departmentId`.
+  const filteredProducts = useMemo(() => {
+    const band = PRICE_BANDS.find((entry) => entry.value === priceBand) || PRICE_BANDS[0]
+
+    const matched = allProducts.filter((product) => {
+      if (selectedCategory) {
+        const productDeptId = getProductDepartmentId(product)
+        if (!productDeptId || String(productDeptId) !== String(selectedCategory)) return false
+      }
+      return band.test(getProductPrice(product))
+    })
+
+    const sorted = [...matched]
+    if (sortBy === "price-asc") sorted.sort((a, b) => getProductPrice(a) - getProductPrice(b))
+    else if (sortBy === "price-desc") sorted.sort((a, b) => getProductPrice(b) - getProductPrice(a))
+    else if (sortBy === "name") sorted.sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")))
+    else if (sortBy === "popular") sorted.sort((a, b) => Number(b.saleCount || 0) - Number(a.saleCount || 0))
+    return sorted
+  }, [allProducts, selectedCategory, priceBand, sortBy])
+
+  // These two showcases are photo-led in the design, so prefer products that
+  // actually have an image before falling back to whatever the store has.
+  const signatures = useMemo(
+    () => [...allProducts].sort((a, b) => Number(hasPhoto(b)) - Number(hasPhoto(a))).slice(0, 4),
+    [allProducts],
+  )
+
+  // "Today's special" uses the store's own best sellers rather than fixed copy,
+  // skipping anything already shown in the signature row above.
+  const todaysSpecials = useMemo(() => {
+    const shown = new Set(signatures.map((product) => String(product._id)))
+    return [...allProducts]
+      .filter((product) => !shown.has(String(product._id)))
+      .sort(
+        (a, b) =>
+          Number(hasPhoto(b)) - Number(hasPhoto(a)) || Number(b.saleCount || 0) - Number(a.saleCount || 0),
+      )
+      .slice(0, 3)
+  }, [allProducts, signatures])
+
+  const sweetDepartments = useMemo(
+    () => departments.filter((department) => SWEET_PATTERN.test(String(department.name || ""))),
+    [departments],
+  )
+
+  const breakfastDepartment = useMemo(
+    () => departments.find((department) => BREAKFAST_PATTERN.test(String(department.name || ""))) || departments[0] || null,
+    [departments],
+  )
+
   if (!store) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -124,97 +356,235 @@ function CategoriesPageContent() {
     )
   }
 
-  // Filter products based on selected category. Products expose their
-  // department as a string id, a nested object, or `departmentId`.
-  const filteredProducts = selectedCategory
-    ? allProducts.filter((product) => {
-        const productDeptId = getProductDepartmentId(product)
-        return Boolean(productDeptId) && String(productDeptId) === String(selectedCategory)
-      })
-    : allProducts
-
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-  const endIndex = startIndex + ITEMS_PER_PAGE
-  const paginatedProducts = filteredProducts.slice(startIndex, endIndex)
-
-  // Handle page navigation - scroll to products section instead of top
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    const productsSection = document.getElementById("products-section")
-    if (productsSection) {
-      productsSection.scrollIntoView({ behavior: "smooth", block: "start" })
-    }
-  }
-
   const storeName = getStoreName(store) || store?.subdomain || ""
+  const displayStoreName = storeName.replace(/[.,\s]+$/, "")
+  const proseStoreName = toProseName(displayStoreName)
   const currency = getCurrencySymbol(store)
   const activeDepartment = departments.find((department) => department._id === selectedCategory)
+  const visibleProducts = filteredProducts.slice(0, visibleCount)
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       <main>
-        <PageHero
-          eyebrow="Explore our menu"
-          title={activeDepartment ? activeDepartment.name : "From breakfast to dinner, there's something for everyone."}
-          description={
-            activeDepartment?.description ||
-            `Every dish, price and category on this page is published live by ${storeName || "this kitchen"}.`
-          }
-          crumbs={[
-            { label: "Home", href: "/" },
-            { label: "Our Menu" },
-          ]}
-        />
+        {/* ---------------------------------------------------------------- Hero */}
+        <section className="surface-paper relative overflow-hidden">
+          <img
+            src="/savera/hero-swoosh.svg"
+            alt=""
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-[38%] w-full select-none object-fill"
+          />
 
-        {/* Category filters */}
-        {departments.length > 0 && (
-          <section className="border-b border-line/70 bg-background py-6 dark:border-border">
-            <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
-              <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
+          <div className="relative mx-auto grid max-w-[1560px] items-center gap-10 px-4 pb-28 pt-14 sm:px-6 lg:grid-cols-[1.12fr_0.88fr] lg:gap-10 lg:px-10 lg:pb-40 lg:pt-20">
+            <div className="max-w-3xl">
+              <span className="eyebrow">Explore our menu</span>
+
+              <h1 className="display-heading mt-6 text-ink dark:text-foreground">
+                <span className="block text-[38px] sm:text-[54px] lg:text-[66px]">A taste of India</span>
+                <span className="mt-1 block text-[30px] sm:text-[42px] lg:text-[50px]">Made fresh for you.</span>
+              </h1>
+
+              <p className="mt-7 max-w-xl text-[15px] leading-[1.75] text-ink-soft sm:text-base dark:text-foreground/75">
+                Discover authentic Indian flavors, from South Indian breakfast favorites and crispy appetizers to
+                aromatic biryanis, flavorful curries, freshly baked breads, and sweet treats.
+              </p>
+            </div>
+
+            <div className="relative mx-auto w-full max-w-[460px] lg:ml-auto lg:max-w-[520px]">
+              <img
+                src="/savera/menu-hero.webp"
+                alt=""
+                aria-hidden
+                className="aspect-square w-full object-contain drop-shadow-[0_24px_50px_rgba(17,17,17,0.22)]"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* ------------------------------------------------------------- Toolbar */}
+        <section className="bg-background py-8">
+          <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setSelectedCategory("")}
-                  className={`shrink-0 rounded-full border px-6 py-3 text-[15px] transition-colors ${
-                    selectedCategory === ""
-                      ? "border-brand bg-brand text-white"
-                      : "border-ink/20 text-ink hover:border-brand hover:text-brand dark:border-foreground/25 dark:text-foreground"
-                  }`}
+                  onClick={() => setFiltersOpen((open) => !open)}
+                  aria-expanded={filtersOpen}
+                  className="inline-flex items-center gap-2.5 rounded-full bg-brand px-7 py-3 text-[15px] text-white transition-colors hover:bg-brand-dark"
                 >
-                  All
+                  Filter
+                  <SlidersHorizontal className="h-4 w-4" />
                 </button>
-                {departments.map((department) => (
+                <span className="rounded-full border border-line px-6 py-3 text-[15px] text-ink-soft dark:border-border dark:text-foreground/75">
+                  {filteredProducts.length} items total
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <label htmlFor="menu-sort" className="text-[15px] text-ink-soft dark:text-foreground/75">
+                  Sort by
+                </label>
+                <div className="relative">
+                  <select
+                    id="menu-sort"
+                    value={sortBy}
+                    onChange={(event) => setSortBy(event.target.value)}
+                    className="appearance-none rounded-full border border-line bg-transparent py-3 pl-5 pr-11 text-[15px] text-ink outline-none focus:border-brand dark:border-border dark:text-foreground"
+                  >
+                    {SORT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft dark:text-foreground/70" />
+                </div>
+
+                <div className="flex items-center gap-2">
                   <button
-                    key={department._id}
                     type="button"
-                    onClick={() => setSelectedCategory(department._id === selectedCategory ? "" : department._id)}
-                    className={`shrink-0 rounded-full border px-6 py-3 text-[15px] transition-colors ${
-                      selectedCategory === department._id
-                        ? "border-brand bg-brand text-white"
-                        : "border-ink/20 text-ink hover:border-brand hover:text-brand dark:border-foreground/25 dark:text-foreground"
+                    onClick={() => setLayout("grid")}
+                    aria-label="Grid view"
+                    aria-pressed={layout === "grid"}
+                    className={`flex h-11 w-11 items-center justify-center rounded-[6px] transition-colors ${
+                      layout === "grid"
+                        ? "bg-brand text-white"
+                        : "border border-line text-ink-soft hover:border-brand hover:text-brand dark:border-border dark:text-foreground/70"
                     }`}
                   >
-                    {department.name}
+                    <LayoutGrid className="h-4 w-4" />
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setLayout("list")}
+                    aria-label="List view"
+                    aria-pressed={layout === "list"}
+                    className={`flex h-11 w-11 items-center justify-center rounded-[6px] transition-colors ${
+                      layout === "list"
+                        ? "bg-brand text-white"
+                        : "border border-line text-ink-soft hover:border-brand hover:text-brand dark:border-border dark:text-foreground/70"
+                    }`}
+                  >
+                    <List className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter chips — each one is backed by real product data */}
+            {filtersOpen && (
+              <div className="mt-6 flex flex-wrap items-center gap-3 rounded-full border border-line px-4 py-4 sm:px-6 dark:border-border">
+                <div className="relative">
+                  <select
+                    aria-label="Filter by category"
+                    value={selectedCategory}
+                    onChange={(event) => setSelectedCategory(event.target.value)}
+                    className={`appearance-none rounded-full py-3 pl-6 pr-11 text-[15px] outline-none transition-colors ${
+                      selectedCategory
+                        ? "bg-brand text-white"
+                        : "border border-line bg-transparent text-ink dark:border-border dark:text-foreground"
+                    }`}
+                  >
+                    <option value="">All categories</option>
+                    {departments.map((department) => (
+                      <option key={department._id} value={department._id}>
+                        {department.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    className={`pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 ${
+                      selectedCategory ? "text-white" : "text-ink-soft dark:text-foreground/70"
+                    }`}
+                  />
+                </div>
+
+                <div className="relative">
+                  <select
+                    aria-label="Filter by price"
+                    value={priceBand}
+                    onChange={(event) => setPriceBand(event.target.value)}
+                    className={`appearance-none rounded-full py-3 pl-6 pr-11 text-[15px] outline-none transition-colors ${
+                      priceBand
+                        ? "bg-brand text-white"
+                        : "border border-line bg-transparent text-ink dark:border-border dark:text-foreground"
+                    }`}
+                  >
+                    {PRICE_BANDS.map((band) => (
+                      <option key={band.value || "any"} value={band.value}>
+                        {band.value ? `${currency}${band.label}` : band.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    className={`pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 ${
+                      priceBand ? "text-white" : "text-ink-soft dark:text-foreground/70"
+                    }`}
+                  />
+                </div>
+
+                {(selectedCategory || priceBand || sortBy !== "recommended") && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedCategory("")
+                      setPriceBand("")
+                      setSortBy("recommended")
+                    }}
+                    className="rounded-full px-5 py-3 text-[15px] text-ink-soft underline-offset-4 hover:text-brand hover:underline dark:text-foreground/70"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* ---------------------------------------------------------- Signatures */}
+        {signatures.length > 0 && (
+          <section className="bg-background pb-16 lg:pb-20">
+            <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+              <div className="flex flex-col items-center text-center">
+                <span className="eyebrow eyebrow-center">
+                  {proseStoreName ? `${proseStoreName} signatures` : "Signatures"}
+                </span>
+                <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] dark:text-foreground">
+                  A few favorites to start with.
+                </h2>
+                <p className="mt-4 text-[15px] text-ink-soft dark:text-foreground/70">
+                  The dishes our guests order most often.
+                </p>
+              </div>
+
+              <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {signatures.map((product) => (
+                  <ProductCard
+                    key={product._id}
+                    product={product}
+                    onAddToCart={handleAddToCart}
+                    variant="featured"
+                    currency={currency}
+                  />
                 ))}
               </div>
             </div>
           </section>
         )}
 
-        {/* Products */}
+        {/* -------------------------------------------------------- Complete menu */}
         <section id="products-section" className="surface-paper py-16 lg:py-20">
           <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
-            <div className="mb-10 flex flex-wrap items-baseline justify-between gap-4">
-              <h2 className="display-heading text-[26px] text-ink sm:text-[34px] dark:text-foreground">
-                {activeDepartment ? activeDepartment.name : "All dishes"}
+            <div className="flex flex-col items-center text-center">
+              <span className="eyebrow eyebrow-center">Explore everything</span>
+              <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] dark:text-foreground">
+                {activeDepartment ? activeDepartment.name : "Our complete menu."}
               </h2>
-              <p className="text-[15px] text-ink-soft dark:text-foreground/70">
-                {filteredProducts.length} {filteredProducts.length === 1 ? "item" : "items"}
-                {totalPages > 1 ? ` · page ${currentPage} of ${totalPages}` : ""}
+              <p className="mt-4 max-w-xl text-[15px] leading-[1.7] text-ink-soft dark:text-foreground/70">
+                {activeDepartment?.description ||
+                  "From light bites to hearty meals and sweet endings, find something for every craving."}
               </p>
             </div>
 
@@ -222,89 +592,250 @@ function CategoriesPageContent() {
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-brand" />
               </div>
-            ) : paginatedProducts.length > 0 ? (
+            ) : visibleProducts.length > 0 ? (
               <>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {paginatedProducts.map((product) => (
-                    <ProductCard
+                <div
+                  className={
+                    layout === "grid"
+                      ? "mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                      : "mt-12 flex flex-col gap-5"
+                  }
+                >
+                  {visibleProducts.map((product) => (
+                    <MenuCard
                       key={product._id}
                       product={product}
-                      onAddToCart={handleAddToCart}
-                      variant="featured"
+                      category={getProductDepartmentName(product, departments)}
                       currency={currency}
-                      tag={selectedCategory ? null : getProductDepartmentName(product, departments)}
+                      layout={layout}
                     />
                   ))}
                 </div>
 
-                {totalPages > 1 && (
-                  <div className="mt-14 flex items-center justify-center gap-2">
+                {visibleCount < filteredProducts.length && (
+                  <div className="mt-14 flex justify-center">
                     <button
                       type="button"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      aria-label="Previous page"
-                      className="flex h-11 w-11 items-center justify-center rounded-full border border-brand text-brand transition-colors hover:bg-brand hover:text-white disabled:pointer-events-none disabled:opacity-40"
+                      onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+                      className="rounded-full bg-brand px-10 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
                     >
-                      <ChevronLeft className="h-4 w-4" />
-                    </button>
-
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => {
-                        if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
-                          return (
-                            <button
-                              key={page}
-                              type="button"
-                              onClick={() => handlePageChange(page)}
-                              className={`h-11 min-w-[44px] rounded-full px-3 text-[15px] transition-colors ${
-                                currentPage === page
-                                  ? "bg-brand text-white"
-                                  : "border border-ink/20 text-ink hover:border-brand hover:text-brand dark:border-foreground/25 dark:text-foreground"
-                              }`}
-                            >
-                              {page}
-                            </button>
-                          )
-                        }
-                        if (page === currentPage - 2 || page === currentPage + 2) {
-                          return (
-                            <span key={page} className="px-2 text-muted-foreground">
-                              …
-                            </span>
-                          )
-                        }
-                        return null
-                      })}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      aria-label="Next page"
-                      className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white transition-colors hover:bg-brand-dark disabled:pointer-events-none disabled:opacity-40"
-                    >
-                      <ChevronRight className="h-4 w-4" />
+                      Load More Items
                     </button>
                   </div>
                 )}
               </>
             ) : (
-              <div className="border border-line bg-card py-20 text-center dark:border-border">
-                <p className="font-display text-[24px] font-semibold text-ink dark:text-foreground">No dishes here yet</p>
-                <p className="mt-3 text-[15px] text-muted-foreground">
-                  Nothing is published in this category right now.
+              <div className="mt-12 border border-line bg-card py-20 text-center dark:border-border">
+                <p className="font-display text-[24px] font-semibold text-ink dark:text-foreground">
+                  No dishes match these filters
                 </p>
-                <Link
-                  href="/categories"
-                  onClick={() => setSelectedCategory("")}
-                  className="mt-7 inline-block rounded-full bg-brand px-8 py-3.5 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                <p className="mt-3 text-[15px] text-muted-foreground">Try a different category or price range.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory("")
+                    setPriceBand("")
+                  }}
+                  className="mt-7 rounded-full bg-brand px-8 py-3.5 text-[15px] text-white transition-colors hover:bg-brand-dark"
                 >
-                  View all dishes
-                </Link>
+                  Clear filters
+                </button>
               </div>
             )}
+          </div>
+        </section>
+
+        {/* --------------------------------------------------- Breakfast spotlight */}
+        {breakfastDepartment && (
+          <section className="bg-background py-16 lg:py-24">
+            <div className="mx-auto grid max-w-[1560px] items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-20 lg:px-10">
+              <img
+                src="/savera/breakfast.jpg"
+                alt=""
+                aria-hidden
+                className="aspect-[746/465] w-full object-cover"
+              />
+
+              <div>
+                <span className="eyebrow">South Indian favorites</span>
+                <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[38px] lg:text-[46px] dark:text-foreground">
+                  Start with something fresh.
+                </h2>
+                <p className="mt-6 max-w-xl text-[15px] leading-[1.8] text-ink-soft dark:text-foreground/70">
+                  {breakfastDepartment.description ||
+                    `From crispy dosas and soft idlis to golden vadas and breakfast combinations, discover authentic South Indian favorites prepared fresh${proseStoreName ? ` at ${proseStoreName}` : ""}.`}
+                </p>
+                <p className="mt-4 max-w-xl text-[15px] leading-[1.8] text-ink-soft dark:text-foreground/70">
+                  Every plate is made to order, so it reaches you exactly the way it leaves the kitchen.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory(breakfastDepartment._id)
+                    document.getElementById("products-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }}
+                  className="mt-9 rounded-full bg-brand px-9 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                >
+                  Explore {breakfastDepartment.name}
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ------------------------------------------------------ Today's specials */}
+        {todaysSpecials.length > 0 && (
+          <section className="surface-paper py-16 lg:py-24">
+            <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+              <div className="flex flex-col items-center text-center">
+                <span className="eyebrow eyebrow-center">Today's special</span>
+                <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] dark:text-foreground">
+                  Something special from our kitchen.
+                </h2>
+              </div>
+
+              <div className="mt-14 grid gap-7 md:grid-cols-3">
+                {todaysSpecials.map((product) => (
+                  <Link
+                    key={product._id}
+                    href={`/product/${product._id}`}
+                    className="group border border-line/80 bg-card p-3 dark:border-border"
+                  >
+                    <img
+                      src={getProductImage(product)}
+                      alt={product.name}
+                      className="aspect-[16/9] w-full object-cover"
+                    />
+                    <div className="px-2 pb-3 pt-6">
+                      <h3 className="font-display text-[24px] font-semibold text-ink transition-colors group-hover:text-brand dark:text-foreground">
+                        {product.name}
+                      </h3>
+                      <div className="mt-4 h-px w-full bg-line dark:bg-border" />
+                      <p className="mt-4 line-clamp-2 text-[14px] leading-[1.7] text-muted-foreground">
+                        {product.description || "A kitchen favorite, prepared fresh to order."}
+                      </p>
+                      <p className="mt-4 text-[18px] font-semibold text-ink dark:text-foreground">
+                        {currency}
+                        {getProductPrice(product).toFixed(2)}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-12 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSortBy("popular")
+                    document.getElementById("products-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }}
+                  className="rounded-full bg-brand px-9 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                >
+                  Explore Today's Specials
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ------------------------------------------------------ End on a sweet note */}
+        {sweetDepartments.length > 0 && (
+          <section className="bg-background py-16 lg:py-24">
+            <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+              <div className="flex flex-col items-center text-center">
+                <span className="eyebrow eyebrow-center">Save for something sweet</span>
+                <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] dark:text-foreground">
+                  End on a sweet note.
+                </h2>
+                <p className="mt-4 max-w-xl text-[15px] leading-[1.7] text-ink-soft dark:text-foreground/70">
+                  Sweet creations made to make every moment special — deliciously crafted treats for the perfect ending.
+                </p>
+              </div>
+
+              <div className="mt-14 xl:px-20">
+                <Rail>
+                  {sweetDepartments.map((department) => {
+                    const count = allProducts.filter(
+                      (product) => String(getProductDepartmentId(product)) === String(department._id),
+                    ).length
+                    return (
+                      <button
+                        key={department._id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory(department._id)
+                          document
+                            .getElementById("products-section")
+                            ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                        }}
+                        className="group w-[200px] shrink-0 snap-start text-center sm:w-[240px]"
+                      >
+                        <div className="mx-auto aspect-square w-full overflow-hidden rounded-full">
+                          <img
+                            src={getDepartmentImage(department)}
+                            alt={department.name}
+                            className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                          />
+                        </div>
+                        <h3 className="mt-5 line-clamp-2 flex min-h-[2.4em] items-center justify-center font-display text-[20px] font-semibold uppercase leading-[1.2] tracking-wide text-ink transition-colors group-hover:text-brand sm:text-[24px] dark:text-foreground">
+                          {department.name}
+                        </h3>
+                        <p className="mt-1 text-[14px] text-muted-foreground">
+                          {department.description || `${count} ${count === 1 ? "item" : "items"}`}
+                        </p>
+                      </button>
+                    )
+                  })}
+                </Rail>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ------------------------------------------------------------ CTA band */}
+        <section className="bg-background pb-16 lg:pb-24">
+          <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+            <div className="relative overflow-hidden bg-ink">
+              <img
+                src="/savera/band-biryani.jpg"
+                alt=""
+                aria-hidden
+                className="absolute inset-0 h-full w-full object-cover opacity-60"
+              />
+              <div className="absolute inset-0 bg-black/45" />
+
+              <div className="relative flex flex-col items-center px-6 py-16 text-center sm:px-12 lg:py-24">
+                <span className="eyebrow eyebrow-center eyebrow-light normal-case">Ready to order?</span>
+
+                <h2 className="display-heading mt-5 max-w-5xl text-[28px] text-white sm:text-[40px] lg:text-[46px]">
+                  Your favorite flavors are waiting.
+                </h2>
+
+                <p className="mt-5 max-w-2xl text-[15px] leading-[1.7] text-white/85">
+                  Choose your favorites, customize your order, and enjoy freshly prepared Indian food
+                  {proseStoreName ? ` from ${proseStoreName}` : ""}.
+                </p>
+
+                <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      document.getElementById("products-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
+                    }
+                    className="rounded-full bg-white px-9 py-4 text-[15px] text-ink transition-colors hover:bg-brand hover:text-white"
+                  >
+                    Start Your Order
+                  </button>
+                  <Link
+                    href="/"
+                    className="rounded-full border border-white/60 px-9 py-4 text-[15px] text-white transition-colors hover:border-white hover:bg-white hover:text-ink"
+                  >
+                    View Categories
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
       </main>

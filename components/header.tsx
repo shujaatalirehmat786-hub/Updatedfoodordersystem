@@ -28,7 +28,6 @@ import {
 import { useAuth } from "@/hooks/use-auth"
 import { useCart } from "@/hooks/use-cart"
 import { useStore } from "@/hooks/use-store"
-import { AuthDialog } from "./auth-dialog"
 import { getStoreAddress, getStoreName, getStorePhone, getStoreSocialLinks } from "@/lib/store"
 import { resolveMediaUrl } from "@/lib/media"
 
@@ -44,8 +43,6 @@ export function Header() {
   const { cart } = useCart()
   const { store } = useStore()
   const pathname = usePathname()
-  const [authDialogOpen, setAuthDialogOpen] = useState(false)
-  const [authDialogMode, setAuthDialogMode] = useState<"new" | "existing">("existing")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -196,16 +193,13 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <button
-                  onClick={() => {
-                    setAuthDialogMode("existing")
-                    setAuthDialogOpen(true)
-                  }}
+                <Link
+                  href="/signin"
                   aria-label="Sign in"
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-ink/25 text-ink transition-colors hover:border-brand hover:text-brand dark:border-foreground/30 dark:text-foreground"
                 >
                   <User className="h-[18px] w-[18px]" />
-                </button>
+                </Link>
               )}
 
               <Button
@@ -257,12 +251,6 @@ export function Header() {
         </div>
       </header>
 
-      <AuthDialog
-        open={authDialogOpen}
-        onOpenChange={setAuthDialogOpen}
-        mode={authDialogMode}
-        onModeChange={setAuthDialogMode}
-      />
     </>
   )
 }
