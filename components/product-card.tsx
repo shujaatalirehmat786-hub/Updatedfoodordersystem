@@ -56,13 +56,13 @@ export function ProductCard({
 
         <div className="flex flex-1 flex-col px-1 pt-5">
           <Link href={`/product/${product._id}`}>
-            <h3 className="font-display text-[22px] font-semibold leading-tight text-ink transition-colors group-hover:text-brand dark:text-foreground">
+            <h3 className="font-display text-[22px] font-semibold leading-tight text-ink transition-colors group-hover:text-brand 2xl:text-[24px] dark:text-foreground">
               {product.name}
             </h3>
           </Link>
 
           {product.description && (
-            <p className="mt-2 line-clamp-2 text-[14px] leading-[1.55] text-muted-foreground">{product.description}</p>
+            <p className="mt-2 line-clamp-2 text-[14px] leading-[1.55] text-muted-foreground lg:text-[15px]">{product.description}</p>
           )}
 
           <div className="mt-auto flex items-center justify-between gap-3 pb-1 pt-5">
@@ -78,7 +78,7 @@ export function ProductCard({
                   event.preventDefault()
                   setDialogOpen(true)
                 }}
-                className="rounded-full bg-brand px-5 py-2.5 text-[14px] text-white transition-colors hover:bg-brand-dark"
+                className="rounded-full bg-brand px-5 py-2.5 text-[14px] text-white transition-colors hover:bg-brand-dark lg:text-[15px] 2xl:text-[16px]"
               >
                 Order Now
               </button>

@@ -46,7 +46,7 @@ export function PageHero({ eyebrow, title, description, crumbs = [] }: PageHeroP
         </h1>
 
         {description && (
-          <p className="mx-auto mt-5 max-w-2xl text-[15px] leading-[1.7] text-ink-soft dark:text-foreground/70">
+          <p className="mx-auto mt-5 max-w-2xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-ink-soft dark:text-foreground/70">
             {description}
           </p>
         )}

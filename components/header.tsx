@@ -127,7 +127,7 @@ export function Header() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`text-[15px] transition-colors hover:text-brand ${
+                    className={`text-[15px] lg:text-[17px] 2xl:text-[19px] transition-colors hover:text-brand ${
                       active ? "text-brand" : "text-ink-soft dark:text-foreground/80"
                     }`}
                   >
@@ -204,7 +204,7 @@ export function Header() {
 
               <Button
                 asChild
-                className="hidden h-11 rounded-full bg-brand px-7 text-[15px] font-normal text-white shadow-none hover:bg-brand-dark sm:inline-flex"
+                className="hidden h-11 rounded-full bg-brand px-7 text-[15px] lg:text-[17px] 2xl:text-[19px] font-normal text-white shadow-none hover:bg-brand-dark sm:inline-flex"
               >
                 <Link href="/categories">Order Now</Link>
               </Button>
@@ -226,7 +226,7 @@ export function Header() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="border-b border-line/60 py-3 text-[15px] text-ink-soft last:border-0 hover:text-brand dark:border-border dark:text-foreground/80"
+                    className="border-b border-line/60 py-3 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft last:border-0 hover:text-brand dark:border-border dark:text-foreground/80"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {link.label}
@@ -234,7 +234,7 @@ export function Header() {
                 ))}
                 <Button
                   asChild
-                  className="mt-4 h-11 rounded-full bg-brand text-[15px] font-normal text-white hover:bg-brand-dark sm:hidden"
+                  className="mt-4 h-11 rounded-full bg-brand text-[15px] lg:text-[17px] 2xl:text-[19px] font-normal text-white hover:bg-brand-dark sm:hidden"
                 >
                   <Link href="/categories" onClick={() => setMobileMenuOpen(false)}>
                     Order Now

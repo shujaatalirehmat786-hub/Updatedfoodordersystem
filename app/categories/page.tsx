@@ -386,11 +386,11 @@ function CategoriesPageContent() {
               <span className="eyebrow">Explore our menu</span>
 
               <h1 className="display-heading mt-6 text-ink dark:text-foreground">
-                <span className="block text-[38px] sm:text-[54px] lg:text-[66px]">A taste of India</span>
-                <span className="mt-1 block text-[30px] sm:text-[42px] lg:text-[50px]">Made fresh for you.</span>
+                <span className="block text-[38px] sm:text-[54px] lg:text-[70px] 2xl:text-[78px]">A taste of India</span>
+                <span className="mt-1 block text-[30px] sm:text-[42px] lg:text-[53px] 2xl:text-[58px]">Made fresh for you.</span>
               </h1>
 
-              <p className="mt-7 max-w-xl text-[15px] leading-[1.75] text-ink-soft sm:text-base dark:text-foreground/75">
+              <p className="mt-7 max-w-xl text-[15px] lg:text-[19px] 2xl:text-[21px] leading-[1.75] text-ink-soft sm:text-base dark:text-foreground/75">
                 Discover authentic Indian flavors, from South Indian breakfast favorites and crispy appetizers to
                 aromatic biryanis, flavorful curries, freshly baked breads, and sweet treats.
               </p>
@@ -416,18 +416,18 @@ function CategoriesPageContent() {
                   type="button"
                   onClick={() => setFiltersOpen((open) => !open)}
                   aria-expanded={filtersOpen}
-                  className="inline-flex items-center gap-2.5 rounded-full bg-brand px-7 py-3 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                  className="inline-flex items-center gap-2.5 rounded-full bg-brand px-7 py-3 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
                 >
                   Filter
                   <SlidersHorizontal className="h-4 w-4" />
                 </button>
-                <span className="rounded-full border border-line px-6 py-3 text-[15px] text-ink-soft dark:border-border dark:text-foreground/75">
+                <span className="rounded-full border border-line px-6 py-3 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft dark:border-border dark:text-foreground/75">
                   {filteredProducts.length} items total
                 </span>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <label htmlFor="menu-sort" className="text-[15px] text-ink-soft dark:text-foreground/75">
+                <label htmlFor="menu-sort" className="text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft dark:text-foreground/75">
                   Sort by
                 </label>
                 <div className="relative">
@@ -435,7 +435,7 @@ function CategoriesPageContent() {
                     id="menu-sort"
                     value={sortBy}
                     onChange={(event) => setSortBy(event.target.value)}
-                    className="appearance-none rounded-full border border-line bg-transparent py-3 pl-5 pr-11 text-[15px] text-ink outline-none focus:border-brand dark:border-border dark:text-foreground"
+                    className="appearance-none rounded-full border border-line bg-transparent py-3 pl-5 pr-11 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink outline-none focus:border-brand dark:border-border dark:text-foreground"
                   >
                     {SORT_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -485,7 +485,7 @@ function CategoriesPageContent() {
                     aria-label="Filter by category"
                     value={selectedCategory}
                     onChange={(event) => setSelectedCategory(event.target.value)}
-                    className={`appearance-none rounded-full py-3 pl-6 pr-11 text-[15px] outline-none transition-colors ${
+                    className={`appearance-none rounded-full py-3 pl-6 pr-11 text-[15px] lg:text-[17px] 2xl:text-[19px] outline-none transition-colors ${
                       selectedCategory
                         ? "bg-brand text-white"
                         : "border border-line bg-transparent text-ink dark:border-border dark:text-foreground"
@@ -510,7 +510,7 @@ function CategoriesPageContent() {
                     aria-label="Filter by price"
                     value={priceBand}
                     onChange={(event) => setPriceBand(event.target.value)}
-                    className={`appearance-none rounded-full py-3 pl-6 pr-11 text-[15px] outline-none transition-colors ${
+                    className={`appearance-none rounded-full py-3 pl-6 pr-11 text-[15px] lg:text-[17px] 2xl:text-[19px] outline-none transition-colors ${
                       priceBand
                         ? "bg-brand text-white"
                         : "border border-line bg-transparent text-ink dark:border-border dark:text-foreground"
@@ -537,7 +537,7 @@ function CategoriesPageContent() {
                       setPriceBand("")
                       setSortBy("recommended")
                     }}
-                    className="rounded-full px-5 py-3 text-[15px] text-ink-soft underline-offset-4 hover:text-brand hover:underline dark:text-foreground/70"
+                    className="rounded-full px-5 py-3 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft underline-offset-4 hover:text-brand hover:underline dark:text-foreground/70"
                   >
                     Clear all
                   </button>
@@ -549,7 +549,7 @@ function CategoriesPageContent() {
 
         {/* ---------------------------------------------------------- Signatures */}
         {signatures.length > 0 && (
-          <section className="bg-background pb-16 lg:pb-20">
+          <section className="bg-background pb-16 lg:pb-24 2xl:pb-28">
             <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
               <div className="flex flex-col items-center text-center">
                 <span className="eyebrow eyebrow-center">
@@ -558,7 +558,7 @@ function CategoriesPageContent() {
                 <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] dark:text-foreground">
                   A few favorites to start with.
                 </h2>
-                <p className="mt-4 text-[15px] text-ink-soft dark:text-foreground/70">
+                <p className="mt-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft dark:text-foreground/70">
                   The dishes our guests order most often.
                 </p>
               </div>
@@ -579,14 +579,14 @@ function CategoriesPageContent() {
         )}
 
         {/* -------------------------------------------------------- Complete menu */}
-        <section id="products-section" className="surface-paper py-16 lg:py-20">
+        <section id="products-section" className="surface-paper py-16 lg:py-28 2xl:py-32 2xl:py-28">
           <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
             <div className="flex flex-col items-center text-center">
               <span className="eyebrow eyebrow-center">Explore everything</span>
               <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] dark:text-foreground">
                 {activeDepartment ? activeDepartment.name : "Our complete menu."}
               </h2>
-              <p className="mt-4 max-w-xl text-[15px] leading-[1.7] text-ink-soft dark:text-foreground/70">
+              <p className="mt-4 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-ink-soft dark:text-foreground/70">
                 {activeDepartment?.description ||
                   "From light bites to hearty meals and sweet endings, find something for every craving."}
               </p>
@@ -621,7 +621,7 @@ function CategoriesPageContent() {
                     <button
                       type="button"
                       onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
-                      className="rounded-full bg-brand px-10 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                      className="rounded-full bg-brand px-10 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
                     >
                       Load More Items
                     </button>
@@ -633,14 +633,14 @@ function CategoriesPageContent() {
                 <p className="font-display text-[24px] font-semibold text-ink dark:text-foreground">
                   No dishes match these filters
                 </p>
-                <p className="mt-3 text-[15px] text-muted-foreground">Try a different category or price range.</p>
+                <p className="mt-3 text-[15px] lg:text-[17px] 2xl:text-[19px] text-muted-foreground">Try a different category or price range.</p>
                 <button
                   type="button"
                   onClick={() => {
                     setSelectedCategory("")
                     setPriceBand("")
                   }}
-                  className="mt-7 rounded-full bg-brand px-8 py-3.5 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                  className="mt-7 rounded-full bg-brand px-8 py-3.5 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
                 >
                   Clear filters
                 </button>
@@ -651,7 +651,7 @@ function CategoriesPageContent() {
 
         {/* --------------------------------------------------- Breakfast spotlight */}
         {breakfastDepartment && (
-          <section className="bg-background py-16 lg:py-24">
+          <section className="bg-background py-16 lg:py-28 2xl:py-32">
             <div className="mx-auto grid max-w-[1560px] items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-20 lg:px-10">
               <img
                 src="/savera/breakfast.jpg"
@@ -665,11 +665,11 @@ function CategoriesPageContent() {
                 <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[38px] lg:text-[46px] dark:text-foreground">
                   Start with something fresh.
                 </h2>
-                <p className="mt-6 max-w-xl text-[15px] leading-[1.8] text-ink-soft dark:text-foreground/70">
+                <p className="mt-6 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.8] text-ink-soft dark:text-foreground/70">
                   {breakfastDepartment.description ||
                     `From crispy dosas and soft idlis to golden vadas and breakfast combinations, discover authentic South Indian favorites prepared fresh${proseStoreName ? ` at ${proseStoreName}` : ""}.`}
                 </p>
-                <p className="mt-4 max-w-xl text-[15px] leading-[1.8] text-ink-soft dark:text-foreground/70">
+                <p className="mt-4 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.8] text-ink-soft dark:text-foreground/70">
                   Every plate is made to order, so it reaches you exactly the way it leaves the kitchen.
                 </p>
                 <button
@@ -678,7 +678,7 @@ function CategoriesPageContent() {
                     setSelectedCategory(breakfastDepartment._id)
                     document.getElementById("products-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
                   }}
-                  className="mt-9 rounded-full bg-brand px-9 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                  className="mt-9 rounded-full bg-brand px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
                 >
                   Explore {breakfastDepartment.name}
                 </button>
@@ -689,7 +689,7 @@ function CategoriesPageContent() {
 
         {/* ------------------------------------------------------ Today's specials */}
         {todaysSpecials.length > 0 && (
-          <section className="surface-paper py-16 lg:py-24">
+          <section className="surface-paper py-16 lg:py-28 2xl:py-32">
             <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
               <div className="flex flex-col items-center text-center">
                 <span className="eyebrow eyebrow-center">Today's special</span>
@@ -734,7 +734,7 @@ function CategoriesPageContent() {
                     setSortBy("popular")
                     document.getElementById("products-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
                   }}
-                  className="rounded-full bg-brand px-9 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                  className="rounded-full bg-brand px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
                 >
                   Explore Today's Specials
                 </button>
@@ -745,14 +745,14 @@ function CategoriesPageContent() {
 
         {/* ------------------------------------------------------ End on a sweet note */}
         {sweetDepartments.length > 0 && (
-          <section className="bg-background py-16 lg:py-24">
+          <section className="bg-background py-16 lg:py-28 2xl:py-32">
             <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
               <div className="flex flex-col items-center text-center">
                 <span className="eyebrow eyebrow-center">Save for something sweet</span>
                 <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] dark:text-foreground">
                   End on a sweet note.
                 </h2>
-                <p className="mt-4 max-w-xl text-[15px] leading-[1.7] text-ink-soft dark:text-foreground/70">
+                <p className="mt-4 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-ink-soft dark:text-foreground/70">
                   Sweet creations made to make every moment special — deliciously crafted treats for the perfect ending.
                 </p>
               </div>
@@ -798,7 +798,7 @@ function CategoriesPageContent() {
         )}
 
         {/* ------------------------------------------------------------ CTA band */}
-        <section className="bg-background pb-16 lg:pb-24">
+        <section className="bg-background pb-16 lg:pb-28 2xl:pb-32">
           <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
             <div className="relative overflow-hidden bg-ink">
               <img
@@ -809,14 +809,14 @@ function CategoriesPageContent() {
               />
               <div className="absolute inset-0 bg-black/45" />
 
-              <div className="relative flex flex-col items-center px-6 py-16 text-center sm:px-12 lg:py-24">
+              <div className="relative flex flex-col items-center px-6 py-16 text-center sm:px-12 lg:py-28 2xl:py-32">
                 <span className="eyebrow eyebrow-center eyebrow-light normal-case">Ready to order?</span>
 
                 <h2 className="display-heading mt-5 max-w-5xl text-[28px] text-white sm:text-[40px] lg:text-[46px]">
                   Your favorite flavors are waiting.
                 </h2>
 
-                <p className="mt-5 max-w-2xl text-[15px] leading-[1.7] text-white/85">
+                <p className="mt-5 max-w-2xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-white/85">
                   Choose your favorites, customize your order, and enjoy freshly prepared Indian food
                   {proseStoreName ? ` from ${proseStoreName}` : ""}.
                 </p>
@@ -827,13 +827,13 @@ function CategoriesPageContent() {
                     onClick={() =>
                       document.getElementById("products-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
                     }
-                    className="rounded-full bg-white px-9 py-4 text-[15px] text-ink transition-colors hover:bg-brand hover:text-white"
+                    className="rounded-full bg-white px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink transition-colors hover:bg-brand hover:text-white"
                   >
                     Start Your Order
                   </button>
                   <Link
                     href="/"
-                    className="rounded-full border border-white/60 px-9 py-4 text-[15px] text-white transition-colors hover:border-white hover:bg-white hover:text-ink"
+                    className="rounded-full border border-white/60 px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:border-white hover:bg-white hover:text-ink"
                   >
                     View Categories
                   </Link>

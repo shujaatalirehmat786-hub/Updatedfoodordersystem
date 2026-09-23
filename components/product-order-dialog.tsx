@@ -143,7 +143,7 @@ export function ProductOrderDialog({ product, open, onOpenChange }: ProductOrder
                   )}
                 </div>
                 {displayProduct.description && (
-                  <DialogDescription className="text-[15px] leading-[1.7] text-muted-foreground">
+                  <DialogDescription className="text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-muted-foreground">
                     {displayProduct.description}
                   </DialogDescription>
                 )}
@@ -197,7 +197,7 @@ export function ProductOrderDialog({ product, open, onOpenChange }: ProductOrder
                 </div>
                 <Button
                   onClick={handleAddToCart}
-                  className="h-11 flex-1 rounded-full bg-brand text-[15px] font-normal text-white hover:bg-brand-dark"
+                  className="h-11 flex-1 rounded-full bg-brand text-[15px] lg:text-[17px] 2xl:text-[19px] font-normal text-white hover:bg-brand-dark"
                 >
                   Add to cart · {currency}
                   {calculateTotal().toFixed(2)}

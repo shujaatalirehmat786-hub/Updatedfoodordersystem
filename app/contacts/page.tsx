@@ -56,7 +56,7 @@ export default function ContactsPage() {
         />
 
         {/* Contact details */}
-        <section className="bg-background py-16 lg:py-24">
+        <section className="bg-background py-16 lg:py-28 2xl:py-32">
           <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
             {contactCards.length > 0 ? (
               <div className="mx-auto flex max-w-5xl flex-wrap justify-center gap-7">
@@ -75,12 +75,12 @@ export default function ContactsPage() {
                     {href ? (
                       <a
                         href={href}
-                        className="mt-4 block text-[15px] leading-[1.7] text-ink-soft transition-colors hover:text-brand dark:text-foreground/75"
+                        className="mt-4 block text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-ink-soft transition-colors hover:text-brand dark:text-foreground/75"
                       >
                         {value}
                       </a>
                     ) : (
-                      <p className="mt-4 text-[15px] leading-[1.7] text-ink-soft dark:text-foreground/75">{value}</p>
+                      <p className="mt-4 text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-ink-soft dark:text-foreground/75">{value}</p>
                     )}
                   </article>
                 ))}
@@ -115,7 +115,7 @@ export default function ContactsPage() {
 
         {/* Opening hours + map */}
         {(businessHours.length > 0 || mapQuery) && (
-          <section className="surface-paper py-16 lg:py-24">
+          <section className="surface-paper py-16 lg:py-28 2xl:py-32">
             <div className="mx-auto grid max-w-[1560px] gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-10">
               {businessHours.length > 0 && (
                 <div>
@@ -132,7 +132,7 @@ export default function ContactsPage() {
                           {slot.day}
                         </span>
                         <span
-                          className={`text-[15px] ${
+                          className={`text-[15px] lg:text-[17px] 2xl:text-[19px] ${
                             slot.isOpen ? "text-ink-soft dark:text-foreground/75" : "text-muted-foreground"
                           }`}
                         >

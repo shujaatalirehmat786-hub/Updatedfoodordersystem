@@ -341,11 +341,11 @@ function HomePageContent() {
             <div className="max-w-2xl">
               {storeName && <Eyebrow>{storeName}</Eyebrow>}
 
-              <h1 className="display-heading mt-6 text-[40px] text-ink sm:text-[56px] lg:text-[72px] dark:text-foreground">
+              <h1 className="display-heading mt-6 text-[40px] text-ink sm:text-[56px] lg:text-[88px] 2xl:text-[100px] dark:text-foreground">
                 {storyHeadline || "Bold flavors. Freshly made."}
               </h1>
 
-              <p className="mt-7 max-w-xl text-[15px] leading-[1.75] text-ink-soft sm:text-base dark:text-foreground/75">
+              <p className="mt-7 max-w-xl text-[15px] lg:text-[19px] 2xl:text-[21px] leading-[1.75] text-ink-soft sm:text-base dark:text-foreground/75">
                 {storyBody ||
                   (storyHeadline ? null : aboutText) ||
                   `Browse the full menu${storeName ? ` from ${storeName}` : ""} and order online — every dish, price and category comes straight from the kitchen.`}
@@ -354,13 +354,13 @@ function HomePageContent() {
               <div className="mt-10 flex flex-wrap items-center gap-4">
                 <Link
                   href="/categories"
-                  className="rounded-full bg-brand px-10 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark sm:text-base"
+                  className="rounded-full bg-brand px-10 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark sm:text-base"
                 >
                   Order Now
                 </Link>
                 <Link
                   href="/categories"
-                  className="rounded-full border border-brand bg-white px-10 py-4 text-[15px] text-ink transition-colors hover:bg-brand hover:text-white sm:text-base"
+                  className="rounded-full border border-brand bg-white px-10 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink transition-colors hover:bg-brand hover:text-white sm:text-base"
                 >
                   Explore Menu
                 </Link>
@@ -379,14 +379,14 @@ function HomePageContent() {
 
         {/* -------------------------------------------------- Category carousel */}
         {departments.length > 0 && (
-          <section className="bg-background py-16 lg:py-24">
+          <section className="bg-background py-16 lg:py-28 2xl:py-32">
             <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
               <div className="flex flex-col items-center text-center">
                 <Eyebrow centered>What are you craving?</Eyebrow>
                 <h2 className="display-heading mt-5 text-[30px] text-ink sm:text-[42px] lg:text-[52px] dark:text-foreground">
                   Something delicious is waiting.
                 </h2>
-                <p className="mt-4 text-[15px] text-ink-soft dark:text-foreground/70">
+                <p className="mt-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft dark:text-foreground/70">
                   Browse {departments.length} {departments.length === 1 ? "category" : "categories"} of freshly
                   prepared dishes{storeName ? ` from ${storeName}` : ""}
                 </p>
@@ -410,7 +410,7 @@ function HomePageContent() {
                             className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
                           />
                         </div>
-                        <h3 className="mt-5 line-clamp-2 flex min-h-[2.4em] items-center justify-center font-display text-[20px] font-semibold uppercase leading-[1.2] tracking-wide text-ink transition-colors group-hover:text-brand sm:text-[24px] dark:text-foreground">
+                        <h3 className="mt-5 line-clamp-2 flex min-h-[2.4em] items-center justify-center font-display text-[20px] font-semibold uppercase leading-[1.2] tracking-wide text-ink transition-colors group-hover:text-brand sm:text-[24px] 2xl:text-[26px] dark:text-foreground">
                           {department.name}
                         </h3>
                         <p className="mt-1 text-[14px] text-muted-foreground">
@@ -427,7 +427,7 @@ function HomePageContent() {
 
         {/* ------------------------------------------------------- Favourites */}
         {favourites.length > 0 && (
-          <section className="surface-paper py-16 lg:py-24">
+          <section className="surface-paper py-16 lg:py-28 2xl:py-32">
             <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
               <div className="grid gap-8 lg:grid-cols-[1fr_0.75fr] lg:items-end">
                 <div>
@@ -436,7 +436,7 @@ function HomePageContent() {
                     The dishes everyone comes back for.
                   </h2>
                 </div>
-                <p className="text-[15px] leading-[1.7] text-ink-soft lg:pb-3 dark:text-foreground/70">
+                <p className="text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-ink-soft lg:pb-3 dark:text-foreground/70">
                   A selection of flavorful favorites made for sharing, enjoying, and coming back for.
                 </p>
               </div>
@@ -461,7 +461,7 @@ function HomePageContent() {
         )}
 
         {/* ------------------------------------------------------ Feature band 1 */}
-        <section className="bg-background py-14 lg:py-20">
+        <section className="bg-background py-14 lg:py-28 2xl:py-32 2xl:py-28">
           <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
             <div className="relative overflow-hidden rounded-[4px] bg-ink">
               <img
@@ -471,18 +471,18 @@ function HomePageContent() {
                 className="absolute inset-0 h-full w-full object-cover opacity-60"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent" />
-              <div className="relative max-w-2xl px-6 py-16 sm:px-12 lg:px-16 lg:py-24">
+              <div className="relative max-w-2xl px-6 py-16 sm:px-12 lg:px-16 lg:py-28 2xl:py-32">
                 <Eyebrow tone="light">Made for sharing</Eyebrow>
                 <h2 className="mt-5 font-display text-[30px] font-medium leading-tight text-white sm:text-[40px] lg:text-[48px]">
                   Bring everyone to the table.
                 </h2>
-                <p className="mt-5 max-w-lg text-[15px] leading-[1.7] text-white/85">
+                <p className="mt-5 max-w-lg text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-white/85">
                   From family favorites to generous biryani and pulav portions, make your next meal something everyone
                   can enjoy.
                 </p>
                 <Link
                   href="/categories"
-                  className="mt-9 inline-flex items-center gap-3 rounded-full bg-white px-8 py-4 text-[15px] text-ink transition-colors hover:bg-brand hover:text-white"
+                  className="mt-9 inline-flex items-center gap-3 rounded-full bg-white px-8 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink transition-colors hover:bg-brand hover:text-white"
                 >
                   Explore Family Favorites
                   <ArrowRight className="h-4 w-4" />
@@ -493,14 +493,14 @@ function HomePageContent() {
         </section>
 
         {/* ------------------------------------------------------------ Menu */}
-        <section className="surface-paper py-16 lg:py-24">
+        <section className="surface-paper py-16 lg:py-28 2xl:py-32">
           <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
             <div className="flex flex-col items-center text-center">
               <Eyebrow centered>Explore our menu</Eyebrow>
               <h2 className="display-heading mt-5 max-w-4xl text-[30px] text-ink sm:text-[42px] lg:text-[52px] dark:text-foreground">
                 From breakfast to dinner, there's something for everyone.
               </h2>
-              <p className="mt-5 max-w-xl text-[15px] leading-[1.7] text-ink-soft dark:text-foreground/70">
+              <p className="mt-5 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-ink-soft dark:text-foreground/70">
                 A selection of flavorful favorites made for sharing, enjoying, and coming back for.
               </p>
             </div>
@@ -510,7 +510,7 @@ function HomePageContent() {
                 <button
                   type="button"
                   onClick={() => setSelectedDepartment("")}
-                  className={`shrink-0 rounded-full border px-6 py-3 text-[15px] transition-colors ${
+                  className={`shrink-0 rounded-full border px-6 py-3 text-[15px] lg:text-[17px] 2xl:text-[19px] transition-colors ${
                     selectedDepartment === ""
                       ? "border-brand bg-brand text-white"
                       : "border-ink/20 bg-transparent text-ink hover:border-brand hover:text-brand dark:border-foreground/25 dark:text-foreground"
@@ -523,7 +523,7 @@ function HomePageContent() {
                     key={department._id}
                     type="button"
                     onClick={() => setSelectedDepartment(department._id)}
-                    className={`shrink-0 rounded-full border px-6 py-3 text-[15px] transition-colors ${
+                    className={`shrink-0 rounded-full border px-6 py-3 text-[15px] lg:text-[17px] 2xl:text-[19px] transition-colors ${
                       selectedDepartment === department._id
                         ? "border-brand bg-brand text-white"
                         : "border-ink/20 bg-transparent text-ink hover:border-brand hover:text-brand dark:border-foreground/25 dark:text-foreground"
@@ -558,7 +558,7 @@ function HomePageContent() {
             <div className="mt-14 flex justify-center">
               <Link
                 href="/categories"
-                className="rounded-full bg-brand px-10 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                className="rounded-full bg-brand px-10 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
               >
                 View Full Menu
               </Link>
@@ -568,7 +568,7 @@ function HomePageContent() {
 
         {/* ------------------------------------------------- Department spotlight */}
         {spotlight && spotlightProducts.length > 0 && (
-          <section className="bg-background py-16 lg:py-24">
+          <section className="bg-background py-16 lg:py-28 2xl:py-32">
             <div className="mx-auto grid max-w-[1560px] items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-20 lg:px-10">
               <img
                 src={spotlightImage}
@@ -581,7 +581,7 @@ function HomePageContent() {
                 <h2 className="display-heading mt-5 text-[30px] text-ink sm:text-[40px] lg:text-[50px] dark:text-foreground">
                   {spotlight.name}
                 </h2>
-                <p className="mt-5 max-w-xl text-[15px] leading-[1.7] text-ink-soft dark:text-foreground/70">
+                <p className="mt-5 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-ink-soft dark:text-foreground/70">
                   {spotlight.description ||
                     `Freshly prepared ${spotlight.name.toLowerCase()} from our kitchen, made to order every day.`}
                 </p>
@@ -607,7 +607,7 @@ function HomePageContent() {
 
                 <Link
                   href={`/categories?category=${spotlight._id}`}
-                  className="mt-10 inline-block rounded-full bg-brand px-9 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                  className="mt-10 inline-block rounded-full bg-brand px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
                 >
                   Explore {spotlight.name}
                 </Link>
@@ -618,7 +618,7 @@ function HomePageContent() {
 
         {/* ------------------------------------------------------ Feature band 2 */}
         {secondary && secondaryProducts.length > 0 && (
-          <section className="bg-background pb-16 lg:pb-24">
+          <section className="bg-background pb-16 lg:pb-28 2xl:pb-32">
             <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
               <div className="relative overflow-hidden rounded-[4px] bg-ink">
                 <img
@@ -628,14 +628,14 @@ function HomePageContent() {
                   className="absolute inset-0 h-full w-full object-cover opacity-60"
                 />
                 <div className="absolute inset-0 bg-black/40" />
-                <div className="relative flex flex-col items-center px-6 py-16 text-center sm:px-12 lg:py-24">
+                <div className="relative flex flex-col items-center px-6 py-16 text-center sm:px-12 lg:py-28 2xl:py-32">
                   <Eyebrow centered tone="light">
                     Signature {secondary.name}
                   </Eyebrow>
                   <h2 className="mt-5 max-w-3xl font-display text-[30px] font-medium leading-tight text-white sm:text-[40px] lg:text-[48px]">
                     Layered with flavor. Finished with tradition.
                   </h2>
-                  <p className="mt-5 max-w-2xl text-[15px] leading-[1.7] text-white/85">
+                  <p className="mt-5 max-w-2xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-white/85">
                     {secondary.description ||
                       "Carefully selected ingredients and traditional spices come together in every dish we prepare."}
                   </p>
@@ -645,7 +645,7 @@ function HomePageContent() {
                       <Link
                         key={product._id}
                         href={`/product/${product._id}`}
-                        className="rounded-full border border-white/60 px-7 py-3.5 text-[15px] text-white transition-colors hover:border-white hover:bg-white hover:text-ink"
+                        className="rounded-full border border-white/60 px-7 py-3.5 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:border-white hover:bg-white hover:text-ink"
                       >
                         {product.name}
                       </Link>
@@ -658,20 +658,20 @@ function HomePageContent() {
         )}
 
         {/* ------------------------------------------------------------- Story */}
-        <section className="bg-background pb-16 lg:pb-24">
+        <section className="bg-background pb-16 lg:pb-28 2xl:pb-32">
           <div className="mx-auto grid max-w-[1560px] items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-20 lg:px-10">
             <div>
               <Eyebrow>Our story</Eyebrow>
               <h2 className="display-heading mt-5 text-[30px] text-ink sm:text-[40px] lg:text-[48px] dark:text-foreground">
                 {displayStoreName ? `A taste of ${displayStoreName}, made to feel like home.` : "Made to feel like home."}
               </h2>
-              <p className="mt-6 max-w-xl text-[15px] leading-[1.8] text-ink-soft dark:text-foreground/70">
+              <p className="mt-6 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.8] text-ink-soft dark:text-foreground/70">
                 {aboutText ||
                   `Every dish on this menu is prepared to order${storeName ? ` at ${storeName}` : ""}, with the full selection, pricing and categories published straight from the kitchen.`}
               </p>
               <Link
                 href="/about"
-                className="mt-9 inline-block rounded-full bg-brand px-9 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                className="mt-9 inline-block rounded-full bg-brand px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
               >
                 Read Our Story
               </Link>
@@ -687,7 +687,7 @@ function HomePageContent() {
         </section>
 
         {/* ------------------------------------------------------ From our kitchen */}
-        <section className="surface-paper py-16 lg:py-24">
+        <section className="surface-paper py-16 lg:py-28 2xl:py-32">
           <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
             <div className="flex flex-col items-center text-center">
               <Eyebrow centered>From our kitchen</Eyebrow>
@@ -712,14 +712,14 @@ function HomePageContent() {
         </section>
 
         {/* ------------------------------------------------------ Testimonials */}
-        <section className="bg-background py-16 lg:py-24">
+        <section className="bg-background py-16 lg:py-28 2xl:py-32">
           <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
             <div className="flex flex-col items-center text-center">
               <Eyebrow centered>Testimonial</Eyebrow>
               <h2 className="display-heading mt-5 text-[30px] text-ink sm:text-[42px] lg:text-[50px] dark:text-foreground">
                 What our guests say
               </h2>
-              <p className="mt-4 max-w-xl text-[15px] leading-[1.7] text-ink-soft dark:text-foreground/70">
+              <p className="mt-4 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-ink-soft dark:text-foreground/70">
                 From comforting classics to bold Indian flavors, see why our guests keep coming back.
               </p>
             </div>
@@ -739,7 +739,7 @@ function HomePageContent() {
                   <div className="mt-3">
                     <Stars rating={testimonial.rating} />
                   </div>
-                  <p className="mt-5 flex-1 text-[15px] leading-[1.75] text-ink-soft/80 dark:text-foreground/70">
+                  <p className="mt-5 flex-1 text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.75] text-ink-soft/80 dark:text-foreground/70">
                     “{testimonial.quote}”
                   </p>
                   <div className="mt-7 h-px w-full bg-line dark:bg-border" />
@@ -756,7 +756,7 @@ function HomePageContent() {
         </section>
 
         {/* -------------------------------------------------------- Closing band */}
-        <section className="bg-background pb-16 lg:pb-24">
+        <section className="bg-background pb-16 lg:pb-28 2xl:pb-32">
           <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
             <div className="relative overflow-hidden rounded-[4px] bg-ink">
               <img
@@ -766,20 +766,20 @@ function HomePageContent() {
                 className="absolute inset-0 h-full w-full object-cover opacity-60"
               />
               <div className="absolute inset-0 bg-black/45" />
-              <div className="relative flex flex-col items-center px-6 py-16 text-center sm:px-12 lg:py-24">
+              <div className="relative flex flex-col items-center px-6 py-16 text-center sm:px-12 lg:py-28 2xl:py-32">
                 <Eyebrow centered tone="light">
                   Ready when you are
                 </Eyebrow>
                 <h2 className="mt-5 max-w-4xl font-display text-[30px] font-medium leading-tight text-white sm:text-[40px] lg:text-[50px]">
                   Something delicious is coming your way.
                 </h2>
-                <p className="mt-5 max-w-2xl text-[15px] leading-[1.7] text-white/85">
+                <p className="mt-5 max-w-2xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-white/85">
                   Browse the menu, build your order and check out in a few taps
                   {storeName ? ` at ${storeName}.` : "."}
                 </p>
                 <Link
                   href="/categories"
-                  className="mt-9 inline-flex items-center gap-3 rounded-full bg-brand px-9 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                  className="mt-9 inline-flex items-center gap-3 rounded-full bg-brand px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
                 >
                   Start Your Order
                   <ArrowUpRight className="h-4 w-4" />

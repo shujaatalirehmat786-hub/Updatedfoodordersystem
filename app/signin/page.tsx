@@ -173,7 +173,7 @@ function SignInContent() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="surface-paper py-16 lg:py-24">
+      <main className="surface-paper py-16 lg:py-28 2xl:py-32">
         <div className="mx-auto w-full max-w-[460px] px-4 sm:px-6">
           {/* Sign-in card */}
           <div className="rounded-[20px] bg-card p-8 shadow-[0_18px_50px_rgba(17,17,17,0.08)] sm:p-10">
@@ -287,7 +287,7 @@ function SignInContent() {
                 <button
                   type="button"
                   onClick={() => switchMode(mode === "new" ? "existing" : "new")}
-                  className="mt-6 inline-flex items-center gap-2.5 rounded-full bg-brand px-8 py-3.5 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                  className="mt-6 inline-flex items-center gap-2.5 rounded-full bg-brand px-8 py-3.5 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
                 >
                   {mode === "new" ? "Sign In" : "Create An Account"}
                   <ArrowRight className="h-4 w-4" />

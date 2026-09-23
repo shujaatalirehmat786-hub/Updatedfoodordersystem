@@ -178,7 +178,7 @@
 
   /* Eyebrow label: orange uppercase caption flanked by hairlines. */
   .eyebrow {
-    @apply inline-flex items-center gap-4 text-xs font-normal uppercase tracking-[0.12em] text-brand sm:text-sm;
+    @apply inline-flex items-center gap-4 text-xs font-normal uppercase tracking-[0.12em] text-brand sm:text-sm lg:text-[16px] 2xl:text-[17px];
   }
 
   .eyebrow::after {

@@ -74,11 +74,11 @@ export function Footer() {
           </h2>
           <div className="space-y-7">
             {storeDescription && (
-              <p className="max-w-xl text-[15px] leading-[1.75] text-white/75">{storeDescription}</p>
+              <p className="max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.75] text-white/75">{storeDescription}</p>
             )}
             <Link
               href="/categories"
-              className="inline-flex items-center gap-3 rounded-full bg-white px-7 py-3.5 text-[15px] text-ink transition-colors hover:bg-brand hover:text-white"
+              className="inline-flex items-center gap-3 rounded-full bg-white px-7 py-3.5 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink transition-colors hover:bg-brand hover:text-white"
             >
               Order Now
               <ArrowUpRight className="h-4 w-4" />
@@ -99,7 +99,7 @@ export function Footer() {
               )}
             </Link>
             {storeDescription && (
-              <p className="mt-6 max-w-sm text-[15px] leading-[1.7] text-white/75">{storeDescription}</p>
+              <p className="mt-6 max-w-sm text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-white/75">{storeDescription}</p>
             )}
 
             {socialItems.length > 0 && (
@@ -125,7 +125,7 @@ export function Footer() {
 
           <div className="lg:border-l lg:border-dotted lg:border-white/30 lg:pl-10">
             <h3 className="font-display text-2xl font-medium">Quick Links:</h3>
-            <ul className="mt-5 space-y-3 text-[15px] text-white/80">
+            <ul className="mt-5 space-y-3 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white/80">
               <li>
                 <Link href="/" className="transition-colors hover:text-brand">
                   Home
@@ -152,7 +152,7 @@ export function Footer() {
           <div className="lg:border-l lg:border-dotted lg:border-white/30 lg:pl-10">
             <h3 className="font-display text-2xl font-medium">Our Menu</h3>
             {departments.length > 0 ? (
-              <ul className="mt-5 space-y-3 text-[15px] text-white/80">
+              <ul className="mt-5 space-y-3 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white/80">
                 {departments.slice(0, 8).map((department) => (
                   <li key={department._id}>
                     <Link
@@ -165,7 +165,7 @@ export function Footer() {
                 ))}
               </ul>
             ) : (
-              <p className="mt-5 text-[15px] text-white/50">Menu categories load from the store.</p>
+              <p className="mt-5 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white/50">Menu categories load from the store.</p>
             )}
           </div>
 
@@ -179,17 +179,17 @@ export function Footer() {
                       <Icon className="h-[17px] w-[17px]" />
                     </span>
                     {href ? (
-                      <a href={href} className="text-[15px] leading-[1.6] text-white/80 transition-colors hover:text-brand">
+                      <a href={href} className="text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.6] text-white/80 transition-colors hover:text-brand">
                         {value}
                       </a>
                     ) : (
-                      <span className="text-[15px] leading-[1.6] text-white/80">{value}</span>
+                      <span className="text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.6] text-white/80">{value}</span>
                     )}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="mt-5 text-[15px] text-white/50">Contact details load from the store.</p>
+              <p className="mt-5 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white/50">Contact details load from the store.</p>
             )}
           </div>
         </div>

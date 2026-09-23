@@ -71,11 +71,11 @@ export default function AboutPage() {
               <span className="eyebrow">Our story</span>
 
               <h1 className="display-heading mt-6 text-ink dark:text-foreground">
-                <span className="block text-[38px] sm:text-[54px] lg:text-[66px]">Authentic flavors.</span>
-                <span className="mt-1 block text-[30px] sm:text-[42px] lg:text-[50px]">A story worth sharing.</span>
+                <span className="block text-[38px] sm:text-[54px] lg:text-[70px] 2xl:text-[78px]">Authentic flavors.</span>
+                <span className="mt-1 block text-[30px] sm:text-[42px] lg:text-[53px] 2xl:text-[58px]">A story worth sharing.</span>
               </h1>
 
-              <p className="mt-7 max-w-xl text-[15px] leading-[1.75] text-ink-soft sm:text-base dark:text-foreground/75">
+              <p className="mt-7 max-w-xl text-[15px] lg:text-[19px] 2xl:text-[21px] leading-[1.75] text-ink-soft sm:text-base dark:text-foreground/75">
                 From traditional recipes to every carefully prepared dish, discover what makes
                 {proseStoreName ? ` ${proseStoreName}` : " this kitchen"} special.
               </p>
@@ -93,7 +93,7 @@ export default function AboutPage() {
         </section>
 
         {/* ------------------------------------------------------ A family kitchen */}
-        <section className="bg-background py-16 lg:py-24">
+        <section className="bg-background py-16 lg:py-28 2xl:py-32">
           <div className="mx-auto grid max-w-[1560px] items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-20 lg:px-10">
             <img
               src="/savera/story.jpg"
@@ -109,12 +109,12 @@ export default function AboutPage() {
                 A family kitchen, brought to Texas.
               </h2>
 
-              <p className="mt-7 max-w-xl text-[15px] leading-[1.8] text-ink-soft/80 dark:text-foreground/70">
+              <p className="mt-7 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.8] text-ink-soft/80 dark:text-foreground/70">
                 {aboutText ||
                   `${proseStoreName || "This kitchen"} started with a simple idea — bring the flavors of home to the table, exactly as they've been made for generations. Recipes passed down through family, regional specialties from across India, and the kind of slow-cooked care that can't be rushed.`}
               </p>
 
-              <p className="mt-6 max-w-xl text-[15px] leading-[1.8] text-ink-soft/80 dark:text-foreground/70">
+              <p className="mt-6 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.8] text-ink-soft/80 dark:text-foreground/70">
                 What began as cooking for family and friends grew into a kitchen built to share those same flavors with
                 all of Irving.
               </p>
@@ -133,7 +133,7 @@ export default function AboutPage() {
         </section>
 
         {/* ------------------------------------------------------ What we believe */}
-        <section className="surface-paper py-16 lg:py-24">
+        <section className="surface-paper py-16 lg:py-28 2xl:py-32">
           <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
             <div className="flex flex-col items-center text-center">
               <span className="eyebrow eyebrow-center">What we believe</span>
@@ -178,7 +178,7 @@ export default function AboutPage() {
         </section>
 
         {/* ------------------------------------------------------------ CTA band */}
-        <section className="bg-background pb-16 lg:pb-24">
+        <section className="bg-background pb-16 lg:pb-28 2xl:pb-32">
           <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
             <div className="relative overflow-hidden bg-ink">
               <img
@@ -189,21 +189,21 @@ export default function AboutPage() {
               />
               <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent" />
 
-              <div className="relative max-w-2xl px-6 py-16 sm:px-12 lg:px-16 lg:py-24">
+              <div className="relative max-w-2xl px-6 py-16 sm:px-12 lg:px-16 lg:py-28 2xl:py-32">
                 <span className="eyebrow eyebrow-light normal-case">Come taste the story</span>
 
                 <h2 className="mt-5 font-display text-[28px] font-medium leading-[1.15] text-white sm:text-[40px] lg:text-[48px]">
                   Bring the taste of authentic Indian cooking home
                 </h2>
 
-                <p className="mt-6 max-w-lg text-[15px] leading-[1.7] text-white/85">
+                <p className="mt-6 max-w-lg text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-white/85">
                   From authentic Indian classics to generous family favorites, enjoy freshly prepared dishes made with
                   bold flavors.
                 </p>
 
                 <Link
                   href="/categories"
-                  className="mt-9 inline-flex items-center gap-3 rounded-full bg-white px-9 py-4 text-[15px] text-ink-soft transition-colors hover:bg-brand hover:text-white"
+                  className="mt-9 inline-flex items-center gap-3 rounded-full bg-white px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft transition-colors hover:bg-brand hover:text-white"
                 >
                   Order Now
                   <ArrowUpRight className="h-4 w-4" />

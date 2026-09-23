@@ -112,13 +112,13 @@ export default function OrdersPage() {
               <Package className="h-8 w-8" />
             </span>
             <h2 className="display-heading mt-8 text-[28px] text-ink dark:text-foreground">No orders yet</h2>
-            <p className="mt-4 text-[15px] text-muted-foreground">
+            <p className="mt-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-muted-foreground">
               Your completed orders will appear here.
             </p>
             <button
               type="button"
               onClick={() => router.push("/categories")}
-              className="mt-8 rounded-full bg-brand px-9 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
+              className="mt-8 rounded-full bg-brand px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
             >
               Browse the Menu
             </button>

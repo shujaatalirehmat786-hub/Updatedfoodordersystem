@@ -207,10 +207,10 @@ export default function ProductDetailPage() {
         <Header />
         <div className="mx-auto max-w-[1560px] px-4 py-32 text-center sm:px-6 lg:px-10">
           <h1 className="display-heading text-[32px] text-ink dark:text-foreground">Dish not found</h1>
-          <p className="mt-4 text-[15px] text-muted-foreground">This item is no longer on the menu.</p>
+          <p className="mt-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-muted-foreground">This item is no longer on the menu.</p>
           <Link
             href="/categories"
-            className="mt-8 inline-block rounded-full bg-brand px-9 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
+            className="mt-8 inline-block rounded-full bg-brand px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
           >
             Back to the menu
           </Link>
@@ -237,7 +237,7 @@ export default function ProductDetailPage() {
             <button
               type="button"
               onClick={() => router.back()}
-              className="mb-8 inline-flex items-center gap-2 text-[15px] text-ink-soft transition-colors hover:text-brand dark:text-foreground/70"
+              className="mb-8 inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft transition-colors hover:text-brand dark:text-foreground/70"
             >
               <ArrowLeft className="h-4 w-4" />
               Back
@@ -257,7 +257,7 @@ export default function ProductDetailPage() {
 
                 <div className="mt-4 flex items-center gap-4">
                   {orders > 0 && (
-                    <span className="text-[15px] text-ink-soft dark:text-foreground/70">
+                    <span className="text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft dark:text-foreground/70">
                       {orders.toLocaleString()} {orders === 1 ? "order" : "orders"} placed
                     </span>
                   )}
@@ -272,7 +272,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {product.description && (
-                  <p className="mt-5 max-w-xl text-[15px] leading-[1.75] text-ink-soft dark:text-foreground/75">
+                  <p className="mt-5 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.75] text-ink-soft dark:text-foreground/75">
                     {product.description}
                   </p>
                 )}
@@ -310,7 +310,7 @@ export default function ProductDetailPage() {
                               type="button"
                               aria-pressed={active}
                               onClick={() => toggleModifier(group, index, id)}
-                              className={`rounded-full border px-6 py-3 text-[15px] transition-colors ${
+                              className={`rounded-full border px-6 py-3 text-[15px] lg:text-[17px] 2xl:text-[19px] transition-colors ${
                                 active
                                   ? "border-brand bg-brand-soft text-brand"
                                   : "border-line text-ink hover:border-brand hover:text-brand dark:border-border dark:text-foreground"
@@ -374,16 +374,16 @@ export default function ProductDetailPage() {
 
         {/* -------------------------------------------------------- Description */}
         {product.description && (
-          <section className="surface-paper pb-16 lg:pb-20">
+          <section className="surface-paper pb-16 lg:pb-24 2xl:pb-28">
             <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
               <div className="flex items-center gap-3">
                 <FileText className="h-5 w-5 text-brand" />
-                <h2 className="font-sans text-[15px] font-semibold uppercase tracking-[0.08em] text-brand">
+                <h2 className="font-sans text-[15px] lg:text-[17px] 2xl:text-[19px] font-semibold uppercase tracking-[0.08em] text-brand">
                   Description
                 </h2>
               </div>
               <div className="mt-5 h-px w-full bg-line dark:bg-border" />
-              <p className="mt-7 max-w-5xl text-[15px] leading-[1.9] text-ink-soft dark:text-foreground/75">
+              <p className="mt-7 max-w-5xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.9] text-ink-soft dark:text-foreground/75">
                 {product.description}
               </p>
             </div>
@@ -391,7 +391,7 @@ export default function ProductDetailPage() {
         )}
 
         {/* ------------------------------------------------------ About this dish */}
-        <section className="bg-background py-16 lg:py-24">
+        <section className="bg-background py-16 lg:py-28 2xl:py-32">
           <div className="mx-auto grid max-w-[1560px] items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-20 lg:px-10">
             <img src={productImage} alt={product.name} className="aspect-[4/3] w-full object-cover" />
 
@@ -400,18 +400,18 @@ export default function ProductDetailPage() {
               <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[38px] lg:text-[44px] dark:text-foreground">
                 About this dish
               </h2>
-              <p className="mt-6 max-w-xl text-[15px] leading-[1.8] text-ink-soft dark:text-foreground/70">
+              <p className="mt-6 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.8] text-ink-soft dark:text-foreground/70">
                 {product.name} is prepared to order in our kitchen, using fresh ingredients and the spice blends this
                 menu is built on.
               </p>
-              <p className="mt-4 max-w-xl text-[15px] leading-[1.8] text-ink-soft dark:text-foreground/70">
+              <p className="mt-4 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.8] text-ink-soft dark:text-foreground/70">
                 Every plate is made when you order it, so it reaches you exactly the way it leaves the kitchen.
               </p>
 
               {departmentId && (
                 <Link
                   href={`/categories?category=${departmentId}`}
-                  className="mt-9 inline-flex items-center gap-3 rounded-full bg-brand px-9 py-4 text-[15px] text-white transition-colors hover:bg-brand-dark"
+                  className="mt-9 inline-flex items-center gap-3 rounded-full bg-brand px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
                 >
                   Read More
                   <ArrowRight className="h-4 w-4" />
@@ -423,7 +423,7 @@ export default function ProductDetailPage() {
 
         {/* ----------------------------------------------------- You might also like */}
         {related.length > 0 && (
-          <section className="surface-paper py-16 lg:py-20">
+          <section className="surface-paper py-16 lg:py-28 2xl:py-32 2xl:py-28">
             <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
               <div className="grid gap-8 lg:grid-cols-[1fr_0.75fr] lg:items-end">
                 <div>
@@ -432,7 +432,7 @@ export default function ProductDetailPage() {
                     You might also like
                   </h2>
                 </div>
-                <p className="text-[15px] leading-[1.7] text-ink-soft lg:pb-3 dark:text-foreground/70">
+                <p className="text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-ink-soft lg:pb-3 dark:text-foreground/70">
                   Discover more dishes selected based on your current choice.
                 </p>
               </div>
@@ -454,7 +454,7 @@ export default function ProductDetailPage() {
         )}
 
         {/* ------------------------------------------------------------ CTA band */}
-        <section className="bg-background py-16 lg:py-24">
+        <section className="bg-background py-16 lg:py-28 2xl:py-32">
           <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
             <div className="relative overflow-hidden bg-ink">
               <img
@@ -465,27 +465,27 @@ export default function ProductDetailPage() {
               />
               <div className="absolute inset-0 bg-black/45" />
 
-              <div className="relative flex flex-col items-center px-6 py-16 text-center sm:px-12 lg:py-24">
+              <div className="relative flex flex-col items-center px-6 py-16 text-center sm:px-12 lg:py-28 2xl:py-32">
                 <span className="eyebrow eyebrow-center eyebrow-light normal-case">Ready to order?</span>
 
                 <h2 className="display-heading mt-5 max-w-5xl text-[28px] text-white sm:text-[40px] lg:text-[46px]">
                   Your favorite flavors are waiting.
                 </h2>
 
-                <p className="mt-5 max-w-2xl text-[15px] leading-[1.7] text-white/85">
+                <p className="mt-5 max-w-2xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-white/85">
                   Choose your favorites, customize your order, and enjoy freshly prepared Indian food.
                 </p>
 
                 <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
                   <Link
                     href="/categories"
-                    className="rounded-full bg-white px-9 py-4 text-[15px] text-ink transition-colors hover:bg-brand hover:text-white"
+                    className="rounded-full bg-white px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink transition-colors hover:bg-brand hover:text-white"
                   >
                     Start Your Order
                   </Link>
                   <Link
                     href="/"
-                    className="rounded-full border border-white/60 px-9 py-4 text-[15px] text-white transition-colors hover:border-white hover:bg-white hover:text-ink"
+                    className="rounded-full border border-white/60 px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:border-white hover:bg-white hover:text-ink"
                   >
                     View Categories
                   </Link>
