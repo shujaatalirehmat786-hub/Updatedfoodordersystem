@@ -370,11 +370,15 @@ function CategoriesPageContent() {
       <main>
         {/* ---------------------------------------------------------------- Hero */}
         <section className="surface-paper relative overflow-hidden">
-          <img
-            src="/savera/hero-swoosh.svg"
-            alt=""
+          {/*
+            Orange sweep drawn with clip-path rather than a stretched SVG, so
+            the angle stays exact at any width. Band height and the left-edge
+            stop are measured from the Figma render of this page.
+          */}
+          <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-[38%] w-full select-none object-fill"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-[38.3%] bg-brand"
+            style={{ clipPath: "polygon(0 100%, 0 79.23%, 100% 0, 100% 100%)" }}
           />
 
           <div className="relative mx-auto grid max-w-[1560px] items-center gap-10 px-4 pb-28 pt-14 sm:px-6 lg:grid-cols-[1.12fr_0.88fr] lg:gap-10 lg:px-10 lg:pb-40 lg:pt-20">

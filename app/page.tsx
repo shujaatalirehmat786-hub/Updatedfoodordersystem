@@ -325,25 +325,16 @@ function HomePageContent() {
 
       <main>
         {/* ---------------------------------------------------------------- Hero */}
-        <section className="relative overflow-hidden bg-cream-light dark:bg-card">
+        <section className="surface-paper relative overflow-hidden">
           {/*
-            The design layers a paper texture at 40% over a solid #f8f4f0.
-            That composite is baked into one image, so the hero paints a single
-            backdrop instead of stacking a tiled texture over a fill.
+            Orange sweep drawn with clip-path rather than a stretched SVG, so
+            the angle stays exact at any width. Band height and the left-edge
+            stop are measured from the Figma render of this page.
           */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[url('/savera/hero-bg.jpg')] bg-cover bg-center dark:hidden"
-          />
-          {/*
-            The orange sweep is a four-point shape (Figma "Vector 1":
-            M0 477 V407.5 L1923 0 V477 Z). Drawing it with clip-path keeps the
-            angle exact at any width, where a stretched SVG skewed with it.
-          */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] bg-brand"
-            style={{ clipPath: "polygon(0 100%, 0 85.43%, 100% 0, 100% 100%)" }}
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-[45.7%] bg-brand"
+            style={{ clipPath: "polygon(0 100%, 0 85.26%, 100% 0, 100% 100%)" }}
           />
 
           <div className="relative mx-auto grid max-w-[1560px] items-center gap-10 px-4 pb-32 pt-14 sm:px-6 lg:grid-cols-[1fr_0.85fr] lg:gap-8 lg:px-10 lg:pb-44 lg:pt-20">
