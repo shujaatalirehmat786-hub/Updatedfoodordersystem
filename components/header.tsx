@@ -107,7 +107,7 @@ export function Header() {
         </div>
 
         {/* Main bar */}
-        <div className="surface-paper border-b border-line/70 dark:border-border">
+        <div className="surface-paper">
           <div className="mx-auto flex min-h-[76px] max-w-[1560px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
             <Link href="/" className="flex shrink-0 items-center gap-3">
               {storeLogo ? (

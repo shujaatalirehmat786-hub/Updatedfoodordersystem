@@ -159,9 +159,13 @@
 }
 
 @layer components {
-  /* Cream "paper" surface used behind several sections in the design. */
+  /*
+    Cream "paper" surface used behind several sections in the design.
+    paper-texture.jpg already has the design's 40% texture composited over
+    #f8f4f0, so it paints in one pass and matches the home hero's backdrop.
+  */
   .surface-paper {
-    background-color: var(--cream);
+    background-color: var(--cream-light);
     background-image: url("/savera/paper-texture.jpg");
     background-size: 720px auto;
     background-repeat: repeat;
