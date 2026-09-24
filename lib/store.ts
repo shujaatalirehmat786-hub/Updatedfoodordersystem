@@ -214,43 +214,99 @@ export function getStoreSlug(): string {
   return getActiveStoreSlug() || "savera"
 }
 
-export async function getStoreFromSubdomain(): Promise<Store | null> {
-  try {
-    if (typeof window !== "undefined") {
-      const subdomain = getStoreSlug()
-      const cachedStore = getActiveStore()
-      if (cachedStore && cachedStore.subdomain === subdomain) {
-        return cachedStore
-      }
+/** Slugs the backend has confirmed it does not serve, for this page load. */
+const slugsWithoutStore = new Set<string>()
 
-      const response = await api.store.getBySubdomainOptional(subdomain)
-      const storeData = response?.data || response
-      if (storeData) {
-        const fallbackStore = getKnownStore(subdomain) || cachedStore || DEFAULT_STORE
-        const normalizedStore = normalizeStorePayload(storeData, fallbackStore)
-        setActiveStore(normalizedStore)
-        return normalizedStore
-      }
+/** Lookups still in flight, so the header, footer and page share one request. */
+const storeLookups = new Map<string, Promise<Store | null>>()
 
-      const knownStore = getKnownStore(subdomain)
-      if (knownStore) {
-        setActiveStore(knownStore)
-        return knownStore
-      }
-
-      const fallbackStore = cachedStore || DEFAULT_STORE
-    setActiveStore(fallbackStore)
-    return fallbackStore
+async function lookupStoreBySlug(slug: string): Promise<Store | null> {
+  if (slugsWithoutStore.has(slug)) {
+    return null
   }
 
+  const pending = storeLookups.get(slug)
+  if (pending) {
+    return pending
+  }
+
+  const lookup = (async () => {
+    const response = await api.store.getBySubdomainOptional(slug)
+    const storeData = response?.data || response
+    if (!storeData) {
+      return null
+    }
+
+    return normalizeStorePayload(storeData, getKnownStore(slug) || getActiveStore() || DEFAULT_STORE)
+  })()
+
+  storeLookups.set(slug, lookup)
+  try {
+    return await lookup
+  } finally {
+    storeLookups.delete(slug)
+  }
+}
+
+/**
+ * Resolve the store for the address the browser is on.
+ *
+ * The first label of the hostname is read as a store slug, so
+ * savera.livedatanow.com serves Savera and real multi-store subdomains keep
+ * working. Most deployments are not shaped that way though — order.example.com,
+ * www.example.com, a project's own .vercel.app address — and the backend
+ * answers 404 for those. Without a second attempt the app fell back to a bare
+ * placeholder carrying nothing but an id and a name, so the live site lost its
+ * address, phone, logo, description and social links while still looking
+ * broadly right. Retry with the default slug in that case.
+ */
+export async function getStoreFromSubdomain(): Promise<Store | null> {
+  if (typeof window === "undefined") {
     return DEFAULT_STORE
+  }
+
+  try {
+    const subdomain = getStoreSlug()
+    // Once this hostname is known not to name a store, the cached default is
+    // the right answer for it — otherwise every caller on the page refetches,
+    // because the cached subdomain can never match the hostname.
+    const effectiveSlug = slugsWithoutStore.has(subdomain) ? DEFAULT_STORE.subdomain : subdomain
+    const cachedStore = getActiveStore()
+    if (cachedStore && cachedStore.subdomain === effectiveSlug) {
+      return cachedStore
+    }
+
+    const hostnameStore = await lookupStoreBySlug(subdomain)
+    if (hostnameStore) {
+      setActiveStore(hostnameStore)
+      return hostnameStore
+    }
+
+    const knownStore = getKnownStore(subdomain)
+    if (knownStore) {
+      setActiveStore(knownStore)
+      return knownStore
+    }
+
+    if (subdomain !== DEFAULT_STORE.subdomain) {
+      const defaultStore = await lookupStoreBySlug(DEFAULT_STORE.subdomain)
+      if (defaultStore) {
+        // The default slug answering proves the backend is reachable, so the
+        // miss on this hostname was a real 404 and not a blip worth retrying.
+        slugsWithoutStore.add(subdomain)
+        setActiveStore(defaultStore)
+        return defaultStore
+      }
+    }
+
+    const fallbackStore = cachedStore || DEFAULT_STORE
+    setActiveStore(fallbackStore)
+    return fallbackStore
   } catch (error) {
     console.error("[v0] Error in getStoreFromSubdomain:", error)
-    if (typeof window !== "undefined") {
-      const cachedStore = getActiveStore()
-      if (cachedStore) {
-        return cachedStore
-      }
+    const cachedStore = getActiveStore()
+    if (cachedStore) {
+      return cachedStore
     }
 
     return DEFAULT_STORE
