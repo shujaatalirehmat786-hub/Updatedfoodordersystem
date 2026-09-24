@@ -143,7 +143,7 @@ export function ProductOrderDialog({ product, open, onOpenChange }: ProductOrder
                   )}
                 </div>
                 {displayProduct.description && (
-                  <DialogDescription className="text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-muted-foreground">
+                  <DialogDescription className="text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.7] text-muted-foreground">
                     {displayProduct.description}
                   </DialogDescription>
                 )}

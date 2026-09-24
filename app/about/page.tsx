@@ -66,7 +66,7 @@ export default function AboutPage() {
             style={{ clipPath: "polygon(0 100%, 0 79.23%, 100% 0, 100% 100%)" }}
           />
 
-          <div className="relative mx-auto grid max-w-[1560px] items-center gap-10 px-4 pb-28 pt-14 sm:px-6 lg:grid-cols-[1.12fr_0.88fr] lg:gap-10 lg:px-10 lg:pb-40 lg:pt-20">
+          <div className="relative mx-auto grid max-w-[1600px] items-center gap-10 px-4 pb-28 pt-14 sm:px-6 lg:grid-cols-[1.12fr_0.88fr] lg:gap-10 lg:px-10 lg:pb-40 lg:pt-20">
             <div className="max-w-3xl">
               <span className="eyebrow">Our story</span>
 
@@ -94,7 +94,7 @@ export default function AboutPage() {
 
         {/* ------------------------------------------------------ A family kitchen */}
         <section className="bg-background py-16 lg:py-28 2xl:py-32">
-          <div className="mx-auto grid max-w-[1560px] items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-20 lg:px-10">
+          <div className="mx-auto grid max-w-[1600px] items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-20 lg:px-10">
             <img
               src="/savera/story.jpg"
               alt=""
@@ -105,16 +105,16 @@ export default function AboutPage() {
             <div>
               <span className="eyebrow">South Indian favorites</span>
 
-              <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[38px] lg:text-[46px] dark:text-foreground">
+              <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[38px] lg:text-[46px] 2xl:text-[50px] dark:text-foreground">
                 A family kitchen, brought to Texas.
               </h2>
 
-              <p className="mt-7 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.8] text-ink-soft/80 dark:text-foreground/70">
+              <p className="mt-7 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.8] text-ink-soft/80 dark:text-foreground/70">
                 {aboutText ||
                   `${proseStoreName || "This kitchen"} started with a simple idea — bring the flavors of home to the table, exactly as they've been made for generations. Recipes passed down through family, regional specialties from across India, and the kind of slow-cooked care that can't be rushed.`}
               </p>
 
-              <p className="mt-6 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.8] text-ink-soft/80 dark:text-foreground/70">
+              <p className="mt-6 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.8] text-ink-soft/80 dark:text-foreground/70">
                 What began as cooking for family and friends grew into a kitchen built to share those same flavors with
                 all of Irving.
               </p>
@@ -134,10 +134,10 @@ export default function AboutPage() {
 
         {/* ------------------------------------------------------ What we believe */}
         <section className="surface-paper py-16 lg:py-28 2xl:py-32">
-          <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+          <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
             <div className="flex flex-col items-center text-center">
               <span className="eyebrow eyebrow-center">What we believe</span>
-              <h2 className="display-heading mt-5 max-w-3xl text-[28px] text-ink sm:text-[40px] lg:text-[48px] dark:text-foreground">
+              <h2 className="display-heading mt-5 max-w-3xl text-[28px] text-ink sm:text-[40px] lg:text-[48px] 2xl:text-[52px] dark:text-foreground">
                 Fresh ingredients. Honest cooking.
               </h2>
             </div>
@@ -163,7 +163,7 @@ export default function AboutPage() {
 
         {/* -------------------------------------------------------- Closing quote */}
         <section className="bg-background py-20 lg:py-28">
-          <div className="mx-auto flex max-w-[1560px] flex-col items-center px-4 text-center sm:px-6 lg:px-10">
+          <div className="mx-auto flex max-w-[1600px] flex-col items-center px-4 text-center sm:px-6 lg:px-10">
             <img src="/savera/quote.png" alt="" aria-hidden className="h-12 w-12 object-contain" />
 
             <p className="mt-10 max-w-4xl font-display text-[24px] font-medium leading-[1.3] text-ink sm:text-[32px] lg:text-[40px] dark:text-foreground">
@@ -179,7 +179,7 @@ export default function AboutPage() {
 
         {/* ------------------------------------------------------------ CTA band */}
         <section className="bg-background pb-16 lg:pb-28 2xl:pb-32">
-          <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+          <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
             <div className="relative overflow-hidden bg-ink">
               <img
                 src="/savera/story-band.jpg"
@@ -196,14 +196,14 @@ export default function AboutPage() {
                   Bring the taste of authentic Indian cooking home
                 </h2>
 
-                <p className="mt-6 max-w-lg text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-white/85">
+                <p className="mt-6 max-w-lg text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.7] text-white/85">
                   From authentic Indian classics to generous family favorites, enjoy freshly prepared dishes made with
                   bold flavors.
                 </p>
 
                 <Link
                   href="/categories"
-                  className="mt-9 inline-flex items-center gap-3 rounded-full bg-white px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft transition-colors hover:bg-brand hover:text-white"
+                  className="mt-9 inline-flex items-center gap-3 rounded-full bg-white px-9 py-4 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-ink-soft transition-colors hover:bg-brand hover:text-white"
                 >
                   Order Now
                   <ArrowUpRight className="h-4 w-4" />

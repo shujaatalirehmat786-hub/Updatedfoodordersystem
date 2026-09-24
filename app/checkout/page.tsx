@@ -225,7 +225,7 @@ export default function CheckoutPage() {
           ]}
         />
 
-        <div className="mx-auto grid max-w-[1560px] gap-10 px-4 py-14 sm:px-6 lg:grid-cols-3 lg:px-10 lg:py-20">
+        <div className="mx-auto grid max-w-[1600px] gap-10 px-4 py-14 sm:px-6 lg:grid-cols-3 lg:px-10 lg:py-20">
           {/* Checkout Form */}
           <div className="lg:col-span-2 space-y-5">
             {/* Order Type */}
@@ -337,7 +337,7 @@ export default function CheckoutPage() {
               <Button
                 onClick={handlePlaceOrder}
                 size="lg"
-                className="mt-7 h-auto w-full rounded-full bg-brand py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] font-normal text-white hover:bg-brand-dark"
+                className="mt-7 h-auto w-full rounded-full bg-brand py-4 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] font-normal text-white hover:bg-brand-dark"
                 disabled={isPlacingOrder}
               >
                 {isPlacingOrder ? (
@@ -353,7 +353,7 @@ export default function CheckoutPage() {
               <Button
                 variant="outline"
                 size="lg"
-                className="mt-3 h-auto w-full rounded-full border-ink/20 bg-transparent py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] font-normal hover:border-brand hover:text-brand dark:border-foreground/25"
+                className="mt-3 h-auto w-full rounded-full border-ink/20 bg-transparent py-4 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] font-normal hover:border-brand hover:text-brand dark:border-foreground/25"
                 onClick={() => router.push("/cart")}
               >
                 Back to Cart

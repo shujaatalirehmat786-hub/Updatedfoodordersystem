@@ -197,7 +197,7 @@ function ProfilePageContent() {
       <Header />
 
       <main className="surface-paper py-10 lg:py-14">
-        <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
           {/* Welcome banner */}
           <section id="overview" className="flex flex-col items-center gap-6 rounded-[16px] bg-card p-7 text-center shadow-[0_10px_30px_rgba(17,17,17,0.06)] sm:flex-row sm:text-left lg:p-10">
             <span className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-cream-light font-display text-[36px] font-semibold text-brand">
@@ -208,7 +208,7 @@ function ProfilePageContent() {
               <h1 className="mt-3 font-display text-[28px] font-semibold text-ink sm:text-[34px] dark:text-foreground">
                 Welcome back, {user.firstName || fullName}
               </h1>
-              <p className="mt-2 text-[15px] lg:text-[17px] 2xl:text-[19px] text-muted-foreground">
+              <p className="mt-2 text-[15px] lg:text-[17px] 2xl:text-[20px] text-muted-foreground">
                 Manage your account, orders and ordering preferences.
               </p>
             </div>
@@ -226,7 +226,7 @@ function ProfilePageContent() {
                     key={section.id}
                     type="button"
                     onClick={() => goToSection(section.id)}
-                    className={`block w-full px-6 py-3 text-left text-[15px] lg:text-[17px] 2xl:text-[19px] transition-colors ${
+                    className={`block w-full px-6 py-3 text-left text-[15px] lg:text-[17px] 2xl:text-[20px] transition-colors ${
                       activeSection === section.id
                         ? "bg-brand text-white"
                         : "text-ink-soft hover:text-brand dark:text-foreground/75"
@@ -240,7 +240,7 @@ function ProfilePageContent() {
                 <button
                   type="button"
                   onClick={logout}
-                  className="flex w-full items-center gap-2 px-6 py-4 text-left text-[15px] lg:text-[17px] 2xl:text-[19px] text-brand transition-colors hover:text-brand-dark"
+                  className="flex w-full items-center gap-2 px-6 py-4 text-left text-[15px] lg:text-[17px] 2xl:text-[20px] text-brand transition-colors hover:text-brand-dark"
                 >
                   <LogOut className="h-4 w-4" />
                   Log out
@@ -264,7 +264,7 @@ function ProfilePageContent() {
                   <button
                     type="button"
                     onClick={() => setEditorOpen(true)}
-                    className="mt-5 inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[19px] text-brand underline-offset-4 transition-colors hover:text-brand-dark hover:underline"
+                    className="mt-5 inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[20px] text-brand underline-offset-4 transition-colors hover:text-brand-dark hover:underline"
                   >
                     <Pencil className="h-4 w-4" />
                     Edit details
@@ -282,7 +282,7 @@ function ProfilePageContent() {
                   <button
                     type="button"
                     onClick={() => setEditorOpen(true)}
-                    className="mt-5 inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[19px] text-brand underline-offset-4 transition-colors hover:text-brand-dark hover:underline"
+                    className="mt-5 inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[20px] text-brand underline-offset-4 transition-colors hover:text-brand-dark hover:underline"
                   >
                     {addressLine ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                     {addressLine ? "Edit address" : "Add address"}
@@ -298,7 +298,7 @@ function ProfilePageContent() {
                   </h2>
                   <Link
                     href="/orders"
-                    className="inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[19px] text-brand transition-colors hover:text-brand-dark"
+                    className="inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[20px] text-brand transition-colors hover:text-brand-dark"
                   >
                     View all
                     <ArrowRight className="h-4 w-4" />
@@ -320,7 +320,7 @@ function ProfilePageContent() {
                       </p>
                       <Link
                         href="/categories"
-                        className="mt-6 inline-block rounded-full bg-brand px-8 py-3.5 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
+                        className="mt-6 inline-block rounded-full bg-brand px-8 py-3.5 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:bg-brand-dark"
                       >
                         Browse the Menu
                       </Link>
@@ -408,7 +408,7 @@ function ProfilePageContent() {
                     <button
                       type="button"
                       onClick={() => setEditorOpen(true)}
-                      className="mt-4 inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[19px] text-brand underline-offset-4 transition-colors hover:text-brand-dark hover:underline"
+                      className="mt-4 inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[20px] text-brand underline-offset-4 transition-colors hover:text-brand-dark hover:underline"
                     >
                       Manage
                       <ArrowRight className="h-4 w-4" />
@@ -425,7 +425,7 @@ function ProfilePageContent() {
                     <button
                       type="button"
                       onClick={() => setEditorOpen(true)}
-                      className="mt-4 inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[19px] text-brand underline-offset-4 transition-colors hover:text-brand-dark hover:underline"
+                      className="mt-4 inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[20px] text-brand underline-offset-4 transition-colors hover:text-brand-dark hover:underline"
                     >
                       Manage
                       <ArrowRight className="h-4 w-4" />
@@ -441,7 +441,7 @@ function ProfilePageContent() {
                     </p>
                     <Link
                       href="/orders"
-                      className="mt-4 inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[19px] text-brand underline-offset-4 transition-colors hover:text-brand-dark hover:underline"
+                      className="mt-4 inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[20px] text-brand underline-offset-4 transition-colors hover:text-brand-dark hover:underline"
                     >
                       Manage
                       <ArrowRight className="h-4 w-4" />
@@ -456,9 +456,9 @@ function ProfilePageContent() {
 
       {/* Closing note */}
       <section className="bg-background py-12">
-        <div className="mx-auto flex max-w-[1560px] flex-col items-center px-4 text-center sm:px-6 lg:px-10">
+        <div className="mx-auto flex max-w-[1600px] flex-col items-center px-4 text-center sm:px-6 lg:px-10">
           <span className="eyebrow eyebrow-center">A note from the kitchen</span>
-          <p className="mt-4 max-w-3xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-ink-soft dark:text-foreground/70">
+          <p className="mt-4 max-w-3xl text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.7] text-ink-soft dark:text-foreground/70">
             Order availability, delivery time and pricing may vary based on demand and location.
           </p>
         </div>

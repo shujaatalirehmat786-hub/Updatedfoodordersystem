@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, useRef, Suspense } from "react"
+import { useCallback, useState, useEffect, useMemo, useRef, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { ArrowLeft, ArrowRight, ChevronDown, LayoutGrid, List, Loader2, SlidersHorizontal } from "lucide-react"
@@ -156,9 +156,46 @@ function MenuCard({
   )
 }
 
-/** Horizontal rail with the design's circular prev/next controls. */
-function Rail({ children }: { children: React.ReactNode }) {
+/**
+ * Horizontal card rail.
+ *
+ * The cards line up with the section's own left and right edges, exactly as in
+ * the design, so the arrows have to live in the page gutter outside that box.
+ * There is only room for them out there once the viewport is wide enough
+ * (1600px container + 2x76px of clearance); below that they sit centred under
+ * the rail, the same placement the design uses for the testimonial carousel.
+ */
+function Rail({
+  children,
+  className = "",
+  controls = "side",
+}: {
+  children: React.ReactNode
+  className?: string
+  /** The design puts the product rails' arrows in the page gutter and the
+      testimonial rail's arrows centred underneath it. */
+  controls?: "side" | "below"
+}) {
   const railRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  const syncScrollState = useCallback(() => {
+    const node = railRef.current
+    if (!node) return
+    const maxScroll = node.scrollWidth - node.clientWidth
+    setCanScrollLeft(node.scrollLeft > 1)
+    setCanScrollRight(maxScroll > 1 && node.scrollLeft < maxScroll - 1)
+  }, [])
+
+  useEffect(() => {
+    syncScrollState()
+    const node = railRef.current
+    if (!node) return
+    const observer = new ResizeObserver(syncScrollState)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [syncScrollState, children])
 
   const scrollBy = (direction: 1 | -1) => {
     const node = railRef.current
@@ -166,25 +203,42 @@ function Rail({ children }: { children: React.ReactNode }) {
     node.scrollBy({ left: direction * Math.max(280, node.clientWidth * 0.8), behavior: "smooth" })
   }
 
+  const arrowBase =
+    "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all disabled:cursor-default disabled:opacity-50"
+  const sideControls = controls === "side"
+  const prevPlacement = sideControls
+    ? "min-[1672px]:absolute min-[1672px]:-left-[76px] min-[1672px]:top-1/2 min-[1672px]:mt-0 min-[1672px]:-translate-y-1/2"
+    : ""
+  const nextPlacement = sideControls
+    ? "min-[1672px]:absolute min-[1672px]:-right-[76px] min-[1672px]:top-1/2 min-[1672px]:mt-0 min-[1672px]:-translate-y-1/2"
+    : ""
+
   return (
     <div className="relative">
-      <div ref={railRef} className="no-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-2">
+      <div
+        ref={railRef}
+        onScroll={syncScrollState}
+        className={`no-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-2 2xl:gap-8 ${className}`}
+      >
         {children}
       </div>
-      <div className="mt-8 flex items-center justify-center gap-4 xl:mt-0">
+
+      <div className={`mt-8 flex items-center justify-center gap-4 ${sideControls ? "min-[1672px]:mt-0" : ""}`}>
         <button
           type="button"
           onClick={() => scrollBy(-1)}
+          disabled={!canScrollLeft}
           aria-label="Previous"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-brand text-brand transition-colors hover:bg-brand hover:text-white xl:absolute xl:-left-16 xl:top-1/2 xl:mt-0 xl:-translate-y-1/2"
+          className={`${arrowBase} border border-brand text-brand hover:bg-brand hover:text-white disabled:hover:bg-transparent disabled:hover:text-brand ${prevPlacement}`}
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
         <button
           type="button"
           onClick={() => scrollBy(1)}
+          disabled={!canScrollRight}
           aria-label="Next"
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white transition-colors hover:bg-brand-dark xl:absolute xl:-right-16 xl:top-1/2 xl:mt-0 xl:-translate-y-1/2"
+          className={`${arrowBase} bg-brand text-white hover:bg-brand-dark disabled:hover:bg-brand ${nextPlacement}`}
         >
           <ArrowRight className="h-4 w-4" />
         </button>
@@ -381,7 +435,7 @@ function CategoriesPageContent() {
             style={{ clipPath: "polygon(0 100%, 0 79.23%, 100% 0, 100% 100%)" }}
           />
 
-          <div className="relative mx-auto grid max-w-[1560px] items-center gap-10 px-4 pb-28 pt-14 sm:px-6 lg:grid-cols-[1.12fr_0.88fr] lg:gap-10 lg:px-10 lg:pb-40 lg:pt-20">
+          <div className="relative mx-auto grid max-w-[1600px] items-center gap-10 px-4 pb-28 pt-14 sm:px-6 lg:grid-cols-[1.12fr_0.88fr] lg:gap-10 lg:px-10 lg:pb-40 lg:pt-20">
             <div className="max-w-3xl">
               <span className="eyebrow">Explore our menu</span>
 
@@ -409,14 +463,14 @@ function CategoriesPageContent() {
 
         {/* ------------------------------------------------------------- Toolbar */}
         <section className="bg-background py-8">
-          <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+          <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setFiltersOpen((open) => !open)}
                   aria-expanded={filtersOpen}
-                  className="inline-flex items-center gap-2.5 rounded-full bg-brand px-7 py-3 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
+                  className="inline-flex items-center gap-2.5 rounded-full bg-brand px-7 py-3 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:bg-brand-dark"
                 >
                   Filter
                   <SlidersHorizontal className="h-4 w-4" />
@@ -427,7 +481,7 @@ function CategoriesPageContent() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <label htmlFor="menu-sort" className="text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft dark:text-foreground/75">
+                <label htmlFor="menu-sort" className="text-[15px] lg:text-[17px] 2xl:text-[20px] text-ink-soft dark:text-foreground/75">
                   Sort by
                 </label>
                 <div className="relative">
@@ -550,15 +604,15 @@ function CategoriesPageContent() {
         {/* ---------------------------------------------------------- Signatures */}
         {signatures.length > 0 && (
           <section className="bg-background pb-16 lg:pb-24 2xl:pb-28">
-            <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+            <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
               <div className="flex flex-col items-center text-center">
                 <span className="eyebrow eyebrow-center">
                   {proseStoreName ? `${proseStoreName} signatures` : "Signatures"}
                 </span>
-                <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] dark:text-foreground">
+                <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] 2xl:text-[50px] dark:text-foreground">
                   A few favorites to start with.
                 </h2>
-                <p className="mt-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft dark:text-foreground/70">
+                <p className="mt-4 text-[15px] lg:text-[17px] 2xl:text-[20px] text-ink-soft dark:text-foreground/70">
                   The dishes our guests order most often.
                 </p>
               </div>
@@ -580,13 +634,13 @@ function CategoriesPageContent() {
 
         {/* -------------------------------------------------------- Complete menu */}
         <section id="products-section" className="surface-paper py-16 lg:py-28 2xl:py-32 2xl:py-28">
-          <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+          <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
             <div className="flex flex-col items-center text-center">
               <span className="eyebrow eyebrow-center">Explore everything</span>
-              <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] dark:text-foreground">
+              <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] 2xl:text-[50px] dark:text-foreground">
                 {activeDepartment ? activeDepartment.name : "Our complete menu."}
               </h2>
-              <p className="mt-4 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-ink-soft dark:text-foreground/70">
+              <p className="mt-4 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.7] text-ink-soft dark:text-foreground/70">
                 {activeDepartment?.description ||
                   "From light bites to hearty meals and sweet endings, find something for every craving."}
               </p>
@@ -621,7 +675,7 @@ function CategoriesPageContent() {
                     <button
                       type="button"
                       onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
-                      className="rounded-full bg-brand px-10 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
+                      className="rounded-full bg-brand px-10 py-4 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:bg-brand-dark"
                     >
                       Load More Items
                     </button>
@@ -633,14 +687,14 @@ function CategoriesPageContent() {
                 <p className="font-display text-[24px] font-semibold text-ink dark:text-foreground">
                   No dishes match these filters
                 </p>
-                <p className="mt-3 text-[15px] lg:text-[17px] 2xl:text-[19px] text-muted-foreground">Try a different category or price range.</p>
+                <p className="mt-3 text-[15px] lg:text-[17px] 2xl:text-[20px] text-muted-foreground">Try a different category or price range.</p>
                 <button
                   type="button"
                   onClick={() => {
                     setSelectedCategory("")
                     setPriceBand("")
                   }}
-                  className="mt-7 rounded-full bg-brand px-8 py-3.5 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
+                  className="mt-7 rounded-full bg-brand px-8 py-3.5 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:bg-brand-dark"
                 >
                   Clear filters
                 </button>
@@ -652,7 +706,7 @@ function CategoriesPageContent() {
         {/* --------------------------------------------------- Breakfast spotlight */}
         {breakfastDepartment && (
           <section className="bg-background py-16 lg:py-28 2xl:py-32">
-            <div className="mx-auto grid max-w-[1560px] items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-20 lg:px-10">
+            <div className="mx-auto grid max-w-[1600px] items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-20 lg:px-10">
               <img
                 src="/savera/breakfast.jpg"
                 alt=""
@@ -662,14 +716,14 @@ function CategoriesPageContent() {
 
               <div>
                 <span className="eyebrow">South Indian favorites</span>
-                <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[38px] lg:text-[46px] dark:text-foreground">
+                <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[38px] lg:text-[46px] 2xl:text-[50px] dark:text-foreground">
                   Start with something fresh.
                 </h2>
-                <p className="mt-6 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.8] text-ink-soft dark:text-foreground/70">
+                <p className="mt-6 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.8] text-ink-soft dark:text-foreground/70">
                   {breakfastDepartment.description ||
                     `From crispy dosas and soft idlis to golden vadas and breakfast combinations, discover authentic South Indian favorites prepared fresh${proseStoreName ? ` at ${proseStoreName}` : ""}.`}
                 </p>
-                <p className="mt-4 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.8] text-ink-soft dark:text-foreground/70">
+                <p className="mt-4 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.8] text-ink-soft dark:text-foreground/70">
                   Every plate is made to order, so it reaches you exactly the way it leaves the kitchen.
                 </p>
                 <button
@@ -678,7 +732,7 @@ function CategoriesPageContent() {
                     setSelectedCategory(breakfastDepartment._id)
                     document.getElementById("products-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
                   }}
-                  className="mt-9 rounded-full bg-brand px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
+                  className="mt-9 rounded-full bg-brand px-9 py-4 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:bg-brand-dark"
                 >
                   Explore {breakfastDepartment.name}
                 </button>
@@ -690,10 +744,10 @@ function CategoriesPageContent() {
         {/* ------------------------------------------------------ Today's specials */}
         {todaysSpecials.length > 0 && (
           <section className="surface-paper py-16 lg:py-28 2xl:py-32">
-            <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+            <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
               <div className="flex flex-col items-center text-center">
                 <span className="eyebrow eyebrow-center">Today's special</span>
-                <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] dark:text-foreground">
+                <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] 2xl:text-[50px] dark:text-foreground">
                   Something special from our kitchen.
                 </h2>
               </div>
@@ -734,7 +788,7 @@ function CategoriesPageContent() {
                     setSortBy("popular")
                     document.getElementById("products-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
                   }}
-                  className="rounded-full bg-brand px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
+                  className="rounded-full bg-brand px-9 py-4 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:bg-brand-dark"
                 >
                   Explore Today's Specials
                 </button>
@@ -746,18 +800,18 @@ function CategoriesPageContent() {
         {/* ------------------------------------------------------ End on a sweet note */}
         {sweetDepartments.length > 0 && (
           <section className="bg-background py-16 lg:py-28 2xl:py-32">
-            <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+            <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
               <div className="flex flex-col items-center text-center">
                 <span className="eyebrow eyebrow-center">Save for something sweet</span>
-                <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] dark:text-foreground">
+                <h2 className="display-heading mt-5 text-[28px] text-ink sm:text-[40px] lg:text-[46px] 2xl:text-[50px] dark:text-foreground">
                   End on a sweet note.
                 </h2>
-                <p className="mt-4 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-ink-soft dark:text-foreground/70">
+                <p className="mt-4 max-w-xl text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.7] text-ink-soft dark:text-foreground/70">
                   Sweet creations made to make every moment special — deliciously crafted treats for the perfect ending.
                 </p>
               </div>
 
-              <div className="mt-14 xl:px-20">
+              <div className="mt-14">
                 <Rail>
                   {sweetDepartments.map((department) => {
                     const count = allProducts.filter(
@@ -773,7 +827,7 @@ function CategoriesPageContent() {
                             .getElementById("products-section")
                             ?.scrollIntoView({ behavior: "smooth", block: "start" })
                         }}
-                        className="group w-[200px] shrink-0 snap-start text-center sm:w-[240px]"
+                        className="group w-[200px] shrink-0 snap-start text-center sm:w-[240px] 2xl:w-[278px]"
                       >
                         <div className="mx-auto aspect-square w-full overflow-hidden rounded-full">
                           <img
@@ -799,7 +853,7 @@ function CategoriesPageContent() {
 
         {/* ------------------------------------------------------------ CTA band */}
         <section className="bg-background pb-16 lg:pb-28 2xl:pb-32">
-          <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+          <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
             <div className="relative overflow-hidden bg-ink">
               <img
                 src="/savera/band-biryani.jpg"
@@ -812,11 +866,11 @@ function CategoriesPageContent() {
               <div className="relative flex flex-col items-center px-6 py-16 text-center sm:px-12 lg:py-28 2xl:py-32">
                 <span className="eyebrow eyebrow-center eyebrow-light normal-case">Ready to order?</span>
 
-                <h2 className="display-heading mt-5 max-w-5xl text-[28px] text-white sm:text-[40px] lg:text-[46px]">
+                <h2 className="display-heading mt-5 max-w-5xl text-[28px] text-white sm:text-[40px] lg:text-[46px] 2xl:text-[50px]">
                   Your favorite flavors are waiting.
                 </h2>
 
-                <p className="mt-5 max-w-2xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-white/85">
+                <p className="mt-5 max-w-2xl text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.7] text-white/85">
                   Choose your favorites, customize your order, and enjoy freshly prepared Indian food
                   {proseStoreName ? ` from ${proseStoreName}` : ""}.
                 </p>
@@ -827,13 +881,13 @@ function CategoriesPageContent() {
                     onClick={() =>
                       document.getElementById("products-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
                     }
-                    className="rounded-full bg-white px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink transition-colors hover:bg-brand hover:text-white"
+                    className="rounded-full bg-white px-9 py-4 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-ink transition-colors hover:bg-brand hover:text-white"
                   >
                     Start Your Order
                   </button>
                   <Link
                     href="/"
-                    className="rounded-full border border-white/60 px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:border-white hover:bg-white hover:text-ink"
+                    className="rounded-full border border-white/60 px-9 py-4 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:border-white hover:bg-white hover:text-ink"
                   >
                     View Categories
                   </Link>

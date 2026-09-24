@@ -73,7 +73,7 @@ export function Header() {
       <header className="sticky top-0 z-50 w-full">
         {/* Utility bar — contact details come from the store record */}
         <div className="bg-ink text-white">
-          <div className="mx-auto flex min-h-[44px] max-w-[1560px] flex-wrap items-center justify-between gap-x-6 gap-y-1 px-4 py-2 sm:px-6 lg:px-10">
+          <div className="mx-auto flex min-h-[44px] max-w-[1600px] flex-wrap items-center justify-between gap-x-6 gap-y-1 px-4 py-2 sm:px-6 lg:px-10">
             <div className="flex items-center gap-2">
               {socialItems.map(({ href, Icon, label }) => (
                 <a
@@ -108,7 +108,7 @@ export function Header() {
 
         {/* Main bar */}
         <div className="surface-paper">
-          <div className="mx-auto flex min-h-[76px] max-w-[1560px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
+          <div className="mx-auto flex min-h-[76px] max-w-[1600px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
             <Link href="/" className="flex shrink-0 items-center gap-3">
               {storeLogo ? (
                 <img src={storeLogo} alt={storeLabel || "Store logo"} className="h-12 w-auto max-w-[210px] object-contain sm:h-16" />
@@ -127,7 +127,7 @@ export function Header() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`text-[15px] lg:text-[17px] 2xl:text-[19px] transition-colors hover:text-brand ${
+                    className={`text-[15px] lg:text-[17px] 2xl:text-[20px] transition-colors hover:text-brand ${
                       active ? "text-brand" : "text-ink-soft dark:text-foreground/80"
                     }`}
                   >
@@ -204,7 +204,7 @@ export function Header() {
 
               <Button
                 asChild
-                className="hidden h-11 rounded-full bg-brand px-7 text-[15px] lg:text-[17px] 2xl:text-[19px] font-normal text-white shadow-none hover:bg-brand-dark sm:inline-flex"
+                className="hidden h-11 rounded-full bg-brand px-7 text-[15px] lg:text-[17px] 2xl:h-14 2xl:px-8 2xl:text-[20px] font-normal text-white shadow-none hover:bg-brand-dark sm:inline-flex"
               >
                 <Link href="/categories">Order Now</Link>
               </Button>
@@ -221,12 +221,12 @@ export function Header() {
 
           {mobileMenuOpen && (
             <div className="border-t border-line/70 bg-cream-light lg:hidden dark:border-border dark:bg-card">
-              <nav className="mx-auto flex max-w-[1560px] flex-col px-4 py-3 sm:px-6">
+              <nav className="mx-auto flex max-w-[1600px] flex-col px-4 py-3 sm:px-6">
                 {NAV_LINKS.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="border-b border-line/60 py-3 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft last:border-0 hover:text-brand dark:border-border dark:text-foreground/80"
+                    className="border-b border-line/60 py-3 text-[15px] lg:text-[17px] 2xl:text-[20px] text-ink-soft last:border-0 hover:text-brand dark:border-border dark:text-foreground/80"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {link.label}

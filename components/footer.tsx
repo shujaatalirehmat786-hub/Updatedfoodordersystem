@@ -66,7 +66,7 @@ export function Footer() {
 
   return (
     <footer className="bg-ink text-white">
-      <div className="mx-auto max-w-[1560px] px-4 py-16 sm:px-6 lg:px-10 lg:py-20">
+      <div className="mx-auto max-w-[1600px] px-4 py-16 sm:px-6 lg:px-10 lg:py-20">
         {/* Closing call to action */}
         <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-20">
           <h2 className="font-display text-[34px] font-medium leading-[1.15] sm:text-[44px] lg:text-[56px]">
@@ -74,11 +74,11 @@ export function Footer() {
           </h2>
           <div className="space-y-7">
             {storeDescription && (
-              <p className="max-w-xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.75] text-white/75">{storeDescription}</p>
+              <p className="max-w-xl text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.75] text-white/75">{storeDescription}</p>
             )}
             <Link
               href="/categories"
-              className="inline-flex items-center gap-3 rounded-full bg-white px-7 py-3.5 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink transition-colors hover:bg-brand hover:text-white"
+              className="inline-flex items-center gap-3 rounded-full bg-white px-7 py-3.5 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-ink transition-colors hover:bg-brand hover:text-white"
             >
               Order Now
               <ArrowUpRight className="h-4 w-4" />
@@ -99,7 +99,7 @@ export function Footer() {
               )}
             </Link>
             {storeDescription && (
-              <p className="mt-6 max-w-sm text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-white/75">{storeDescription}</p>
+              <p className="mt-6 max-w-sm text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.7] text-white/75">{storeDescription}</p>
             )}
 
             {socialItems.length > 0 && (
@@ -125,7 +125,7 @@ export function Footer() {
 
           <div className="lg:border-l lg:border-dotted lg:border-white/30 lg:pl-10">
             <h3 className="font-display text-2xl font-medium">Quick Links:</h3>
-            <ul className="mt-5 space-y-3 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white/80">
+            <ul className="mt-5 space-y-3 text-[15px] lg:text-[17px] 2xl:text-[20px] text-white/80">
               <li>
                 <Link href="/" className="transition-colors hover:text-brand">
                   Home
@@ -152,7 +152,7 @@ export function Footer() {
           <div className="lg:border-l lg:border-dotted lg:border-white/30 lg:pl-10">
             <h3 className="font-display text-2xl font-medium">Our Menu</h3>
             {departments.length > 0 ? (
-              <ul className="mt-5 space-y-3 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white/80">
+              <ul className="mt-5 space-y-3 text-[15px] lg:text-[17px] 2xl:text-[20px] text-white/80">
                 {departments.slice(0, 8).map((department) => (
                   <li key={department._id}>
                     <Link
@@ -165,7 +165,7 @@ export function Footer() {
                 ))}
               </ul>
             ) : (
-              <p className="mt-5 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white/50">Menu categories load from the store.</p>
+              <p className="mt-5 text-[15px] lg:text-[17px] 2xl:text-[20px] text-white/50">Menu categories load from the store.</p>
             )}
           </div>
 
@@ -174,22 +174,22 @@ export function Footer() {
             {contactItems.length > 0 ? (
               <ul className="mt-5 space-y-5">
                 {contactItems.map(({ Icon, value, href }) => (
-                  <li key={value} className="flex items-start gap-4">
-                    <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/40">
+                  <li key={value} className="flex items-center gap-4">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/40">
                       <Icon className="h-[17px] w-[17px]" />
                     </span>
                     {href ? (
-                      <a href={href} className="text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.6] text-white/80 transition-colors hover:text-brand">
+                      <a href={href} className="text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.6] text-white/80 transition-colors hover:text-brand">
                         {value}
                       </a>
                     ) : (
-                      <span className="text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.6] text-white/80">{value}</span>
+                      <span className="text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.6] text-white/80">{value}</span>
                     )}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="mt-5 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white/50">Contact details load from the store.</p>
+              <p className="mt-5 text-[15px] lg:text-[17px] 2xl:text-[20px] text-white/50">Contact details load from the store.</p>
             )}
           </div>
         </div>

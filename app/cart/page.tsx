@@ -24,19 +24,19 @@ export default function CartPage() {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="surface-paper">
-          <div className="mx-auto max-w-[1560px] px-4 py-24 text-center sm:px-6 lg:px-10 lg:py-32">
+          <div className="mx-auto max-w-[1600px] px-4 py-24 text-center sm:px-6 lg:px-10 lg:py-32">
             <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-brand/40 text-brand">
               <ShoppingBag className="h-8 w-8" />
             </span>
             <h1 className="display-heading mt-8 text-[30px] text-ink sm:text-[42px] dark:text-foreground">
               Your cart is empty
             </h1>
-            <p className="mt-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft dark:text-foreground/70">
+            <p className="mt-4 text-[15px] lg:text-[17px] 2xl:text-[20px] text-ink-soft dark:text-foreground/70">
               Add a few dishes from the menu to get started.
             </p>
             <Link
               href="/categories"
-              className="mt-9 inline-block rounded-full bg-brand px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
+              className="mt-9 inline-block rounded-full bg-brand px-9 py-4 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:bg-brand-dark"
             >
               Browse the Menu
             </Link>
@@ -56,14 +56,14 @@ export default function CartPage() {
 
       <main>
         <section className="surface-paper py-14 lg:py-28 2xl:py-32 2xl:py-28">
-          <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-10">
+          <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
             {/* Masthead */}
             <div className="flex flex-col items-center text-center">
               <span className="eyebrow eyebrow-center">Your selection</span>
-              <h1 className="display-heading mt-5 text-[32px] text-ink sm:text-[44px] lg:text-[52px] dark:text-foreground">
+              <h1 className="display-heading mt-5 text-[32px] text-ink sm:text-[44px] lg:text-[52px] 2xl:text-[56px] dark:text-foreground">
                 Your cart
               </h1>
-              <p className="mt-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft dark:text-foreground/70">
+              <p className="mt-4 text-[15px] lg:text-[17px] 2xl:text-[20px] text-ink-soft dark:text-foreground/70">
                 Review your items and continue securely to checkout.
               </p>
             </div>
@@ -76,7 +76,7 @@ export default function CartPage() {
                 <h2 className="font-display text-[24px] font-semibold text-ink sm:text-[28px] dark:text-foreground">
                   Your items
                 </h2>
-                <p className="text-[15px] lg:text-[17px] 2xl:text-[19px] text-muted-foreground">
+                <p className="text-[15px] lg:text-[17px] 2xl:text-[20px] text-muted-foreground">
                   {cart.totalItems} {cart.totalItems === 1 ? "item" : "items"} in your cart
                 </p>
               </div>
@@ -149,7 +149,7 @@ export default function CartPage() {
                           <button
                             type="button"
                             onClick={() => removeFromCart(index)}
-                            className="text-[15px] lg:text-[17px] 2xl:text-[19px] text-brand transition-colors hover:text-brand-dark"
+                            className="text-[15px] lg:text-[17px] 2xl:text-[20px] text-brand transition-colors hover:text-brand-dark"
                           >
                             Remove
                           </button>
@@ -169,26 +169,26 @@ export default function CartPage() {
                 <div className="sticky top-32 rounded-[16px] bg-card p-7 shadow-[0_10px_30px_rgba(17,17,17,0.06)] sm:p-9">
                   <div className="space-y-5">
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft dark:text-foreground/75">Subtotal</span>
+                      <span className="text-[15px] lg:text-[17px] 2xl:text-[20px] text-ink-soft dark:text-foreground/75">Subtotal</span>
                       <span className="text-[16px] font-semibold text-ink dark:text-foreground">
                         {currency}
                         {Number(cart.subTotal).toFixed(2)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft dark:text-foreground/75">Tax</span>
+                      <span className="text-[15px] lg:text-[17px] 2xl:text-[20px] text-ink-soft dark:text-foreground/75">Tax</span>
                       <span className="text-[16px] font-semibold text-ink dark:text-foreground">
                         {currency}
                         {Number(cart.totalTax).toFixed(2)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft dark:text-foreground/75">Delivery</span>
-                      <span className="text-[15px] lg:text-[17px] 2xl:text-[19px] text-muted-foreground">Calculated at checkout</span>
+                      <span className="text-[15px] lg:text-[17px] 2xl:text-[20px] text-ink-soft dark:text-foreground/75">Delivery</span>
+                      <span className="text-[15px] lg:text-[17px] 2xl:text-[20px] text-muted-foreground">Calculated at checkout</span>
                     </div>
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink-soft dark:text-foreground/75">Discount</span>
-                      <span className="text-[15px] lg:text-[17px] 2xl:text-[19px] text-muted-foreground">
+                      <span className="text-[15px] lg:text-[17px] 2xl:text-[20px] text-ink-soft dark:text-foreground/75">Discount</span>
+                      <span className="text-[15px] lg:text-[17px] 2xl:text-[20px] text-muted-foreground">
                         {totalDiscount > 0 ? `−${currency}${totalDiscount.toFixed(2)}` : "– – – –"}
                       </span>
                     </div>
@@ -236,7 +236,7 @@ export default function CartPage() {
                       </p>
                       <Link
                         href="/contacts"
-                        className="mt-4 inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[19px] text-brand transition-colors hover:text-brand-dark"
+                        className="mt-4 inline-flex items-center gap-2 text-[15px] lg:text-[17px] 2xl:text-[20px] text-brand transition-colors hover:text-brand-dark"
                       >
                         Find a store
                         <ArrowRight className="h-4 w-4" />
@@ -246,7 +246,7 @@ export default function CartPage() {
 
                   <Link
                     href="/categories"
-                    className="mt-7 block w-full rounded-full border border-ink/20 px-8 py-4 text-center text-[15px] lg:text-[17px] 2xl:text-[19px] text-ink transition-colors hover:border-brand hover:text-brand dark:border-foreground/25 dark:text-foreground"
+                    className="mt-7 block w-full rounded-full border border-ink/20 px-8 py-4 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-center text-[15px] lg:text-[17px] 2xl:text-[23px] text-ink transition-colors hover:border-brand hover:text-brand dark:border-foreground/25 dark:text-foreground"
                   >
                     Continue Shopping
                   </Link>
@@ -258,9 +258,9 @@ export default function CartPage() {
 
         {/* Responsibility note */}
         <section className="bg-background py-12">
-          <div className="mx-auto flex max-w-[1560px] flex-col items-center px-4 text-center sm:px-6 lg:px-10">
+          <div className="mx-auto flex max-w-[1600px] flex-col items-center px-4 text-center sm:px-6 lg:px-10">
             <span className="eyebrow eyebrow-center">Shop responsibly</span>
-            <p className="mt-4 max-w-3xl text-[15px] lg:text-[17px] 2xl:text-[19px] leading-[1.7] text-ink-soft dark:text-foreground/70">
+            <p className="mt-4 max-w-3xl text-[15px] lg:text-[17px] 2xl:text-[20px] leading-[1.7] text-ink-soft dark:text-foreground/70">
               Please enjoy responsibly. Item availability, pricing and delivery options may vary by location.
             </p>
           </div>

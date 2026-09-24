@@ -105,20 +105,20 @@ export default function OrdersPage() {
           ]}
         />
 
-        <div className="mx-auto max-w-[1560px] px-4 py-14 sm:px-6 lg:px-10 lg:py-20">
+        <div className="mx-auto max-w-[1600px] px-4 py-14 sm:px-6 lg:px-10 lg:py-20">
         {orders.length === 0 ? (
           <div className="mx-auto max-w-2xl py-10 text-center">
             <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-brand/40 text-brand">
               <Package className="h-8 w-8" />
             </span>
             <h2 className="display-heading mt-8 text-[28px] text-ink dark:text-foreground">No orders yet</h2>
-            <p className="mt-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-muted-foreground">
+            <p className="mt-4 text-[15px] lg:text-[17px] 2xl:text-[20px] text-muted-foreground">
               Your completed orders will appear here.
             </p>
             <button
               type="button"
               onClick={() => router.push("/categories")}
-              className="mt-8 rounded-full bg-brand px-9 py-4 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
+              className="mt-8 rounded-full bg-brand px-9 py-4 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:bg-brand-dark"
             >
               Browse the Menu
             </button>

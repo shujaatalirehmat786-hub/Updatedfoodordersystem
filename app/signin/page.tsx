@@ -287,7 +287,7 @@ function SignInContent() {
                 <button
                   type="button"
                   onClick={() => switchMode(mode === "new" ? "existing" : "new")}
-                  className="mt-6 inline-flex items-center gap-2.5 rounded-full bg-brand px-8 py-3.5 text-[15px] lg:text-[17px] 2xl:text-[19px] text-white transition-colors hover:bg-brand-dark"
+                  className="mt-6 inline-flex items-center gap-2.5 rounded-full bg-brand px-8 py-3.5 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:bg-brand-dark"
                 >
                   {mode === "new" ? "Sign In" : "Create An Account"}
                   <ArrowRight className="h-4 w-4" />
