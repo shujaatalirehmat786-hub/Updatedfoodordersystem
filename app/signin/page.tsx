@@ -284,14 +284,25 @@ function SignInContent() {
                     ? "Sign in to pick up right where you left off."
                     : "Create an account to save your favorites, track orders and order faster."}
                 </p>
-                <button
-                  type="button"
-                  onClick={() => switchMode(mode === "new" ? "existing" : "new")}
-                  className="mt-6 inline-flex items-center gap-2.5 rounded-full bg-brand px-8 py-3.5 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:bg-brand-dark"
-                >
-                  {mode === "new" ? "Sign In" : "Create An Account"}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
+                {/* Registration has its own page; signing in stays here. */}
+                {mode === "new" ? (
+                  <button
+                    type="button"
+                    onClick={() => switchMode("existing")}
+                    className="mt-6 inline-flex items-center gap-2.5 rounded-full bg-brand px-8 py-3.5 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:bg-brand-dark"
+                  >
+                    Sign In
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <Link
+                    href="/signup"
+                    className="mt-6 inline-flex items-center gap-2.5 rounded-full bg-brand px-8 py-3.5 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:bg-brand-dark"
+                  >
+                    Create An Account
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                )}
               </div>
             </div>
           )}
