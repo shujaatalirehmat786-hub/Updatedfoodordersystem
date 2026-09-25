@@ -82,6 +82,19 @@ function splitStoryText(description?: string): { headline: string | null; body: 
   return { headline: trimmed.length <= 120 ? trimmed : null, body: null }
 }
 
+/**
+ * The hero headline is drawn as two lines at different sizes in the design —
+ * the opening sentence large, whatever follows noticeably smaller. Split on the
+ * first sentence break so a headline coming from the store record gets the same
+ * treatment; a headline with no break simply stays on one line.
+ */
+function splitHeadlineLines(headline: string): { lead: string; trail: string | null } {
+  const trimmed = headline.trim()
+  const match = trimmed.match(/^([\s\S]+?[.!?])\s+([\s\S]+)$/)
+  if (!match) return { lead: trimmed, trail: null }
+  return { lead: match[1], trail: match[2] }
+}
+
 function Eyebrow({
   children,
   centered = false,
@@ -326,6 +339,10 @@ function HomePageContent() {
   const storeName = getStoreName(store) || store?.subdomain || ""
   const aboutText = useMemo(() => getAboutText(getStoreDescription(store), storeName), [store, storeName])
   const { headline: storyHeadline, body: storyBody } = useMemo(() => splitStoryText(aboutText), [aboutText])
+  const heroHeadline = useMemo(
+    () => splitHeadlineLines(storyHeadline || "Bold flavors. Authentic Indian soul."),
+    [storyHeadline],
+  )
 
   const currency = getCurrencySymbol(store)
   /** Store names sometimes carry trailing punctuation that reads badly mid-sentence. */
@@ -383,41 +400,53 @@ function HomePageContent() {
           */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-[45.7%] bg-brand"
-            style={{ clipPath: "polygon(0 100%, 0 85.26%, 100% 0, 100% 100%)" }}
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-[45.7%] bg-brand 2xl:h-[24.79vw]"
+            style={{ clipPath: "polygon(0 100%, 0 85.64%, 100% 0, 100% 100%)" }}
           />
 
-          <div className="relative mx-auto grid max-w-[1600px] items-center gap-10 px-4 pb-32 pt-14 sm:px-6 lg:grid-cols-[1fr_0.85fr] lg:gap-8 lg:px-10 lg:pb-44 lg:pt-20">
-            <div className="max-w-2xl">
+          <div className="relative mx-auto grid max-w-[1600px] items-center gap-10 px-4 pb-32 pt-14 sm:px-6 lg:grid-cols-[1fr_0.85fr] lg:gap-8 lg:px-10 lg:pb-44 lg:pt-20 2xl:mx-0 2xl:max-w-none 2xl:grid-cols-[818px_1fr] 2xl:items-start 2xl:pb-[80px] 2xl:pl-[max(40px,calc((100vw-1520px)/2))] 2xl:pr-6 2xl:pt-[179px]">
+            <div className="max-w-2xl 2xl:max-w-[818px]">
               {storeName && <Eyebrow>{storeName}</Eyebrow>}
 
-              <h1 className="display-heading mt-6 text-[40px] text-ink sm:text-[56px] lg:text-[88px] 2xl:text-[110px] dark:text-foreground">
-                {storyHeadline || "Bold flavors. Freshly made."}
+              {/*
+                Two lines at two sizes, as drawn: the opening sentence at 110px
+                over the remainder at 65px, measured off the 1920px frame.
+              */}
+              <h1 className="display-heading mt-6 text-[40px] text-ink sm:text-[56px] lg:text-[88px] 2xl:mt-[23px] 2xl:text-[110px] 2xl:leading-[0.95] dark:text-foreground">
+                {heroHeadline.lead}
+                {heroHeadline.trail && (
+                  <span className="block text-[0.591em] 2xl:leading-[1.06]">{heroHeadline.trail}</span>
+                )}
               </h1>
 
-              <p className="mt-7 max-w-xl text-[15px] lg:text-[19px] 2xl:text-[21px] leading-[1.75] text-ink-soft sm:text-base dark:text-foreground/75">
+              <p className="mt-7 max-w-xl text-[15px] lg:text-[19px] 2xl:mt-[35px] 2xl:max-w-[818px] 2xl:text-[22px] leading-[1.75] 2xl:leading-[1.6] text-ink-soft sm:text-base dark:text-foreground/75">
                 {storyBody ||
                   (storyHeadline ? null : aboutText) ||
-                  `Browse the full menu${storeName ? ` from ${storeName}` : ""} and order online — every dish, price and category comes straight from the kitchen.`}
+                  "From South Indian breakfast favorites to aromatic biryanis, flavorful curries, and freshly prepared specialties — discover food made with authentic spices, fresh ingredients, and a whole lot of heart."}
               </p>
 
-              <div className="mt-10 flex flex-wrap items-center gap-4">
+              <div className="mt-10 flex flex-wrap items-center gap-4 2xl:mt-[49px] 2xl:gap-[23px]">
                 <Link
                   href="/categories"
-                  className="rounded-full bg-brand px-10 py-4 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:bg-brand-dark sm:text-base"
+                  className="inline-flex items-center justify-center rounded-full bg-brand px-10 py-4 2xl:h-[77px] 2xl:min-w-[245px] 2xl:px-12 2xl:py-0 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-white transition-colors hover:bg-brand-dark sm:text-base"
                 >
                   Order Now
                 </Link>
                 <Link
                   href="/categories"
-                  className="rounded-full border border-brand bg-white px-10 py-4 2xl:px-12 2xl:py-5 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-ink transition-colors hover:bg-brand hover:text-white sm:text-base"
+                  className="inline-flex items-center justify-center rounded-full border border-brand bg-white px-10 py-4 2xl:h-[77px] 2xl:min-w-[245px] 2xl:px-[47px] 2xl:py-0 2xl:leading-[1.2] text-[15px] lg:text-[17px] 2xl:text-[23px] text-ink transition-colors hover:bg-brand hover:text-white sm:text-base"
                 >
                   Explore Menu
                 </Link>
               </div>
             </div>
 
-            <div className="relative mx-auto w-full max-w-[520px] lg:max-w-none">
+            {/*
+              The dish sits further right than the text container allows, almost
+              flush to the viewport edge. Shift it out only once the page gutter
+              is wide enough to show it whole; the section clips any remainder.
+            */}
+            <div className="relative mx-auto w-full max-w-[520px] lg:max-w-none 2xl:-mt-[112px] 2xl:ml-auto 2xl:mr-0 2xl:w-full 2xl:max-w-[789px]">
               <img
                 src={heroImage}
                 alt={storeName || "Featured dish"}
